@@ -1,0 +1,34 @@
+{
+    "translation": {
+        "defaultScreen":{
+            "welcome":"Welcome to Places",
+            "alreadyMember":"Already a member?",
+            "clickToLogIn":"Go to LogIn",
+            "description":"Welcome to Places, the premier networking hub where business minds meet.",
+            "motto":"where business meets opportunity",
+            "joinPlaces":"Join Places",
+            "clickToSignUp":"Sign Up",
+            "noAccount":"Don't have an account?"
+        },
+        "signUpScreen":{
+          "signUp":"Sign Up",
+          "firstName":"First Name",
+          "lastName":"Last Name",
+          "username":"Username",
+          "email":"Email",
+          "phoneNumber":"Phone Number", 
+          "city":"City",
+          "interest":"Interest"
+      },
+      "buttons":{
+        "signUp":"Sign Up",
+        "logIn":"Login"
+    },
+     
+      "this line is translated":"This line is translated",
+      "aboutUs":"About Us",
+      "signUp":"Sign Up",
+      "english":"English",
+      "romana":"Romanian"
+    }
+  }

@@ -1,20 +1,30 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import * as React from 'react'
+import { NavigationContainer } from '@react-navigation/native'
+import { createStackNavigator } from '@react-navigation/stack'
+import { SafeAreaView, StatusBar, StyleSheet, View } from 'react-native'
+import StackNavigator from './src/Navigation/StackNavigator'
+import Navbar from './src/Components/Navbar'
+import {
+  useFonts,
+  OpenSans_300Light_Italic,
+  OpenSans_300Light,
+} from '@expo-google-fonts/open-sans'
+import './src/TranslationFiles/i18n'
+import { DarkModeProvider } from './src/Context/DarkModeContext'
+import { UserProvider } from './src/Context/AuthContext'
+import { TapGestureHandler } from 'react-native-gesture-handler'
+
+const Stack = createStackNavigator()
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+  let [fontsLoaded, fontError] = useFonts({
+    OpenSans_300Light_Italic,
+    OpenSans_300Light,
+  })
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+  if (!fontsLoaded && !fontError) {
+    return null
+  }
+
+  return <StackNavigator />
+}

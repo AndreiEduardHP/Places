@@ -4,27 +4,41 @@
     "slug": "places",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Icons/logo.jpg",
     "userInterfaceStyle": "light",
+    "scheme": "places",
     "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "image": "./assets/Icons/logo.jpg",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ]
     ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.andreihp.places"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Icons/logo.jpg",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.andreihp.places"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/Icons/logo.jpg"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "618d47d2-fe5b-40fa-bd03-cd8d5beaa6ef"
+      }
     }
   }
 }
