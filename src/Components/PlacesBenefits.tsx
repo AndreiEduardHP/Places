@@ -21,20 +21,20 @@ type Person = {
 const DATA: Person[] = [
   {
     id: '1',
-    title: 'David Borg',
-    description: 'Twice Frying wings',
+    title: 'Exclusive Networking Opportunities',
+    description: 'Access to Premium Networking Events and Forums',
     backgroundImage: require('../../assets/premiumUser/lounge.jpg'),
   },
   {
     id: '2',
-    title: 'David Borg',
-    description: 'Twice Frying wings',
+    title: 'Advanced Analytics and Insights',
+    description: 'In-Depth Business Analytics and Performance Reports',
     backgroundImage: require('../../assets/premiumUser/piscina.jpeg'),
   },
   {
     id: '3',
-    title: 'David Borg',
-    description: 'Twice Frying wings',
+    title: 'Advanced Analytics and Insights',
+    description: ' In-Depth Business Analytics and Performance Reports',
     backgroundImage: require('../../assets/premiumUser/birou.jpeg'),
   },
 ]
@@ -81,14 +81,16 @@ const PlacesBenefits: React.FC = () => {
 
 const styles = StyleSheet.create({
   item: {
-    backgroundColor: 'rgba(255, 255, 255, 1)',
-    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 10,
     marginVertical: 8,
+    opacity: 0.87,
     marginLeft: 16,
     borderRadius: 6,
     borderColor: 'rgba(0,0,0,0.5)',
     borderWidth: 1,
     width: 300,
+
     ...Platform.select({
       ios: {
         shadowColor: 'rgba(0, 0, 0, 1)',
@@ -101,21 +103,12 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  itemBackground: {
-    // overflow: 'hidden', // Clip the content to the card's bounds
-  },
-  profileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
+
   userName: {
-    fontSize: 26,
+    fontSize: 20,
     marginLeft: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
     color: 'white',
     textShadowColor: 'black',
     textShadowOffset: { width: 0, height: 0 },
@@ -123,27 +116,11 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
-    marginTop: 5,
-    color: 'white',
+    marginTop: 15,
+    color: 'rgba(250,250,250,1)',
     textShadowColor: 'black',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowOffset: { width: 1, height: 2 },
     textShadowRadius: 3,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  stats: {
-    fontSize: 14,
-  },
-  connect: {
-    fontSize: 14,
-    alignSelf: 'flex-end',
-    marginTop: 10,
-    borderWidth: 2,
-    borderRadius: 10,
-    padding: 5,
   },
 })
 

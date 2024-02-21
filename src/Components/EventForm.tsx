@@ -22,23 +22,32 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as ImagePicker from 'expo-image-picker'
 import { ImageConfig } from '../config/imageConfig'
+import { useNotification } from './Notification/NotificationProvider'
 
 interface EditFormProps {
   latitude?: number // Optional number type for latitude
   longitude?: number // Optional number type for longitude
+  onEventAdded?: () => void
+  setAddNewEvent: React.Dispatch<React.SetStateAction<boolean>> // Add this prop
 }
 
-const EditForm: React.FC<EditFormProps> = ({ latitude, longitude }) => {
+const EditForm: React.FC<EditFormProps> = ({
+  latitude,
+  longitude,
+  onEventAdded,
+  setAddNewEvent,
+}) => {
+  const [date, setDate] = useState(new Date('2024-02-09T00:50:00+00:00'))
+  const { showNotificationMessage } = useNotification()
   const [formData, setFormData] = useState({
     eventName: '',
     eventDescription: '',
     eventImage: '',
-    eventTime: '',
+    eventTime: date.toLocaleString(),
     locationLatitude: latitude ? latitude.toString() : '', // Set latitude if provided, otherwise empty string
     locationLongitude: longitude ? longitude.toString() : '', // Set longitude if provided, otherwise empty string
     maxParticipants: '',
   })
-  const [date, setDate] = useState(new Date('2024-02-09T00:50:00+00:00'))
 
   const [eventImg, setEventImg] = useState<any>()
 
@@ -50,9 +59,6 @@ const EditForm: React.FC<EditFormProps> = ({ latitude, longitude }) => {
     setDate(currentDate)
     handleChange('eventTime', date)
   }
-  useEffect(() => {
-    console.log(formData) // This will log formData every time it changes
-  }, [formData]) //
 
   const handleChange = (name: any, value: any) => {
     setFormData({
@@ -80,9 +86,6 @@ const EditForm: React.FC<EditFormProps> = ({ latitude, longitude }) => {
       await setEventImg(image.base64)
 
       await handleChange('eventImage', image.base64)
-      //  await console.log(formData.eventImage)
-
-      // Replace '2' with the actual userProfileId
     } else {
       console.log('Image picking was cancelled or failed')
     }
@@ -90,6 +93,10 @@ const EditForm: React.FC<EditFormProps> = ({ latitude, longitude }) => {
 
   const createEvent = async () => {
     console.log(latitude, longitude)
+
+    formData.eventTime = new Date().toISOString()
+
+    console.log(formData.eventTime)
     try {
       const response = await axios.post(
         `${config.BASE_URL}/api/Event`,
@@ -101,11 +108,16 @@ const EditForm: React.FC<EditFormProps> = ({ latitude, longitude }) => {
 
       if (response.status === 200) {
         console.log('Image uploaded successfully')
+        setAddNewEvent(false) // Close the bottom drawer when event is added
+        showNotificationMessage('Event added succesfully', 'success')
+        if (typeof onEventAdded === 'function') {
+          onEventAdded()
+        }
       } else {
-        console.error('Image upload failed')
+        showNotificationMessage('Something went wrong', 'fail')
       }
     } catch (error) {
-      console.error('Network error:', error)
+      showNotificationMessage('Something went wrong', 'fail')
     }
   }
 
@@ -124,6 +136,41 @@ const EditForm: React.FC<EditFormProps> = ({ latitude, longitude }) => {
           onChangeText={(text) => handleChange('eventDescription', text)}
           style={styles.input}
         />
+
+        <TextInput
+          placeholder="Event Max Participants"
+          value={formData.maxParticipants}
+          onChangeText={(text) => handleChange('maxParticipants', text)}
+          style={styles.input}
+          keyboardType="numeric"
+        />
+        <View
+          style={{
+            flexDirection: 'row',
+            backgroundColor: 'grey',
+            borderRadius: 10,
+          }}>
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={new Date()}
+            mode="date"
+            is24Hour={true}
+            onChange={onChange}
+          />
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={new Date()}
+            mode="time"
+            is24Hour={true}
+            onChange={onChange}
+            style={{}}
+          />
+        </View>
+        {formData.eventTime ? (
+          <Text>Selected date and time: {date.toLocaleString()}</Text>
+        ) : (
+          <Text> {date.toLocaleString()} </Text>
+        )}
         <TouchableOpacity
           onPress={() => {
             selectImage()
@@ -142,43 +189,17 @@ const EditForm: React.FC<EditFormProps> = ({ latitude, longitude }) => {
             <Text>Upload</Text>
           </View>
         </TouchableOpacity>
-
         <Image
           source={{ uri: ImageConfig.IMAGE_CONFIG + eventImg }}
           style={{ width: 100, height: 100 }} // Set the desired image dimensions
         />
-        <TextInput
-          placeholder="Event Max Participants"
-          value={formData.maxParticipants}
-          onChangeText={(text) => handleChange('maxParticipants', text)}
-          style={styles.input}
-          keyboardType="numeric"
-        />
-        <View style={{ flexDirection: 'row' }}>
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={date}
-            mode="date"
-            is24Hour={true}
-            onChange={onChange}
-          />
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={date}
-            mode="time"
-            is24Hour={true}
-            onChange={onChange}
-          />
-        </View>
-        {formData.eventTime ? (
-          <Text>Selected date and time: {date.toLocaleString()}</Text>
-        ) : null}
         <TouchableOpacity
           style={[
             styles.touchable,
             isFormComplete ? disabledButtonStyle : enabledButtonStyle,
+            { width: 125, marginTop: 10 },
           ]}
-          onPress={() => createEvent()}>
+          onPress={createEvent}>
           <Text style={styles.text}>Save</Text>
         </TouchableOpacity>
       </View>
@@ -196,10 +217,11 @@ const styles = StyleSheet.create({
   input: {
     width: '50%',
     margin: 5,
+    height: 25,
     borderRadius: 10,
     borderColor: 'gray',
     borderWidth: 1,
-    paddingHorizontal: 5,
+    paddingHorizontal: 10,
   },
   touchable: {
     borderRadius: 10,

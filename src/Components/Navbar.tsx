@@ -85,7 +85,6 @@ const Navbar: React.FC<NavbarProps> = ({ title }) => {
           onPress={() => handleNavigation('DefaultScreen')}>
           {title}
         </Text>
-        <DarkMode />
       </View>
 
       <View style={styles.buttonsContainer}>

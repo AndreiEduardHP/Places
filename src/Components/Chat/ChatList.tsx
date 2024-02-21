@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native'
 import { ImageConfig } from '../../config/imageConfig'
+import FooterNavbar from '../FooterNavbar'
 
 interface Chat {
   id: number
@@ -23,35 +24,39 @@ interface Props {
 
 const ChatList: React.FC<Props> = ({ chats, onPressChat }) => {
   return (
-    <FlatList
-      data={chats}
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          onPress={() => onPressChat(item.id)}
-          style={styles.chatItem}>
-          <View style={{ flexDirection: 'row' }}>
-            <View>
-              <Image
-                source={
-                  item.imageUri !== ''
-                    ? { uri: ImageConfig.IMAGE_CONFIG + item.imageUri }
-                    : require('../../../assets/DefaultUserIcon.png')
-                }
-                style={styles.image}
-              />
+    <View style={{ flex: 1 }}>
+      <FlatList
+        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)' }}
+        data={chats}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => onPressChat(item.id)}
+            style={styles.chatItem}>
+            <View style={{ flexDirection: 'row' }}>
+              <View>
+                <Image
+                  source={
+                    item.imageUri !== ''
+                      ? { uri: ImageConfig.IMAGE_CONFIG + item.imageUri }
+                      : require('../../../assets/DefaultUserIcon.png')
+                  }
+                  style={styles.image}
+                />
+              </View>
+              <View style={{ paddingTop: 4 }}>
+                <Text style={styles.contactName}>{item.contact}</Text>
+                <Text style={styles.lastMessage}>
+                  Last message: {item.lastMessage}
+                  {item.id}
+                </Text>
+              </View>
             </View>
-            <View style={{ paddingTop: 4 }}>
-              <Text style={styles.contactName}>{item.contact}</Text>
-              <Text style={styles.lastMessage}>
-                Last message: {item.lastMessage}
-                {item.id}
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      )}
-      keyExtractor={(item) => item.id.toString()}
-    />
+          </TouchableOpacity>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+      />
+      <FooterNavbar currentRoute={''} />
+    </View>
   )
 }
 
@@ -64,11 +69,13 @@ const styles = StyleSheet.create({
   contactName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: 'white',
     marginBottom: 5,
   },
   lastMessage: {
     fontSize: 16,
-    color: '#555',
+
+    color: 'white',
   },
   image: {
     width: 50,

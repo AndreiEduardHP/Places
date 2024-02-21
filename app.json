@@ -20,17 +20,26 @@
         }
       ]
     ],
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.andreihp.places"
+      "bundleIdentifier": "com.andreihp.places",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/Icons/logo.jpg",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.andreihp.places"
+      "package": "com.andreihp.places",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/Icons/logo.jpg"
@@ -39,6 +48,9 @@
       "eas": {
         "projectId": "618d47d2-fe5b-40fa-bd03-cd8d5beaa6ef"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/618d47d2-fe5b-40fa-bd03-cd8d5beaa6ef"
     }
   }
 }

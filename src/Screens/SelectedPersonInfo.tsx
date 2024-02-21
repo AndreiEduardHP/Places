@@ -14,6 +14,7 @@ import {
   Animated,
   ScrollView,
   Linking,
+  ImageBackground,
 } from 'react-native'
 import SignUpForm from '../Components/SignUpFrom'
 import { useUser } from '../Context/AuthContext'
@@ -29,6 +30,7 @@ import { RootStackParamList } from '../Navigation/Types'
 interface Event {
   id: number
   eventImage: string
+  onConnect: () => void
 }
 
 const SelectedPersonInfo: React.FC = () => {
@@ -80,63 +82,85 @@ const SelectedPersonInfo: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {personData ? (
           <View style={styles.personInfoContainer}>
-            <View
-              style={{ marginLeft: 20, marginRight: 30, alignItems: 'center' }}>
-              <Text style={styles.username}>
-                UserName: {personData.username}
-              </Text>
+            <ImageBackground
+              source={require('../../assets/zzz.jpg')}
+              resizeMode="cover"
+              style={styles.scrollContainer}>
+              <View
+                style={{
+                  marginLeft: 20,
+                  marginRight: 30,
+                  alignItems: 'center',
+                }}>
+                <Text style={styles.username}>
+                  UserName: {personData.username}
+                </Text>
 
-              <Image
-                source={{
-                  uri:
+                <Image
+                  source={
                     personData.profilePicture !== ''
-                      ? ImageConfig.IMAGE_CONFIG + personData.profilePicture
-                      : 'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Clipart.png',
-                }}
-                style={styles.avatar}
-              />
-            </View>
-            <View style={styles.infoTextContainer}>
-              <Text style={styles.name}>
-                Name: {personData.firstName} {personData.lastName}
-              </Text>
-              <Text style={styles.info}>Interest: {personData.interest}</Text>
-              <Text style={styles.info}>
-                Friends: {personData.areFriends ? 'Yes' : 'No'}
-              </Text>
-              <Text style={styles.info}>City: {personData.city}</Text>
-              <Text style={styles.info}>Email: {personData.email}</Text>
-              <Text style={styles.info}>
-                Friend Request Status:
-                {personData.friendRequestStatus
-                  ? personData.friendRequestStatus
-                  : 'No friend request sent'}
-              </Text>
-              <Text style={styles.info}>
-                Phone Number: {personData.phoneNumber}
-              </Text>
-              <TouchableOpacity
-                onPress={handleEmail}
-                style={styles.contactButtons}>
-                <Text style={{ color: 'blue' }}>Send Email</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleCall}
-                style={styles.contactButtons}>
-                <Text style={{ color: 'blue' }}>Call</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSMS}
-                style={styles.contactButtons}>
-                <Text style={{ color: 'blue' }}>Send SMS</Text>
-              </TouchableOpacity>
-            </View>
+                      ? {
+                          uri:
+                            ImageConfig.IMAGE_CONFIG +
+                            personData.profilePicture,
+                        }
+                      : require('../../assets/DefaultUserIcon.png')
+                  }
+                  style={styles.avatar}
+                />
+              </View>
+              <View style={styles.infoTextContainer}>
+                <Text style={styles.name}>
+                  Name: {personData.firstName} {personData.lastName}
+                </Text>
+                <Text style={styles.info}>Interest: {personData.interest}</Text>
+                <Text style={styles.info}>
+                  Friends: {personData.areFriends ? 'Yes' : 'No'}
+                </Text>
+                <Text style={styles.info}>City: {personData.city}</Text>
+                <Text style={styles.info}>Email: {personData.email}</Text>
+                <Text style={styles.info}>
+                  Friend Request Status:
+                  {personData.friendRequestStatus
+                    ? personData.friendRequestStatus
+                    : 'No friend request sent'}
+                </Text>
+                <Text style={styles.info}>
+                  Phone Number: {personData.phoneNumber}
+                </Text>
+                <TouchableOpacity
+                  onPress={handleEmail}
+                  style={[styles.contactButtons, { marginTop: 30 }]}>
+                  <Text style={{ color: 'rgba(150,180,255,1)' }}>
+                    Send Email
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleCall}
+                  style={styles.contactButtons}>
+                  <Text style={{ color: 'rgba(150,180,255,1)' }}>Call</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleSMS}
+                  style={styles.contactButtons}>
+                  <Text style={{ color: 'rgba(150,180,255,1)' }}>Send SMS</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.contactButtons}>
+                  <Text style={{ color: 'rgba(150,180,255,1)' }}>
+                    Send Private Message
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ImageBackground>
           </View>
         ) : (
           <Text style={styles.noPersonText}>No person selected</Text>
         )}
+
         <View></View>
       </ScrollView>
+
       <FooterNavbar currentRoute="" />
     </View>
   )
@@ -147,22 +171,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contactButtons: {
-    marginTop: 10,
+    marginTop: 5,
     width: '100%',
   },
   scrollContainer: {
     flex: 1,
+    //  backgroundColor: 'rgba(0,0,0,0.13)',
     //  flexGrow: 1,
     //  justifyContent: 'space-between',
-    paddingVertical: 20,
-    paddingHorizontal: 15,
+    //paddingVertical: 20,
+    //paddingHorizontal: 15,
   },
   personInfoContainer: {
     flex: 1,
     flexDirection: 'row',
+    //backgroundColor: 'black',
     // alignItems: 'center',
     // justifyContent: 'space-between',
-    marginBottom: 20,
+    //marginBottom: 20,
   },
   avatar: {
     width: 100,
@@ -172,22 +198,28 @@ const styles = StyleSheet.create({
   },
   infoTextContainer: {
     flex: 1,
+    marginHorizontal: 25,
+    marginTop: 40,
   },
   username: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
+    color: 'white',
   },
   name: {
     fontSize: 16,
     marginBottom: 5,
+    color: 'white',
   },
   info: {
     fontSize: 14,
     marginBottom: 3,
+    color: 'white',
   },
   noPersonText: {
     textAlign: 'center',
+    color: 'white',
     fontSize: 16,
   },
 })

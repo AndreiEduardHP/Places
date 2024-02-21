@@ -20,6 +20,8 @@ import {
 } from '../Utils.tsx/ComponentColors.tsx/ButtonsColor'
 import Notification from './Notification/Notifications'
 import { useNotification } from './Notification/NotificationProvider'
+import { useNavigation } from '@react-navigation/native'
+import { useHandleNavigation } from '../Navigation/NavigationUtil'
 
 const SignUpForm: React.FC = () => {
   const [imageUrl, setImageUrl] = useState<string>('')
@@ -32,6 +34,7 @@ const SignUpForm: React.FC = () => {
   const [city, setCity] = useState<string>('')
   const [interest, setInterest] = useState<string>('')
   const { showNotificationMessage } = useNotification()
+  const handleNavigation = useHandleNavigation()
   const isFormComplete =
     !email ||
     !phoneNumber ||
@@ -80,7 +83,11 @@ const SignUpForm: React.FC = () => {
         axiosConfig,
       )
       console.log(response.data)
-      //  navigation.replace('DrawerNav');
+      handleNavigation('LoginScreen')
+      showNotificationMessage(
+        'Account successfully created! Proceed to log in!',
+        'success',
+      )
     } catch (err) {
       console.log(err)
     }
@@ -161,19 +168,6 @@ const SignUpForm: React.FC = () => {
         onPress={() => submitUserProfile()}
         disabled={isFormComplete}>
         <Text style={styles.text}>{t('buttons.signUp')}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.touchable,
-          isFormComplete ? disabledButtonStyle : enabledButtonStyle,
-        ]}
-        onPress={() =>
-          showNotificationMessage(
-            'User profile submitted successfully!',
-            'success',
-          )
-        }>
-        <Text style={styles.text}>notify</Text>
       </TouchableOpacity>
     </View>
   )

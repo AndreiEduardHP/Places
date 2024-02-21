@@ -11,6 +11,8 @@ export type RootStackParamList = {
   HomeScreen: SelectedPersonInfoData // Specify parameters expected by HomeScreen
   NewConnectionScreen: undefined
   FriendRequestScreen: undefined
+  PaymentScreen: undefined
+  EditUserProfileScreen: undefined
   SelectedPersonInfo: SelectedPersonInfoData
   Chat: { chatId: number }
 }

@@ -11,6 +11,7 @@ import {
   Image,
   StyleSheet,
   Platform,
+  ImageBackground,
 } from 'react-native'
 import SignUpForm from '../Components/SignUpFrom'
 import { useUser } from '../Context/AuthContext'
@@ -26,54 +27,63 @@ const NewConnectionScreen: React.FC = () => {
   const { loggedUser, handleLogout } = useUser()
 
   return (
-    <LinearGradient
-      colors={[
-        'rgba(255, 255, 255, 1)', // White
-        'rgba(255, 255, 255, 1)', // White (you can adjust the number of whites based on how long you want the white part to extend)
-        'rgba(245, 245, 245, 1)', // Near white to start the transition
-        'rgba(235, 235, 235, 1)', // Light gray to further the transition
-        'rgba(225, 225, 225, 0.7)', // Lighter gray with slight transparency
-        'rgba(200, 200, 200, 0.5)', // Medium gray with more transparency
-        'rgba(175, 215, 237, 0.3)', // Soft blue with transparency
-      ]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}>
-      <View style={styles.container}>
-        {loggedUser ? (
-          <View style={{ flex: 1 }}>
-            <View
-              style={{
-                backgroundColor: 'black',
-                borderTopColor: 'rgba(255,255,255,0.4)',
-                borderTopWidth: 1,
-              }}>
-              <Text style={styles.titleDear}>Dear {loggedUser.firstName}</Text>
+    <ImageBackground
+      source={require('../../assets/party.jpg')} // replace with your image path
+      resizeMode="cover"
+      imageStyle={{ opacity: 0.99 }}
+      style={[styles.container]}>
+      <LinearGradient
+        colors={[
+          'rgba(255, 255, 255, 0.31)', // White
+          'rgba(255, 255, 255, 0.31)', // White (you can adjust the number of whites based on how long you want the white part to extend)
+          'rgba(245, 245, 245, 0.31)', // Near white to start the transition
+          'rgba(235, 235, 235, 0.31)', // Light gray to further the transition
+          'rgba(225, 225, 225, 0.7)', // Lighter gray with slight transparency
+          'rgba(200, 200, 200, 0.5)', // Medium gray with more transparency
+          'rgba(175, 215, 237, 0.3)', // Soft blue with transparency
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}>
+        <View style={styles.container}>
+          {loggedUser ? (
+            <View style={{ flex: 1 }}>
+              <View
+                style={{
+                  backgroundColor: 'black',
+                  borderTopColor: 'rgba(255,255,255,0.4)',
+                  borderTopWidth: 1,
+                }}>
+                <Text style={styles.titleDear}>
+                  Dear {loggedUser.firstName}
+                </Text>
+              </View>
+
+              <Text style={styles.title}>People around you</Text>
+              <PeopleCard />
+              <Text style={styles.title}>Events around you</Text>
+              <EventsAroundYou />
+              <Text style={[styles.title, {}]}>Premium user benefits</Text>
+              <PlacesBenefits />
             </View>
+          ) : (
+            <Text>No user is logged in</Text>
+          )}
 
-            <Text style={styles.title}>People around you</Text>
-            <PeopleCard />
-            <Text style={styles.title}>Events around you</Text>
-            <EventsAroundYou />
-            <Text style={styles.title}>Premium user benefits</Text>
-            <PlacesBenefits />
+          {/* Place FooterNavbar at the bottom */}
+          <View style={styles.footer}>
+            <FooterNavbar currentRoute={'NewConnectionScreen'} />
           </View>
-        ) : (
-          <Text>No user is logged in</Text>
-        )}
-
-        {/* Place FooterNavbar at the bottom */}
-        <View style={styles.footer}>
-          <FooterNavbar currentRoute={'NewConnectionScreen'} />
         </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+    </ImageBackground>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
     // backgroundColor: 'white',
   },
   footer: {
@@ -84,13 +94,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 22,
     paddingLeft: 10,
+    color: 'white',
     letterSpacing: -0.6,
     fontWeight: '400',
     fontFamily: 'Arial',
     ...Platform.select({
       ios: {
-        textShadowColor: '#FFFFFF',
-        textShadowOffset: { width: 0, height: 0 },
+        textShadowColor: 'black',
+        textShadowOffset: { width: 1, height: 1 },
         textShadowRadius: 2,
       },
       android: {

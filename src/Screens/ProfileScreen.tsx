@@ -10,6 +10,7 @@ import {
   ScrollView,
   Platform,
   ImageBackground,
+  Share,
 } from 'react-native'
 import SignUpForm from '../Components/SignUpFrom'
 import LogInForm from '../Components/LogInForm'
@@ -115,13 +116,35 @@ const ProfileScreen: React.FC = () => {
     }
   }, [loggedUser, fetchFriendCount])
 
+  const shareLink = async () => {
+    try {
+      const result = await Share.share({
+        title: 'Check this out!',
+        message: 'Check out this cool app: ',
+        url: 'https://www.places.com',
+      })
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert('error')
+    }
+  }
+
   return (
     <>
       <ScrollView style={styles.container}>
         <ImageBackground
           source={require('../../assets/menu-bg.jpg')} // replace with your image path
           resizeMode="cover"
-          imageStyle={{ opacity: 0.95 }}>
+          imageStyle={{ opacity: 0.86 }}>
           <View style={styles.header}>
             <View
               style={{
@@ -133,12 +156,11 @@ const ProfileScreen: React.FC = () => {
                 paddingLeft: 50,
               }}>
               <Image
-                source={{
-                  uri:
-                    loggedUser?.profilePicture !== ''
-                      ? imageUri
-                      : 'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Clipart.png',
-                }}
+                source={
+                  loggedUser?.profilePicture !== ''
+                    ? { uri: imageUri }
+                    : require('../../assets/DefaultUserIcon.png')
+                }
                 style={styles.profilePic}
               />
               <TouchableOpacity
@@ -225,14 +247,18 @@ const ProfileScreen: React.FC = () => {
               Friend Requests: {friendRequestsCount}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => handleNavigation('PaymentScreen')}>
             <Text style={styles.buttonText}>Payment</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity onPress={shareLink} style={styles.button}>
             <Text style={styles.buttonText}>Tell Your Friend</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Promotions</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => handleNavigation('EditUserProfileScreen')}>
+            <Text style={styles.buttonText}>Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>Settings</Text>
@@ -295,6 +321,7 @@ const ProfileScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: 'rgba(0,0,0,1)',
     flex: 1,
   },
   gradient: {

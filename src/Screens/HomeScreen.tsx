@@ -12,6 +12,7 @@ import {
   StyleSheet,
   FlatList,
   Animated,
+  ScrollView,
 } from 'react-native'
 import SignUpForm from '../Components/SignUpFrom'
 import { useUser } from '../Context/AuthContext'
@@ -38,45 +39,41 @@ const HomeScreen: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'HomeScreen'>>()
   const personData = route.params?.personData
 
-  useEffect(() => {
-    fetchEvents()
-    console.log(personData)
-  }, [])
-
-  const fetchEvents = async () => {
-    try {
-      const response = await axios.get(`${config.BASE_URL}/api/Event`)
-      setEvents(response.data) // Update events state with fetched data
-    } catch (error) {
-      console.error('Error fetching events:', error)
-    }
-  }
-  useEffect(() => {
-    // Function to start the animation
-    const startAnimation = () => {
-      // Reset animation to 0
-      animatedValue.setValue(0)
-      // Start the animation
-      Animated.timing(animatedValue, {
-        toValue: 1,
-        duration: 3000, // Duration of one cycle
-        useNativeDriver: true, // Enable native driver for better performance
-      }).start(() => startAnimation()) // Loop the animation
-    }
-
-    startAnimation()
-  }, [animatedValue])
-
-  const translateX = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-200, 0], // Adjust based on the size of your gradient
-  })
-
   return (
-    <View style={styles.container}>
-      <Text style={{ flex: 0 }}>Home screen</Text>
-
-      <UserProfileForm />
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
+      <Text style={styles.headerText}>Dear {loggedUser?.firstName}</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerText}>About Places</Text>
+        </View>
+        <View style={styles.contentContainer}>
+          <Image
+            source={require('../../assets/world.png')}
+            style={styles.image}
+          />
+          <Text style={styles.title}>Connect with Business Professionals</Text>
+          <Text style={styles.description}>
+            Places is designed to bridge the gap between you and the business
+            world. Whether you're looking for services, partnerships, or just to
+            network, Places brings the business community to your fingertips.
+            Discover local professionals, connect with businesses, and start
+            meaningful conversations that help grow your professional network.
+          </Text>
+          <Text style={styles.featuresTitle}>Features</Text>
+          <Text style={styles.featuresText}>
+            - Discover local businesses and professionals
+          </Text>
+          <Text style={styles.featuresText}>
+            - Connect and network with like-minded individuals
+          </Text>
+          <Text style={styles.featuresText}>
+            - Access business information and services easily
+          </Text>
+          <Text style={styles.featuresText}>
+            - Stay updated with the latest business events and news
+          </Text>
+        </View>
+      </ScrollView>
       <FooterNavbar currentRoute={'HomeScreen'} />
     </View>
   )
@@ -85,22 +82,47 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-
-  eventItemContainer: {
-    flexDirection: 'row',
+    flexGrow: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    padding: 20,
   },
-  eventImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  headerContainer: {
+    marginBottom: 20,
   },
-  eventName: {
-    marginLeft: 10,
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  contentContainer: {
+    width: '100%',
+  },
+  image: {
+    width: '100%',
+    height: 250,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  description: {
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  featuresTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  featuresText: {
+    fontSize: 16,
+    color: '#444',
+    marginBottom: 5,
   },
 })
 

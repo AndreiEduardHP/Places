@@ -39,7 +39,7 @@ const Chat: React.FC = () => {
           `${config.BASE_URL}/api/userprofile/${loggedUser?.id}`,
         )
         const users = response.data
-        // Assuming users is an array of user profiles with the required properties
+
         const chatData = users.map(
           (user: {
             id: any
@@ -51,8 +51,8 @@ const Chat: React.FC = () => {
             id: user.id,
             contact: `${user.firstName} ${user.lastName}`,
             lastMessage: user.lastMessage,
-            imageUri: user.profilePicture, // Assuming profilePicture is the image URI
-            messages: [], // Assuming no messages are fetched initially
+            imageUri: user.profilePicture,
+            messages: [],
           }),
         )
         setChats(chatData)

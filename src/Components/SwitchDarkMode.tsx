@@ -24,9 +24,9 @@ const DarkMode: React.FC<DarkModeProps> = ({ style }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    // flex: 1,
+    // alignItems: 'center',
+    // justifyContent: 'center',
     marginTop: Platform.OS === 'android' ? 0 : 5,
   },
 })

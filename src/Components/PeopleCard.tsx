@@ -71,21 +71,7 @@ const Item: React.FC<ItemProps> = ({
 
   return (
     <LinearGradient
-      colors={[
-        'rgba(243, 243, 112, 0.01)',
-        'rgba(243, 243, 112, 0.03)',
-        'rgba(24, 23, 12, 0.01)',
-        'rgba(0, 0, 0, 0.05)',
-        'rgba(0, 0, 0, 0.15)',
-        'rgba(0, 0, 0, 0.25)',
-        'rgba(0, 0, 0, 0.35)',
-        'rgba(0, 0, 0, 0.45)',
-        'rgba(0, 0, 0, 0.55)',
-        'rgba(0, 0, 0, 0.65)',
-        'rgba(0, 0, 0, 0.75)',
-        'rgba(0, 0, 0, 0.85)',
-        'rgba(0, 0, 0, 0.89)',
-      ]}
+      colors={['rgba(255, 255, 255, 0.21)', 'rgba(2, 2, 2, 0.30)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0.9 }}
       style={styles.item}>
@@ -112,11 +98,11 @@ const Item: React.FC<ItemProps> = ({
           }>
           <Image
             style={styles.profileImage}
-            source={{
-              uri: profilePicture
-                ? ImageConfig.IMAGE_CONFIG + profilePicture
-                : 'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Clipart.png',
-            }}
+            source={
+              profilePicture
+                ? { uri: ImageConfig.IMAGE_CONFIG + profilePicture }
+                : require('../../assets/DefaultUserIcon.png')
+            }
           />
         </TouchableOpacity>
         <View style={{ alignItems: 'center' }}>
@@ -124,7 +110,7 @@ const Item: React.FC<ItemProps> = ({
           <Text
             style={{
               padding: 5,
-              color: 'white',
+              color: 'rgba(255,255,255,1)',
               textShadowColor: 'black',
               textShadowOffset: { width: 0, height: 0 },
               textShadowRadius: 3,
@@ -141,11 +127,11 @@ const Item: React.FC<ItemProps> = ({
       <View style={styles.statsContainer}>
         <Text style={styles.stats}>Interests: {interest}</Text>
       </View>
-      {/* Add functionality for the Connect button */}
+
       <TouchableOpacity style={styles.connect} onPress={onConnect}>
         <Text
           style={{
-            color: 'white',
+            color: 'rgba(255,255,255,1)',
             textShadowColor: 'black',
             textShadowOffset: { width: 0, height: 0 },
             textShadowRadius: 3,
@@ -166,9 +152,10 @@ const PeopleCard: React.FC = () => {
   const { loggedUser } = useUser()
   const { showNotificationMessage } = useNotification()
   const handleNavigation = useHandleNavigation()
+  const [refreshTrigger, setRefreshTrigger] = useState(false)
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [refreshTrigger])
 
   const fetchData = async () => {
     try {
@@ -190,7 +177,7 @@ const PeopleCard: React.FC = () => {
     } else if (friendRequestStatus === 'Accepted') {
       handleNavigation('Chat', { chatId: personId })
     } else {
-      handleConnect(personId) // Call onConnect function if not pending or message
+      handleConnect(personId)
     }
   }
 
@@ -205,15 +192,14 @@ const PeopleCard: React.FC = () => {
         `${config.BASE_URL}/api/Friend/sendFriendRequest`,
         requestBody,
       )
+      setRefreshTrigger((prev) => !prev)
 
-      console.log(response.data) // Log success message
-      // Optionally update the state to reflect the change in friend status
+      console.log(response.data)
     } catch (error) {
       console.error('Error sending friend request:', error)
     }
   }
 
-  // Inside your functional component
   const renderItem = ({ item }: { item: Person }) => {
     return (
       <Item
@@ -231,7 +217,7 @@ const PeopleCard: React.FC = () => {
         phoneNumber={item.phoneNumber}
         email={item.email}
         city={item.city}
-        currentLocationId={item.currentLocationId} // Assuming each item in data already has an `areFriends` property
+        currentLocationId={item.currentLocationId}
       />
     )
   }
@@ -279,12 +265,13 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 50,
     zIndex: 20,
+    opacity: 0.9,
   },
   userName: {
     fontSize: 20,
     fontWeight: '400',
     marginLeft: 10,
-    color: 'white',
+    color: 'rgba(255,255,255,1)',
     textShadowColor: 'black',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
@@ -292,7 +279,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     marginTop: 5,
-    color: 'white',
+    color: 'rgba(255,255,255,1)',
     textShadowColor: 'black',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
@@ -304,7 +291,7 @@ const styles = StyleSheet.create({
   },
   stats: {
     fontSize: 14,
-    color: 'white',
+    color: 'rgba(255,255,255,1)',
     textShadowColor: 'black',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 5,
@@ -317,7 +304,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 10,
     padding: 5,
-    borderColor: 'white',
+    borderColor: 'rgba(255,255,255,1)',
 
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 5,

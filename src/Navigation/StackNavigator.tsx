@@ -24,6 +24,8 @@ import { NotificationProvider } from '../Components/Notification/NotificationPro
 import { UserProvider } from '../Context/AuthContext'
 import ChatRoom from '../Components/Chat/ChatRoom'
 import Chat from '../Components/Chat/Chat'
+import PaymentScreen from '../Screens/PaymentScreen'
+import EditUserProfileScreen from '../Screens/EditUserProfileScreen'
 
 const Stack = createStackNavigator<RootStackParamList>()
 
@@ -64,6 +66,16 @@ const StackNavigator: React.FC = () => {
                 <Stack.Screen
                   name="Chat"
                   component={Chat}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="EditUserProfileScreen"
+                  component={EditUserProfileScreen}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="PaymentScreen"
+                  component={PaymentScreen}
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen

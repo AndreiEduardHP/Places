@@ -21,10 +21,12 @@ interface Participant {
 
 interface ParticipantsListContainerProps {
   eventId: number
+  shouldRefreshParticipants: boolean
 }
 
 const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
   eventId,
+  shouldRefreshParticipants,
 }) => {
   const [participants, setParticipants] = useState<Participant[]>([])
   const [totalParticipants, setTotalParticipants] = useState<number>(0)
@@ -35,7 +37,7 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
 
   useEffect(() => {
     fetchParticipants()
-  }, [eventId])
+  }, [eventId, shouldRefreshParticipants])
 
   const fetchParticipants = async () => {
     try {

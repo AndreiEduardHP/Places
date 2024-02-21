@@ -170,7 +170,7 @@ const LogInForm: React.FC = () => {
                 ]}
                 onPress={confirmCode} // Trigger the code confirmation logic
                 disabled={code.length !== 6}>
-                <Text>Confirm</Text>
+                <Text style={{ color: 'white' }}>Confirm</Text>
               </TouchableOpacity>
             </View>
           )}

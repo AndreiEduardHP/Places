@@ -56,8 +56,8 @@ const ChatRoom: React.FC<Props> = ({
   return (
     <KeyboardAvoidingView
       behavior={'height'}
-      style={{ flex: 1, backgroundColor: 'white' }}
-      keyboardVerticalOffset={120} // Adjust as needed
+      style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)' }}
+      keyboardVerticalOffset={100} // Adjust as needed
     >
       <View style={styles.header}>
         <Image
@@ -102,8 +102,9 @@ const ChatRoom: React.FC<Props> = ({
             placeholder="Type a message..."
             value={messageInput}
             onChangeText={setMessageInput}
+            placeholderTextColor="white"
           />
-          <Button title="Send" onPress={handleSendMessage} />
+          <Button title="Send" color={'white'} onPress={handleSendMessage} />
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -120,7 +121,10 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    backgroundColor: 'black',
     alignItems: 'center',
+    borderTopColor: 'white',
+    borderWidth: 1,
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
@@ -130,18 +134,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     marginVertical: 5,
     marginHorizontal: 10,
+    // width: 221,
     borderRadius: 8,
     alignItems: 'flex-end',
   },
   profileImage: {
-    width: 25,
-    height: 25,
+    width: 35,
+    height: 35,
     borderRadius: 20,
     marginRight: 10,
   },
   contactName: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: 'white',
   },
 
   mySenderName: {
@@ -163,9 +169,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'black',
+    borderBottomWidth: 1,
     borderTopWidth: 1,
     borderTopColor: '#ccc',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 10,
   },
   input: {
@@ -175,6 +183,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 5,
     paddingHorizontal: 10,
+    color: 'white',
     marginRight: 10,
   },
 })

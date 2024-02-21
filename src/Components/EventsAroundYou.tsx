@@ -13,6 +13,7 @@ import {
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { config } from '../config/urlConfig'
 import { ImageConfig } from '../config/imageConfig'
+import LoadingComponent from './Loading/Loading'
 
 type Event = {
   id: number
@@ -53,6 +54,7 @@ const Item: React.FC<Event> = ({
 )
 const EventsAroundYou: React.FC = () => {
   const [eventData, setEventData] = useState<Event[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetchEvents()
@@ -64,6 +66,8 @@ const EventsAroundYou: React.FC = () => {
       setEventData(response.data)
     } catch (error) {
       console.error('Error fetching events:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -76,7 +80,10 @@ const EventsAroundYou: React.FC = () => {
       eventTime={item.eventTime}
     />
   )
-
+  if (isLoading) {
+    // Display the loading component while isLoading is true
+    return <LoadingComponent />
+  }
   return (
     <FlatList
       data={eventData}
@@ -90,11 +97,13 @@ const EventsAroundYou: React.FC = () => {
 const styles = StyleSheet.create({
   item: {
     //backgroundColor: 'grey',
+    opacity: 0.98,
     padding: 5,
     marginVertical: 8,
     marginLeft: 16,
     borderRadius: 6,
     width: 300,
+
     borderColor: 'rgba(0,0,0,0.5)',
     borderWidth: 1,
     ...Platform.select({

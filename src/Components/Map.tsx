@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import MapView, { Marker } from 'react-native-maps'
+import { Marker } from 'react-native-maps'
+import MapView from 'react-native-map-clustering'
 import * as Location from 'expo-location'
 import MapViewDirections from 'react-native-maps-directions'
 import {
@@ -23,6 +24,7 @@ import axios from 'axios'
 import { ImageConfig } from '../config/imageConfig'
 import { useUser } from '../Context/AuthContext'
 import ParticipantsListContainer from './EventParticipants'
+import LoadingComponent from '../Components/Loading/Loading'
 
 type MapMarkerDetail = {
   latitude: number
@@ -50,7 +52,13 @@ const CustomeMap: React.FC = () => {
   const [routeDuration, setRouteDuration] = useState<number | null>(null)
   const [drawerVisible, setDrawerVisible] = useState(false)
   const [addNewEvent, setAddNewEvent] = useState(false)
+  const mapRef = useRef<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [addEventMarker, setAddEventMarker] = useState<MapMarker>()
+  const [refreshTrigger, setRefreshTrigger] = useState(false)
+  const [refreshParticipantsTrigger, setRefreshParticipantsTrigger] =
+    useState(false)
+
   const { loggedUser } = useUser()
 
   const [region, setRegion] = useState({
@@ -63,7 +71,7 @@ const CustomeMap: React.FC = () => {
 
   useEffect(() => {
     fetchEvents()
-  }, [])
+  }, [refreshTrigger])
 
   const fetchEvents = async () => {
     try {
@@ -80,8 +88,11 @@ const CustomeMap: React.FC = () => {
       }))
 
       setSavedMarkers(newMarkers)
+      setMarkers([])
     } catch (error) {
       console.error('Error fetching events:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -106,6 +117,7 @@ const CustomeMap: React.FC = () => {
 
   const handleMapPress = async (e: any) => {
     // Check if there is already a marker at the pressed coordinates
+
     const isExistingMarker = markers.some(
       (marker) =>
         marker.latitude === e.nativeEvent.coordinate.latitude &&
@@ -144,27 +156,24 @@ const CustomeMap: React.FC = () => {
   }
 
   useEffect(() => {
-    if (currentLocation) {
-      setRegion({
-        latitude: currentLocation.latitude,
-        longitude: currentLocation.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      })
+    if (currentLocation && mapRef.current) {
+      mapRef.current.animateToRegion(currentLocation, 1000)
     }
   }, [currentLocation])
 
   const handleMarkerPress = (marker: MapMarkerDetail) => {
     setSelectedMarker(marker)
-    console.log(marker.key)
+    // console.log(marker.key)
     setDrawerVisible(true)
   }
-  useEffect(() => {
-    console.log(selectedMarker)
-  }, [selectedMarker])
 
   const deselectRoute = () => {
     setSelectedMarker(null)
+  }
+
+  // Function to toggle the refresh trigger
+  const refreshParticipants = () => {
+    setRefreshParticipantsTrigger((prev) => !prev)
   }
 
   const handleJoinEvent = async () => {
@@ -180,6 +189,7 @@ const CustomeMap: React.FC = () => {
       })
 
       Alert.alert('Success', 'Joined event successfully')
+      refreshParticipants()
     } catch (error) {
       console.error(error)
     }
@@ -193,16 +203,34 @@ const CustomeMap: React.FC = () => {
       Linking.openURL(url)
     }
   }
+  if (isLoading) {
+    // Display the loading component while isLoading is true
+    return <LoadingComponent />
+  }
 
   return (
     <View style={{ flex: 1 }}>
-      <MapView style={{ flex: 1 }} region={region} onPress={handleMapPress}>
+      <MapView
+        ref={mapRef}
+        style={{ flex: 1 }}
+        initialRegion={region}
+        onLongPress={handleMapPress}>
         {markers.map((marker) => (
           <Marker
             key={marker.key}
             coordinate={{
               latitude: marker.latitude,
               longitude: marker.longitude,
+            }}
+            draggable={true} // Adaugă această linie pentru a face markerul draggable
+            onDragEnd={(e) => {
+              console.log('New marker coordinates:', e.nativeEvent.coordinate)
+              const newMarker = {
+                latitude: e.nativeEvent.coordinate.latitude,
+                longitude: e.nativeEvent.coordinate.longitude,
+                key: `${e.nativeEvent.coordinate.latitude},${e.nativeEvent.coordinate.longitude}`, // A unique key for each marker
+              }
+              setAddEventMarker(newMarker)
             }}
             title="title"
             description={`Description: ${marker.latitude} ${marker.longitude}`}
@@ -236,8 +264,8 @@ const CustomeMap: React.FC = () => {
               latitude: marker.latitude,
               longitude: marker.longitude,
             }}
-            title={`Saved marked: ${marker.key}`}
-            description="Saved description"
+            title={`Event: ${marker.eventName}`}
+            description={`Description: ${marker.eventDescription}`}
             pinColor="pink"
             onPress={() => handleMarkerPress(marker)}>
             <Image
@@ -266,7 +294,6 @@ const CustomeMap: React.FC = () => {
           />
         )}
       </MapView>
-
       <BottomDrawer
         title="Event Details"
         visible={drawerVisible}
@@ -289,6 +316,7 @@ const CustomeMap: React.FC = () => {
               {selectedMarker ? (
                 <ParticipantsListContainer
                   eventId={Number(selectedMarker?.key)}
+                  shouldRefreshParticipants={refreshParticipantsTrigger}
                 />
               ) : (
                 <Text>idk</Text>
@@ -404,12 +432,12 @@ const CustomeMap: React.FC = () => {
           deselectRoute()
           setMarkers(markers.slice(0, -1))
         }}>
-        <Text>{addEventMarker?.latitude}</Text>
-        <Text>{addEventMarker?.longitude}</Text>
         <EventForm
           key={`${addEventMarker?.latitude}-${addEventMarker?.longitude}`}
           latitude={addEventMarker?.latitude}
-          longitude={addEventMarker?.longitude}></EventForm>
+          longitude={addEventMarker?.longitude}
+          onEventAdded={fetchEvents} // Pass the callback function
+          setAddNewEvent={setAddNewEvent}></EventForm>
       </BottomDrawer>
     </View>
   )

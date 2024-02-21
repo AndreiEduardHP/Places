@@ -48,13 +48,13 @@ const styles = StyleSheet.create({
     zIndex: 999, // Adjust the z-index as needed
   },
   successBackground: {
-    backgroundColor: 'rgba(90,190,63,0.75)', // Background color for success type
+    backgroundColor: 'rgba(90,190,63,0.9)', // Background color for success type
   },
   failBackground: {
-    backgroundColor: 'rgba(205,0,26,0.75)', // Background color for fail type
+    backgroundColor: 'rgba(205,0,26,0.9)', // Background color for fail type
   },
   neutralBackground: {
-    backgroundColor: 'rgba(57,61,71,0.75)',
+    backgroundColor: 'rgba(57,61,71,0.9)',
   },
   message: {
     flex: 1,
@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0.5, height: 0.2 },
     shadowColor: 'black',
     shadowOpacity: 1,
+    paddingHorizontal: 20,
     shadowRadius: 2,
   },
   closeButton: {
