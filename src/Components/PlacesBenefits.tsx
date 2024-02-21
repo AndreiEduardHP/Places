@@ -55,7 +55,7 @@ const Item: React.FC<ItemProps> = ({ title, description, backgroundImage }) => (
         <Text style={styles.userName}>{title}</Text>
       </View>
       <Text style={styles.description}>{description}</Text>
-      <View style={styles.statsContainer}></View>
+      <View></View>
     </View>
   </ImageBackground>
 )
