@@ -22,39 +22,43 @@ interface Participant {
 interface ParticipantsListContainerProps {
   eventId: number
   shouldRefreshParticipants: boolean
+  updateParticipantsCount: (count: number) => void
 }
 
 const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
   eventId,
   shouldRefreshParticipants,
+  updateParticipantsCount,
 }) => {
   const [participants, setParticipants] = useState<Participant[]>([])
   const [totalParticipants, setTotalParticipants] = useState<number>(0)
   const [showParticipants, setShowParticipants] = useState<boolean>(false)
-  const [animationStarted, setAnimationStarted] = useState<boolean>(false)
   const slideAnimation = useRef(new Animated.Value(0)).current
   const heightAnimation = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     fetchParticipants()
   }, [eventId, shouldRefreshParticipants])
+  useEffect(() => {
+    updateParticipantsCount(totalParticipants)
+  }, [totalParticipants])
 
   const fetchParticipants = async () => {
     try {
       const response = await axios.get(
         `${config.BASE_URL}/api/userprofileevent/event/${eventId}/userprofiles`,
       )
-      if (response.data && response.data.length > 0) {
-        setParticipants(response.data)
-        setTotalParticipants(response.data.length) // Set the total number of participants
+      if (response) {
+        setParticipants(response.data.userProfiles)
+        if (response.data.countParticipants)
+          setTotalParticipants(response.data.countParticipants)
+        else {
+          setTotalParticipants(0)
+        }
       } else {
-        // Handle the case where there are no participants
-        console.log('No participants found for this event')
-        setParticipants([]) // Set participants to an empty array
-        setTotalParticipants(0) // Set totalParticipants to 0
+        setTotalParticipants(0)
       }
     } catch (error) {
-      setParticipants([])
       setTotalParticipants(0)
     }
   }
@@ -88,7 +92,11 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
     <View>
       <TouchableOpacity onPress={toggleParticipants}>
         <Text style={styles.participants}>
-          Total participants: {totalParticipants}
+          Total Participants: {totalParticipants}
+        </Text>
+        <Text style={{ padding: 5 }}>
+          Note:some participants might not show up in list based on their
+          preference!
         </Text>
       </TouchableOpacity>
       <Animated.View style={[styles.listContainer, animatedStyle]}>
@@ -102,7 +110,7 @@ const styles = StyleSheet.create({
   participants: {
     fontSize: 16,
     fontWeight: '400',
-    marginTop: 10,
+    marginTop: 5,
     marginHorizontal: 20,
   },
   listContainer: {

@@ -22,6 +22,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useNotification } from '../Components/Notification/NotificationProvider'
 
 const ProfileScreen: React.FC = () => {
   const {
@@ -29,6 +30,7 @@ const ProfileScreen: React.FC = () => {
     handleLogout,
     updateProfileImage,
     refreshData,
+
     friendRequestsCount,
     fetchFriendRequests,
     fetchFriendCount,
@@ -36,12 +38,8 @@ const ProfileScreen: React.FC = () => {
   const { t } = useTranslation()
   const handleNavigation = useHandleNavigation()
   const [connectionsCount, setConnectionsCount] = useState<number>(0)
-
-  const id = loggedUser?.id || 0
-
+  const { showNotificationMessage } = useNotification()
   const imageUri = `data:image/jpeg;base64,${loggedUser?.profilePicture}`
-  // 'imageUrl' will be the image URL if 'loggedUser' is not null,
-  // or 'default-image-url.jpg' if 'loggedUser' is null
 
   const selectImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -56,11 +54,10 @@ const ProfileScreen: React.FC = () => {
     })
 
     if (!result.canceled && result.assets) {
-      // Use the first selected image
       const image = result.assets[0]
-      uploadImage(2, image) // Replace '2' with the actual userProfileId
+      uploadImage(loggedUser?.id, image)
     } else {
-      console.log('Image picking was cancelled or failed')
+      showNotificationMessage('Image picking was cancelled or failed', 'fail')
     }
   }
   const uploadImage = async (userProfileId: any, imageFile: any) => {
@@ -69,11 +66,10 @@ const ProfileScreen: React.FC = () => {
       formData.append('userProfileId', userProfileId)
       const file = {
         uri: imageFile.uri,
-        name: imageFile.fileName, // use the actual file name from the image result
-        type: imageFile.type, // use the actual mime type from the image result
+        name: imageFile.fileName,
+        type: imageFile.type,
       }
 
-      // Append the file to formData
       formData.append('imageFile', file as any)
 
       const response = await axios.post(
@@ -87,21 +83,19 @@ const ProfileScreen: React.FC = () => {
       )
 
       if (response.status === 200) {
-        // Image uploaded successfully
-        console.log('Image uploaded successfully')
+        showNotificationMessage('Image upload succesfully', 'success')
         refreshData()
       } else {
-        // Handle error
-        console.error('Image upload failed')
+        showNotificationMessage('Image upload failed', 'fail')
       }
     } catch (error) {
-      // Handle network or other errors
       console.error('Network error:', error)
     }
   }
 
   useEffect(() => {
     fetchFriendRequests()
+    console.log(loggedUser?.credit)
   }, [])
   useEffect(() => {
     if (loggedUser?.id) {
@@ -111,7 +105,6 @@ const ProfileScreen: React.FC = () => {
         })
         .catch((error) => {
           console.error('Error fetching friend count:', error)
-          // Handle the error appropriately
         })
     }
   }, [loggedUser, fetchFriendCount])
@@ -126,12 +119,9 @@ const ProfileScreen: React.FC = () => {
 
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
-          // shared with activity type of result.activityType
         } else {
-          // shared
         }
       } else if (result.action === Share.dismissedAction) {
-        // dismissed
       }
     } catch (error) {
       alert('error')
@@ -142,7 +132,7 @@ const ProfileScreen: React.FC = () => {
     <>
       <ScrollView style={styles.container}>
         <ImageBackground
-          source={require('../../assets/menu-bg.jpg')} // replace with your image path
+          source={require('../../assets/menu-bg.jpg')}
           resizeMode="cover"
           imageStyle={{ opacity: 0.86 }}>
           <View style={styles.header}>
@@ -229,8 +219,10 @@ const ProfileScreen: React.FC = () => {
 
           <View style={styles.walletContainer}>
             <View style={{ flexDirection: 'row' }}>
-              <Text style={styles.walletText}>Ballance: </Text>
-              <Text style={styles.walletTextsum}>$140.000.000</Text>
+              <Text style={styles.walletText}>Credits: </Text>
+              <Text style={styles.walletTextsum}>
+                {loggedUser?.credit !== null ? loggedUser?.credit : 0}
+              </Text>
             </View>
 
             <TouchableOpacity onPress={() => handleNavigation('Chat')}>
@@ -347,9 +339,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.8,
         shadowRadius: 2,
       },
-      android: {
-        elevation: 5,
-      },
+      android: {},
     }),
   },
   name: {
@@ -376,7 +366,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 20,
-    borderBottomWidth: 3, // Adjust the border width as needed
+    borderBottomWidth: 3,
     borderBottomColor: 'rgba(255, 255, 255, 0.35)',
     borderRadius: 8,
   },
@@ -396,7 +386,7 @@ const styles = StyleSheet.create({
   },
   button: {
     padding: 20,
-    borderBottomWidth: 1, // Adjust the border width as needed
+    borderBottomWidth: 1,
     borderBottomColor: 'rgba(11, 11, 11, 0.41)',
     borderRadius: 8,
   },
@@ -407,7 +397,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     padding: 20,
-    borderTopWidth: 2, // Adjust the border width as needed
+    borderTopWidth: 2,
     borderTopColor: 'rgba(255,255, 255, 0.35)',
     borderRadius: 8,
     ...Platform.select({
@@ -418,7 +408,7 @@ const styles = StyleSheet.create({
         shadowRadius: 1,
       },
       android: {
-        elevation: 1, // Adjust the elevation value as needed
+        elevation: 1,
       },
     }),
   },
@@ -438,7 +428,7 @@ const styles = StyleSheet.create({
         shadowRadius: 1,
       },
       android: {
-        elevation: 1, // Adjust the elevation value as needed
+        elevation: 1,
       },
     }),
   },

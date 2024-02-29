@@ -6,12 +6,29 @@ import axios from 'axios'
 import { config } from '../../config/urlConfig'
 import { useUser } from '../../Context/AuthContext'
 import { RouteProp, useRoute } from '@react-navigation/native'
+import signalR, { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
+import { sendMessage } from '@microsoft/signalr/dist/esm/Utils'
 
 interface Message {
   id: number
-  sender: string
-  message: string
+  text: string
+  senderId: number
+  chatId: number
   timestamp: string
+}
+
+interface UserProfile {
+  id: number
+  firstName: string
+  lastName: string
+  profilePicture: string
+}
+
+interface ChatProfile {
+  chatId: number
+  currentUser: UserProfile
+  secondUser: UserProfile
+  messages: Message[]
 }
 
 interface Chat {
@@ -19,10 +36,13 @@ interface Chat {
   contact: string
   lastMessage: string
   imageUri: string
+  receiverId: number
+  chatId: number
   messages: Message[]
 }
+
 interface ChatRouteParams {
-  chatId?: number // Make chatId optional as it may not always be provided
+  chatId?: number
 }
 
 const Chat: React.FC = () => {
@@ -35,27 +55,24 @@ const Chat: React.FC = () => {
   useEffect(() => {
     async function fetchChats() {
       try {
-        const response = await axios.get(
-          `${config.BASE_URL}/api/userprofile/${loggedUser?.id}`,
+        const response = await axios.get<ChatProfile[]>(
+          `${config.BASE_URL}/api/chats?userId=${loggedUser?.id}`,
         )
-        const users = response.data
+        const chatData: Chat[] = response.data.map((chatProfile) => ({
+          id: chatProfile.chatId,
+          contact: `${chatProfile.secondUser.firstName} ${chatProfile.secondUser.lastName}`,
+          lastMessage:
+            chatProfile.messages.length > 0
+              ? chatProfile.messages[chatProfile.messages.length - 1].text
+              : '',
+          imageUri: chatProfile.secondUser.profilePicture,
+          messages: chatProfile.messages,
+          receiverId: chatProfile.secondUser.id,
+          chatId: chatProfile.chatId,
+        }))
 
-        const chatData = users.map(
-          (user: {
-            id: any
-            firstName: any
-            lastName: any
-            lastMessage: any
-            profilePicture: any
-          }) => ({
-            id: user.id,
-            contact: `${user.firstName} ${user.lastName}`,
-            lastMessage: user.lastMessage,
-            imageUri: user.profilePicture,
-            messages: [],
-          }),
-        )
         setChats(chatData)
+
         if (chatId) {
           const selectedChatData = chatData.find(
             (chat: any) => chat.id === Number(chatId),
@@ -75,34 +92,15 @@ const Chat: React.FC = () => {
     setSelectedChat(selectedChatData || null)
   }
 
-  const sendMessage = (message: string) => {
-    if (selectedChat) {
-      const newMessage: Message = {
-        id: selectedChat.messages.length + 1,
-        sender: 'You', // Assuming the sender is the current user
-        message,
-        timestamp: new Date().toLocaleString(),
-      }
-      const updatedChat = {
-        ...selectedChat,
-        messages: [...selectedChat.messages, newMessage],
-      }
-      const updatedChats = chats.map((chat) =>
-        chat.id === selectedChat.id ? updatedChat : chat,
-      )
-      setChats(updatedChats)
-      setSelectedChat(updatedChat)
-    }
-  }
-
   return (
     <View style={{ flex: 1 }}>
       {selectedChat ? (
         <ChatRoom
           messages={selectedChat.messages}
-          onSendMessage={sendMessage}
+          selectedRoom={selectedChat.chatId}
           contact={selectedChat?.contact || ''}
           imageUri={selectedChat?.imageUri || ''}
+          receiverId={selectedChat.receiverId}
         />
       ) : (
         <ChatList chats={chats} onPressChat={onPressChat} />

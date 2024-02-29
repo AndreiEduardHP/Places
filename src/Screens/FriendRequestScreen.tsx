@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { View, Text, FlatList, Button, StyleSheet } from 'react-native'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
 import { FriendRequest, useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
+import { useNotification } from '../Components/Notification/NotificationProvider'
 
 const FriendRequestScreen = () => {
-  const { loggedUser, fetchFriendRequests, friendRequests } = useUser()
+  const { fetchFriendRequests, friendRequests } = useUser()
+  const { showNotificationMessage } = useNotification()
 
   const declineFriendRequest = async (requestId: number) => {
-    // Implement the API call to decline a friend request
-    console.log(`Declining friend request ${requestId}`)
-    // After successful API call, refresh the list or remove the declined request from the state
+    showNotificationMessage(`Declining friend request ${requestId}`, 'neutral')
   }
 
   const renderFriendRequest = ({ item }: { item: FriendRequest }) => (
@@ -81,7 +81,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: -0.4,
   },
-  // Add more styles as needed
 })
 
 export default FriendRequestScreen

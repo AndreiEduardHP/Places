@@ -9,12 +9,9 @@ import React, {
 } from 'react'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
-import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import { StackNavigationProp } from '@react-navigation/stack'
-import { ImagePickerResponse } from 'react-native-image-picker'
-import { ImagePickerSuccessResult } from 'expo-image-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useNotification } from '../Components/Notification/NotificationProvider'
+import i18n from '../TranslationFiles/i18n'
 
 interface Profile {
   id: number
@@ -26,6 +23,10 @@ interface Profile {
   lastName: string
   phoneNumber: string
   profilePicture: string
+  themeColor: string
+  credit: number
+  languagePreference: string
+  dateAccountCreation: string
 }
 
 interface UserContextType {
@@ -54,13 +55,11 @@ export const UserContext = createContext<UserContextType>({
   refreshData: () => {},
   fetchFriendCount: (userId: number) => Promise.resolve(0),
   updateProfileImage: async (imageFile: any, userProfileId: number) => {
-    // Default implementation or a placeholder function
-    // For instance, you can log a message saying this function is not implemented yet
     console.warn('updateProfileImage function is not implemented')
   },
-  friendRequests: [], // Empty array as the initial value
-  setFriendRequests: () => {}, // Placeholder function
-  friendRequestsCount: 0, // Initial value set to 0
+  friendRequests: [],
+  setFriendRequests: () => {},
+  friendRequestsCount: 0,
   fetchFriendRequests: async () => {
     console.warn('fetchFriendRequests function is not implemented')
   },
@@ -72,8 +71,7 @@ interface UserProviderProps {
 export interface FriendRequest {
   requestId: number
   senderName: string
-  requestDate: string // Or Date if you convert the date string to a Date object
-  // Add any other fields that your API returns
+  requestDate: string
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
@@ -91,13 +89,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         if (tokenExpirationDate) {
           const expirationDate = new Date(tokenExpirationDate)
           if (expirationDate <= new Date()) {
-            // Token has expired, log the user out
             handleLogout()
           }
           const storedLoggedUser = await AsyncStorage.getItem('loggedUser')
           if (storedLoggedUser) {
-            // Parse the JSON string into an object
             const parsedLoggedUser = JSON.parse(storedLoggedUser)
+
             setLoggedUser(parsedLoggedUser)
           }
         }
@@ -119,24 +116,21 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const fetchFriendCount = async (userId: number): Promise<number> => {
     try {
-      // Replace the URL with your actual endpoint that returns the friend count
       const response = await axios.get(
         `${config.BASE_URL}/api/Friend/count/${loggedUser?.id}`,
         {
-          headers: {
-            // If your API requires authentication, make sure to include the token in the request headers
-          },
+          headers: {},
         },
       )
-      return response.data // Assuming the API directly returns the count as a response
+      return response.data
     } catch (error) {
       console.error('Error fetching friend count:', error)
-      throw error // Consider how you want to handle errors - rethrowing here
+      throw error
     }
   }
 
   const fetchFriendRequests = async () => {
-    if (loggedUser && token) {
+    if (loggedUser) {
       try {
         const response = await axios.get<FriendRequest[]>(
           `${config.BASE_URL}/api/Friend/pendingFriendRequests/${loggedUser.id}`,
@@ -144,11 +138,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             headers: { Authorization: `Bearer ${token}` },
           },
         )
+
         setFriendRequests(response.data)
-        setFriendRequestsCount(response.data.length) // Assuming the API returns an array of requests
+        setFriendRequestsCount(response.data.length)
       } catch (error) {
         console.error('Failed to fetch friend requests:', error)
-        // Optionally, handle error state
       }
     }
   }
@@ -171,7 +165,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       )
 
       const newToken = authResponse.data.token
-      setToken(newToken) // Update the token state
+      setToken(newToken)
 
       if (newToken) {
         const profileResponse = await axios.get(
@@ -183,7 +177,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           },
         )
 
-        setLoggedUser(profileResponse.data) // Set the user profile in context
+        setLoggedUser(profileResponse.data)
+
         const expirationDate = new Date()
         expirationDate.setDate(expirationDate.getDate() + 3)
         await AsyncStorage.setItem(
@@ -195,6 +190,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           'tokenExpirationDate',
           expirationDate.toISOString(),
         )
+        i18n.changeLanguage(loggedUser?.languagePreference)
         showNotificationMessage('Login authentication successful 👍', 'success')
       } else {
         console.error('Token is missing or undefined.')
@@ -210,7 +206,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     AsyncStorage.removeItem('loggedUser')
     AsyncStorage.removeItem('token')
     showNotificationMessage('Logged out successfully ', 'success')
-    // Perform any other cleanup or state resets you need on logout
   }
   const refreshData = () =>
     axios
@@ -223,12 +218,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         },
       )
       .then((response) => {
-        // Assuming that `refreshData.response` is where you want to store the response data
         setLoggedUser(response.data)
         AsyncStorage.setItem('loggedUser', JSON.stringify(response.data))
       })
       .catch((error) => {
-        // Handle any errors that occur during the request
         console.error('Error fetching user profile:', error)
       })
 
@@ -236,11 +229,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       const formData = new FormData()
 
-      // Append the userProfileId as a field
       formData.append('userProfileId', userProfileId.toString())
-
-      // Append the image file
-
       formData.append('imagefile', imageUri, 'image.jpg')
 
       const axiosResponse = await axios.post(
@@ -254,12 +243,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       )
 
       if (axiosResponse.status === 204) {
-        console.log('Image uploaded successfully')
+        showNotificationMessage('Image uploaded successfully', 'success')
       } else {
-        console.log('Failed to upload image')
+        showNotificationMessage('Failed to upload image', 'fail')
       }
     } catch (error) {
-      console.error('Error uploading image:', error)
+      showNotificationMessage('Error uploading image:', 'fail')
     }
   }
 

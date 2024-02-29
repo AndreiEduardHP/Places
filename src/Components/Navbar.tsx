@@ -1,20 +1,13 @@
-// src/components/Navbar.tsx
-
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProp } from '@react-navigation/stack'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Image,
 } from 'react-native'
-import StackNavigator from '../Navigation/StackNavigator'
 import { useTranslation } from 'react-i18next'
 import { t } from 'i18next'
-import DarkMode from './SwitchDarkMode'
 import { useDarkMode } from '../Context/DarkModeContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import {
@@ -35,10 +28,6 @@ const Navbar: React.FC<NavbarProps> = ({ title }) => {
   const [expanded, setExpanded] = useState(false)
   const navbarHeight = useRef(new Animated.Value(42)).current
   const [showButtonsAbout, setShowButtonsAbout] = useState(false)
-  const [showButtonsLogin, setShowButtonsLogin] = useState(false)
-  const [showButtonsSign, setShowButtonsSign] = useState(false)
-  const [showButtonsEng, setShowButtonsEng] = useState(false)
-  const [showButtonsRo, setShowButtonsRo] = useState(false)
 
   const buttonsOpacity = useRef(new Animated.Value(0)).current
   const { isDarkMode } = useDarkMode()
@@ -132,26 +121,6 @@ const Navbar: React.FC<NavbarProps> = ({ title }) => {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => handleNavigation('LoginScreen')}>
-              <Text
-                style={[
-                  styles.buttons,
-                  { color: isDarkMode ? 'black' : 'white' },
-                ]}>
-                {t('logIn')}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => handleNavigation('SignUpScreen')}>
-              <Text
-                style={[
-                  styles.buttons,
-                  { color: isDarkMode ? 'black' : 'white' },
-                ]}>
-                {t('signUp')}
-              </Text>
-            </TouchableOpacity>
-
             <TouchableOpacity onPress={() => changeLanguage('en')}>
               <Text
                 style={[
@@ -181,7 +150,6 @@ const Navbar: React.FC<NavbarProps> = ({ title }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    // Customize the background color
     justifyContent: 'space-between',
   },
   titleContainer: {
@@ -198,15 +166,13 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'OpenSans_300Light',
     fontWeight: '400',
-    // color: 'white', // Customize the text color
-    fontSize: 28, // Customize the text size
+    fontSize: 28,
     letterSpacing: -1,
   },
   buttons: {
     fontFamily: 'OpenSans_300Light',
     fontWeight: 'bold',
-    // color: 'white', // Customize the text color
-    fontSize: 14, // Customize the text size
+    fontSize: 14,
   },
 })
 

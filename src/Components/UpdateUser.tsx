@@ -1,16 +1,8 @@
 import React, { useState } from 'react'
-import {
-  View,
-  TextInput,
-  Button,
-  StyleSheet,
-  Alert,
-  ScrollView,
-} from 'react-native'
+import { TextInput, Button, StyleSheet, Alert, ScrollView } from 'react-native'
 import axios from 'axios'
 import { useUser } from '../Context/AuthContext'
 import { config } from '../config/urlConfig'
-import Notification from './Notification/Notifications'
 import { useNotification } from './Notification/NotificationProvider'
 
 interface UserProfileDto {
@@ -22,7 +14,7 @@ interface UserProfileDto {
   Email?: string
   City?: string
   Interest?: string
-  ProfilePicture?: string // Assuming base64 encoded string for the byte[] from C#
+  ProfilePicture?: string
   CurrentLocationId?: number
   FriendRequestStatus?: string
   AreFriends?: boolean
@@ -36,22 +28,20 @@ const UserProfileForm: React.FC = () => {
   const handleUpdate = async () => {
     if (loggedUser?.id) {
       try {
-        const updatePayload = { ...userProfile, Id: loggedUser.id } // Include the Id in the payload
+        const updatePayload = { ...userProfile, Id: loggedUser.id }
         const url = `${config.BASE_URL}/api/userprofile/${loggedUser.id}`
         await axios.put(url, updatePayload, {
           headers: {
             'Content-Type': 'application/json',
-            // Include other headers as required, such as Authorization headers for JWT
           },
         })
         await refreshData()
         showNotificationMessage('User profile updated successfully', 'success')
       } catch (error) {
-        console.error('Error updating user profile:', error)
-        Alert.alert('Error', 'Failed to update user profile')
+        showNotificationMessage('Failed to update user profile', 'fail')
       }
     } else {
-      Alert.alert('Error', 'User ID is undefined')
+      showNotificationMessage('User ID is undefined', 'fail')
     }
   }
 
@@ -116,7 +106,6 @@ const UserProfileForm: React.FC = () => {
         value={userProfile.Interest}
         onChangeText={(text) => updateField('Interest', text)}
       />
-      {/* Add other input fields as needed */}
       <Button title="Update Profile" onPress={handleUpdate} />
     </ScrollView>
   )

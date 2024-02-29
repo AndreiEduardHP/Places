@@ -12,29 +12,39 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
+import { useUser } from '../../Context/AuthContext'
+import * as signalR from '@microsoft/signalr'
+import { config } from '../../config/urlConfig'
 
 interface Message {
   id: number
-  sender: string
-  message: string
+  text: string
+  senderId: number
+  chatId: number
   timestamp: string
 }
 
 interface Props {
   messages: Message[]
-  onSendMessage: (message: string) => void
+  selectedRoom: number
   contact: string // Add contact prop
   imageUri: string // Add imageUri prop
+  receiverId: number
 }
 
 const ChatRoom: React.FC<Props> = ({
   messages,
-  onSendMessage,
+  selectedRoom,
   contact,
   imageUri,
+  receiverId,
 }) => {
   const [messageInput, setMessageInput] = useState('')
+  const [chatHubConnection, setChatHubConnection] = useState<any>()
+  const [messagesData, setMessagesData] = useState<Message[]>(messages)
+
   const flatListRef = useRef<FlatList<Message>>(null)
+  const { loggedUser } = useUser()
 
   useEffect(() => {
     scrollToBottom()
@@ -45,12 +55,37 @@ const ChatRoom: React.FC<Props> = ({
       flatListRef.current?.scrollToEnd({ animated: true })
     }, 100) // Adjust the delay if needed
   }
+  useEffect(() => {
+    // Inițializează conexiunea SignalR la montarea componentei
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(`${config.BASE_URL}/chatHub`) // Asigură-te că URL-ul este corect
+      .configureLogging(signalR.LogLevel.Information)
+      .build()
 
-  const handleSendMessage = () => {
-    if (messageInput.trim() !== '') {
-      onSendMessage(messageInput)
-      setMessageInput('')
+    connection
+      .start()
+      .then(() => console.log('Connection started!'))
+      .catch((err) => console.error('Connection failed: ', err))
+
+    connection.on('ReceiveMessage', (newMessage) => {
+      setMessagesData((currentMessages) => [...currentMessages, newMessage])
+    })
+
+    setChatHubConnection(connection)
+
+    return () => {
+      // Oprirea conexiunii la demontarea componentei
+      connection.stop()
     }
+  }, [])
+  const handleSendMessage = async () => {
+    if (messageInput.trim() === '') return
+
+    // Aici trimiți mesajul folosind conexiunea SignalR
+    await chatHubConnection
+      ?.send('SendMessage', loggedUser?.id, receiverId, messageInput)
+      .then(() => setMessageInput(''))
+      .catch((err: any) => console.error('Send message error: ', err))
   }
 
   return (
@@ -68,33 +103,39 @@ const ChatRoom: React.FC<Props> = ({
           }
           style={styles.profileImage}
         />
-        <Text style={styles.contactName}>{contact}</Text>
+        <Text style={styles.contactName}>
+          {contact}
+          {receiverId}
+          {selectedRoom}
+        </Text>
       </View>
       <View style={{ flex: 1 }}>
         <FlatList
+          keyExtractor={(item) =>
+            item.id ? item.id.toString() : Date.now().toString()
+          }
           ref={flatListRef}
-          data={messages}
+          data={messagesData}
           renderItem={({ item }) => (
             <View
               style={[
-                item.sender === 'You'
+                item.senderId === loggedUser?.id
                   ? styles.messageContainerSender
                   : styles.messageContainer,
               ]}>
               <Text
                 style={[
-                  item.sender === 'You'
+                  item.senderId === loggedUser?.id
                     ? styles.mySenderName
                     : styles.senderName,
                 ]}>
-                {item.sender}
+                {item.senderId}
               </Text>
 
-              <Text style={styles.messageText}>{item.message}</Text>
+              <Text style={styles.messageText}>{item.text}</Text>
               <Text style={styles.timestamp}>{item.timestamp}</Text>
             </View>
           )}
-          keyExtractor={(item) => item.id.toString()}
         />
         <View style={styles.inputContainer}>
           <TextInput

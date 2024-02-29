@@ -4,45 +4,55 @@ import { useTranslation } from 'react-i18next'
 import {
   View,
   Text,
-  Button,
   TouchableWithoutFeedback,
   Keyboard,
   Image,
   StyleSheet,
-  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native'
 import SignUpForm from '../Components/SignUpFrom'
 
 const SignUpScreen: React.FC = () => {
   const { t } = useTranslation()
   return (
-    <View style={{ backgroundColor: 'white', flex: 1 }}>
-      <Image
-        source={require('../../assets/authentication.png')}
-        style={styles.image}></Image>
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginTop: 20,
-          }}>
-          <Text>{t('signUpScreen.signUp')}</Text>
-          <SignUpForm />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={{ backgroundColor: 'rgba(255,255,255,0.95)', flex: 1 }}>
+          <Image
+            source={require('../../assets/authentication.png')}
+            style={styles.image}></Image>
+          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <View
+              style={{
+                justifyContent: 'center',
+                // marginTop: 20,
+              }}>
+              <Text
+                style={{
+                  marginLeft: 30,
+                  marginTop: 20,
+                  fontSize: 32,
+                  backgroundColor: 'rgba(255,255,255,0.95)',
+                }}>
+                {t('signUpScreen.signUp')}
+              </Text>
+              <SignUpForm />
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </TouchableWithoutFeedback>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 const styles = StyleSheet.create({
   image: {
-    zIndex: -1,
-    flex: 1,
-    // backgroundColor: 'white',
     width: 460,
     height: 410,
-    alignItems: 'center',
-    justifyContent: 'center',
     bottom: 0,
     position: 'absolute',
   },

@@ -1,4 +1,3 @@
-// PaymentScreen.tsx
 import React, { useEffect, useState } from 'react'
 import {
   View,
@@ -10,29 +9,89 @@ import {
 } from 'react-native'
 import { useStripe } from '@stripe/stripe-react-native'
 import FooterNavbar from '../Components/FooterNavbar'
+import axios from 'axios'
+import { config } from '../config/urlConfig'
+import { useUser } from '../Context/AuthContext'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
-// Define subscription options
-const subscriptions = [
-  { id: 'basic', name: 'Basic Plan', price: '$5/month' },
-  { id: 'standard', name: 'Standard Plan', price: '$10/month' },
-  { id: 'premium', name: 'Premium Plan', price: '$15/month' },
+const packages = [
+  {
+    id: 'basic',
+    name: 'Basic Pack',
+    price: '5',
+    currency: 'RON',
+    credits: '5',
+  },
+  {
+    id: 'standard',
+    name: 'Standard Pack',
+    price: '10',
+    currency: 'RON',
+    credits: '5',
+  },
+  {
+    id: 'premium',
+    name: 'Premium Pack',
+    price: '15',
+    currency: 'RON',
+    credits: '5',
+  },
 ]
 
 const PaymentScreen = () => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
   const [loading, setLoading] = useState(false)
-  const [selectedSubscription, setSelectedSubscription] = useState(null)
+  const [selectedPackage, setSelectedPackage] = useState(null)
+  const { loggedUser } = useUser()
 
-  useEffect(() => {
-    // You might want to call this when the user selects a plan instead
-  }, [])
+  const fetchPaymentSheetParams = async () => {
+    const packageDetails = packages.find((p) => p.id === selectedPackage)
+    if (!packageDetails) {
+      Alert.alert('Error', 'Package details not found.')
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await axios.post(
+        `${config.BASE_URL}/payment/create-payment-intent`,
+        {
+          packageId: selectedPackage,
+          amount: packageDetails.price,
+        },
+      )
+      const { clientSecret } = response.data
+      console.log(clientSecret)
+      return clientSecret
+    } catch (error) {
+      console.error('Error fetching payment sheet params:', error)
+      Alert.alert(
+        'Error',
+        'Unable to fetch payment details. Please try again later.',
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const openPaymentSheet = async () => {
-    const { error } = await presentPaymentSheet()
+    const clientSecret = await fetchPaymentSheetParams()
+    if (!clientSecret) return
+
+    const { error } = await initPaymentSheet({
+      paymentIntentClientSecret: clientSecret,
+      merchantDisplayName: 'RO',
+    })
 
     if (error) {
-      Alert.alert(`Error code: ${error.code}`, error.message)
-    } else {
+      console.error(`Error initializing payment sheet: ${error}`)
+      return
+    }
+
+    const result = await presentPaymentSheet()
+    if (result.error) {
+      Alert.alert('Payment failed', result.error.message)
+    } else if (result) {
       Alert.alert('Success', 'Payment successful')
     }
   }
@@ -41,41 +100,35 @@ const PaymentScreen = () => {
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
         <Text style={styles.title}>Select a Subscription Plan</Text>
-        {subscriptions.map((subscription) => (
+        {packages.map((packages) => (
           <TouchableOpacity
-            key={subscription.id}
+            key={packages.id}
             style={[
               styles.button,
-              selectedSubscription === subscription.id && styles.selectedButton,
+              selectedPackage === packages.id && styles.selectedButton,
             ]}
-            onPress={() => setSelectedSubscription(subscription.id as any)}>
+            onPress={() => setSelectedPackage(packages.id as any)}>
             <Text style={styles.buttonText}>
-              {subscription.name} - {subscription.price}
+              {packages.name} - {packages.price} (credits:{packages.credits})
             </Text>
           </TouchableOpacity>
         ))}
 
-        {selectedSubscription && (
+        {selectedPackage && (
           <Text style={{ color: 'white' }}>
             You have selected:{' '}
-            {
-              subscriptions.find(
-                (subscription) => subscription.id === selectedSubscription,
-              )?.name
-            }{' '}
+            {packages.find((packages) => packages.id === selectedPackage)?.name}{' '}
             -{' '}
             {
-              subscriptions.find(
-                (subscription) => subscription.id === selectedSubscription,
-              )?.price
+              packages.find((packages) => packages.id === selectedPackage)
+                ?.price
             }
+            RON
           </Text>
         )}
         <Button
           title="Proceed to Pay"
-          onPress={() => {
-            //  initializePaymentSheet()
-          }}
+          onPress={openPaymentSheet}
           disabled={loading}
         />
       </View>

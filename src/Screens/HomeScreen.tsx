@@ -1,43 +1,14 @@
 import { t } from 'i18next'
-import React, { useEffect, useRef, useState } from 'react'
+import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  Button,
-  TouchableWithoutFeedback,
-  Keyboard,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  FlatList,
-  Animated,
-  ScrollView,
-} from 'react-native'
-import SignUpForm from '../Components/SignUpFrom'
+import { View, Text, Image, StyleSheet, ScrollView } from 'react-native'
+
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
-import MapView, { Marker } from 'react-native-maps'
-import { ImageConfig } from '../config/imageConfig'
-import axios from 'axios'
-import { config } from '../config/urlConfig'
-import { LinearGradient } from 'expo-linear-gradient'
-import { RouteProp, useRoute } from '@react-navigation/native'
-import { RootStackParamList } from '../Navigation/Types'
-import UserProfileForm from '../Components/UpdateUser'
-
-interface Event {
-  id: number
-  eventImage: string
-}
 
 const HomeScreen: React.FC = () => {
   const { t } = useTranslation()
-  const { loggedUser, handleLogout } = useUser()
-  const [events, setEvents] = useState([])
-  const animatedValue = useRef(new Animated.Value(0)).current
-  const route = useRoute<RouteProp<RootStackParamList, 'HomeScreen'>>()
-  const personData = route.params?.personData
+  const { loggedUser } = useUser()
 
   return (
     <View style={{ flex: 1, backgroundColor: 'white' }}>
@@ -81,11 +52,9 @@ const HomeScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 12,
   },
   headerContainer: {
     marginBottom: 20,

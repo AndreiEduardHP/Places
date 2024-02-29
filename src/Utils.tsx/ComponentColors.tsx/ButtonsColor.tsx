@@ -1,7 +1,7 @@
 export const enabledButtonStyle = {
-  backgroundColor: 'black', // Change to your desired enabled button color
+  backgroundColor: 'black',
 }
 
 export const disabledButtonStyle = {
-  backgroundColor: 'gray', // Change to your desired disabled button color
+  backgroundColor: 'gray',
 }

@@ -1,30 +1,52 @@
 import { t } from 'i18next'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  Button,
-  TouchableWithoutFeedback,
-  Keyboard,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  ScrollView,
-} from 'react-native'
-import SignUpForm from '../Components/SignUpFrom'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
-import MapView, { Marker } from 'react-native-maps'
-import EventForm from '../Components/EventForm'
-import Chat from '../Components/Chat/Chat'
-import LoadingComponent from '../Components/Loading/Loading'
 import DarkMode from '../Components/SwitchDarkMode'
 import RNPickerSelect from 'react-native-picker-select'
+import i18n from '../TranslationFiles/i18n'
+import { config } from '../config/urlConfig'
+import axios from 'axios'
+import { useNotification } from '../Components/Notification/NotificationProvider'
+import SupportTicket from '../Components/SupportTicket'
+import ChatComponent from './test200'
 
 const SettingScreen: React.FC = () => {
   const { t } = useTranslation()
-  const { loggedUser, handleLogout } = useUser()
+  const { loggedUser, refreshData } = useUser()
+  const { showNotificationMessage } = useNotification()
+  const changeLanguagePicker = async (lng: string) => {
+    const apiUrl = `${config.BASE_URL}/api/UserProfilePreference/${loggedUser?.id}/preferences`
+
+    const requestBody = {
+      LanguagePreference: lng,
+    }
+
+    try {
+      const response = await axios.put(apiUrl, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      showNotificationMessage(
+        'User preferences updated successfully',
+        'success',
+      )
+      refreshData()
+    } catch (error) {
+      showNotificationMessage('Error updating user preferences:', 'fail')
+    }
+    i18n.changeLanguage(lng)
+  }
+  const handleTicketSubmit = (ticket: {
+    title: string
+    description: string
+  }) => {
+    console.log(ticket)
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -33,14 +55,22 @@ const SettingScreen: React.FC = () => {
         <View style={styles.content}>
           {loggedUser ? (
             <>
-              <View style={{ flexDirection: 'row' }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}>
                 <Text style={styles.text}>Change theme:</Text>
                 <DarkMode />
               </View>
-              <View style={{ flexDirection: 'row' }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}>
                 <Text style={[styles.text, {}]}>Change language:</Text>
                 <RNPickerSelect
-                  onValueChange={(value: any) => console.log(value)}
+                  onValueChange={(value: any) => changeLanguagePicker(value)}
                   items={[
                     { label: 'English', value: 'en' },
                     { label: 'Română', value: 'ro' },
@@ -52,6 +82,10 @@ const SettingScreen: React.FC = () => {
                   useNativeAndroidPickerStyle={false}
                 />
               </View>
+              <View>
+                <SupportTicket onSubmit={handleTicketSubmit} />
+              </View>
+              <ChatComponent></ChatComponent>
             </>
           ) : (
             <Text style={styles.noUserText}>{t('No user is logged in')}</Text>
@@ -72,10 +106,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   content: {
-    //  flex: 1,
-
     justifyContent: 'center',
-    alignItems: 'center',
+    //  alignItems: 'center',
     padding: 10,
   },
   dropdown: {
@@ -85,12 +117,12 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderRadius: 10,
     color: 'black',
-    paddingRight: 30, // to ensure the text is never behind the icon
+    paddingRight: 30,
   },
   header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: '400',
+    margin: 20,
   },
   logoutButton: {
     marginTop: 20,

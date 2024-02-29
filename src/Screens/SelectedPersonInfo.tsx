@@ -4,28 +4,21 @@ import { useTranslation } from 'react-i18next'
 import {
   View,
   Text,
-  Button,
-  TouchableWithoutFeedback,
-  Keyboard,
   TouchableOpacity,
   Image,
   StyleSheet,
-  FlatList,
-  Animated,
   ScrollView,
   Linking,
   ImageBackground,
 } from 'react-native'
-import SignUpForm from '../Components/SignUpFrom'
-import { useUser } from '../Context/AuthContext'
+
 import FooterNavbar from '../Components/FooterNavbar'
-import MapView, { Marker } from 'react-native-maps'
+
 import { ImageConfig } from '../config/imageConfig'
-import axios from 'axios'
-import { config } from '../config/urlConfig'
-import { LinearGradient } from 'expo-linear-gradient'
+
 import { RouteProp, useRoute } from '@react-navigation/native'
 import { RootStackParamList } from '../Navigation/Types'
+import { useNotification } from '../Components/Notification/NotificationProvider'
 
 interface Event {
   id: number
@@ -37,6 +30,7 @@ const SelectedPersonInfo: React.FC = () => {
   const { t } = useTranslation()
 
   const route = useRoute<RouteProp<RootStackParamList, 'HomeScreen'>>()
+  const { showNotificationMessage } = useNotification()
   const personData = route.params?.personData
 
   const handleEmail = () => {
@@ -55,7 +49,7 @@ const SelectedPersonInfo: React.FC = () => {
     Linking.canOpenURL(phoneUrl)
       .then((supported) => {
         if (!supported) {
-          console.log('Phone number is not available')
+          showNotificationMessage('Phone number is not available', 'fail')
         } else {
           return Linking.openURL(phoneUrl)
         }
@@ -69,12 +63,12 @@ const SelectedPersonInfo: React.FC = () => {
     Linking.canOpenURL(smsUrl)
       .then((supported) => {
         if (!supported) {
-          console.log('SMS is not available')
+          showNotificationMessage('SMS is not available', 'fail')
         } else {
           return Linking.openURL(smsUrl)
         }
       })
-      .catch((err) => console.error('An error occurred', err))
+      .catch((err) => showNotificationMessage('An error occurred', 'fail'))
   }
 
   return (
@@ -176,25 +170,15 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    //  backgroundColor: 'rgba(0,0,0,0.13)',
-    //  flexGrow: 1,
-    //  justifyContent: 'space-between',
-    //paddingVertical: 20,
-    //paddingHorizontal: 15,
   },
   personInfoContainer: {
     flex: 1,
     flexDirection: 'row',
-    //backgroundColor: 'black',
-    // alignItems: 'center',
-    // justifyContent: 'space-between',
-    //marginBottom: 20,
   },
   avatar: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    //marginRight: 20,
   },
   infoTextContainer: {
     flex: 1,

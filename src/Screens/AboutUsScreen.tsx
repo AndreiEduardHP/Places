@@ -1,16 +1,7 @@
 import { t } from 'i18next'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  Button,
-  TouchableWithoutFeedback,
-  Keyboard,
-  TouchableOpacity,
-  Image,
-} from 'react-native'
-import SignUpForm from '../Components/SignUpFrom'
+import { View, Text, Button } from 'react-native'
 import { useUser } from '../Context/AuthContext'
 
 const AboutUsScreen: React.FC = () => {

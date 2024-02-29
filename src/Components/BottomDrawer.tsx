@@ -27,16 +27,16 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
   // Use useRef to persist the animated value without reinitializing on re-renders
   const translateY = useRef(new Animated.Value(0)).current
   const animatedHeight = useRef(new Animated.Value(0)).current
-  const [currentHeight, setCurrentHeight] = useState(550)
+  const [currentHeight, setCurrentHeight] = useState(720)
 
   useEffect(() => {
     if (visible) {
-      animatedHeight.setValue(550)
-      setCurrentHeight(550)
+      animatedHeight.setValue(720)
+      setCurrentHeight(720)
     }
     Animated.timing(translateY, {
       toValue: visible ? 0 : currentHeight,
-      duration: 400,
+      duration: 500,
       useNativeDriver: false,
     }).start()
 
@@ -46,17 +46,18 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (e, gestureState) => {
-        // Optional: Implement real-time dragging effect here if needed
-      },
+      onPanResponderMove: (e, gestureState) => {},
       onPanResponderRelease: (e, gestureState) => {
         let nextHeight = currentHeight
-        if (gestureState.dy < -100 && currentHeight < 700) {
-          // If drag up and currentHeight is less than 700
-          nextHeight = currentHeight === 550 ? 720 : 550
-        } else if (gestureState.dy > 100 && currentHeight > 100) {
-          // If drag down and currentHeight is more than 200
-          nextHeight = currentHeight === 550 ? 100 : 550
+
+        // Allow dragging down to set height to 100
+        if (gestureState.dy > 100 && currentHeight > 100) {
+          nextHeight = 100
+        }
+
+        // Set initial height if drawer dragged up
+        if (gestureState.dy < -100 && currentHeight < currentHeight) {
+          nextHeight = currentHeight
         }
 
         Animated.timing(animatedHeight, {

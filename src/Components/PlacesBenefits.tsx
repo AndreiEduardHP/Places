@@ -2,14 +2,12 @@ import React from 'react'
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   FlatList,
   ImageSourcePropType,
   ImageBackground,
   Platform,
 } from 'react-native'
-import { TouchableOpacity } from 'react-native-gesture-handler'
 
 type Person = {
   id: string

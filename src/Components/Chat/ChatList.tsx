@@ -46,7 +46,7 @@ const ChatList: React.FC<Props> = ({ chats, onPressChat }) => {
               <View style={{ paddingTop: 4 }}>
                 <Text style={styles.contactName}>{item.contact}</Text>
                 <Text style={styles.lastMessage}>
-                  Last message: {item.lastMessage}
+                  Last message: {item.id}
                   {item.id}
                 </Text>
               </View>

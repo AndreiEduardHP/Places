@@ -3,17 +3,15 @@ import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   FlatList,
-  ImageSourcePropType,
   Platform,
   ImageBackground,
 } from 'react-native'
-import { TouchableOpacity } from 'react-native-gesture-handler'
 import { config } from '../config/urlConfig'
 import { ImageConfig } from '../config/imageConfig'
 import LoadingComponent from './Loading/Loading'
+import { remoteImages } from '../AzureImages/Images'
 
 type Event = {
   id: number
@@ -22,42 +20,38 @@ type Event = {
   eventImage: string
   eventTime: string
 }
-const Item: React.FC<Event> = ({
-  id,
-  eventName,
-  eventDescription,
-  eventTime,
-  eventImage,
-}) => (
+const Item: React.FC<Event> = ({ eventName, eventDescription, eventImage }) => (
   <ImageBackground
     source={
       eventImage && eventImage !== ''
         ? { uri: ImageConfig.IMAGE_CONFIG + eventImage }
-        : require('../../assets/party.jpg')
+        : { uri: remoteImages.partyImage }
     }
     style={styles.item}
     imageStyle={{ borderRadius: 6 }}>
     <View
       style={{
-        // backgroundColor: 'rgba(255,255,255,0.70)',
-        //  borderRadius: 5,
         paddingLeft: 10,
 
         width: 210,
       }}>
       <Text style={styles.userName}>{eventName}</Text>
-
       <Text style={styles.description}>{eventDescription}</Text>
       <View style={styles.statsContainer}></View>
     </View>
   </ImageBackground>
 )
+
 const EventsAroundYou: React.FC = () => {
   const [eventData, setEventData] = useState<Event[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetchEvents()
+    console.log(eventData)
+  }, [])
+  useEffect(() => {
+    console.log(eventData)
   }, [])
 
   const fetchEvents = async () => {
@@ -81,12 +75,12 @@ const EventsAroundYou: React.FC = () => {
     />
   )
   if (isLoading) {
-    // Display the loading component while isLoading is true
     return <LoadingComponent />
   }
   return (
     <FlatList
       data={eventData}
+      windowSize={4}
       renderItem={renderItem}
       keyExtractor={(item) => item.id.toString()}
       horizontal={true}

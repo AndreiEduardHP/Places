@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { View, Switch, StyleSheet, ViewStyle, Platform } from 'react-native'
 import { useDarkMode } from '../Context/DarkModeContext'
 
@@ -24,9 +24,6 @@ const DarkMode: React.FC<DarkModeProps> = ({ style }) => {
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
-    // alignItems: 'center',
-    // justifyContent: 'center',
     marginTop: Platform.OS === 'android' ? 0 : 5,
   },
 })

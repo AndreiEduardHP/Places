@@ -1,20 +1,11 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  FlatList,
-  ImageSourcePropType,
-  Platform,
-} from 'react-native'
+import { View, Text, Image, StyleSheet, FlatList, Platform } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { ImageConfig } from '../config/imageConfig'
 import { LinearGradient } from 'expo-linear-gradient'
 import { config } from '../config/urlConfig'
 import { useUser } from '../Context/AuthContext'
-import { useNavigation } from '@react-navigation/native'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import { useNotification } from './Notification/NotificationProvider'
 
@@ -33,8 +24,6 @@ type Person = {
   city: string
   currentLocationId: string
 }
-
-const DATA: Person[] = []
 
 type ItemProps = {
   friendRequestStatus: string
@@ -188,13 +177,11 @@ const PeopleCard: React.FC = () => {
         ReceiverId: personId,
       }
 
-      const response = await axios.post(
+      await axios.post(
         `${config.BASE_URL}/api/Friend/sendFriendRequest`,
         requestBody,
       )
       setRefreshTrigger((prev) => !prev)
-
-      console.log(response.data)
     } catch (error) {
       console.error('Error sending friend request:', error)
     }
@@ -234,7 +221,6 @@ const PeopleCard: React.FC = () => {
 
 const styles = StyleSheet.create({
   item: {
-    // backgroundColor: 'white',
     padding: 20,
     marginVertical: 8,
     marginLeft: 16,
@@ -248,9 +234,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 10,
       },
-      android: {
-        elevation: 10,
-      },
+      android: {},
     }),
   },
 
@@ -285,7 +269,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   statsContainer: {
-    // flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 5,
   },

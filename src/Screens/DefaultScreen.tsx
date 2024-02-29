@@ -3,19 +3,13 @@ import { useTranslation } from 'react-i18next'
 import {
   View,
   Text,
-  Button,
   StyleSheet,
   Animated,
-  Dimensions,
   TouchableOpacity,
   Image,
-  ImageBackground,
   Linking,
 } from 'react-native'
-import { useFocusEffect, useNavigation } from '@react-navigation/native'
-import LinearGradient from 'react-native-linear-gradient'
-import MaskedView from '@react-native-community/masked-view'
-import { StackNavigationProp } from '@react-navigation/stack'
+import { useFocusEffect } from '@react-navigation/native'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
@@ -24,15 +18,9 @@ const DefaultScreen: React.FC = () => {
   const opacityMember = useRef(new Animated.Value(0)).current
   const opacityLine = useRef(new Animated.Value(0)).current
   const opacity = useRef(new Animated.Value(0)).current
-  const deviceWidth = Dimensions.get('window').width
   const scaleX = useRef(new Animated.Value(0)).current
-  const translateX = scaleX.interpolate({
-    inputRange: [0, 1],
-    outputRange: [deviceWidth / 2, 0], // Starts from half width to 0
-  })
 
   const fadeAnimation = () => {
-    // Set the initial values
     opacity.setValue(0)
     Animated.timing(opacity, {
       toValue: 1,
@@ -41,11 +29,9 @@ const DefaultScreen: React.FC = () => {
     }).start()
   }
   const animateLine = () => {
-    // Set the initial values
     opacityLine.setValue(0)
     scaleX.setValue(0)
 
-    // Run the animation
     Animated.parallel([
       Animated.timing(opacityLine, {
         toValue: 1,
@@ -60,16 +46,14 @@ const DefaultScreen: React.FC = () => {
     ]).start()
   }
   const alreadyMember = () => {
-    // Set the initial values
     opacityMember.setValue(0)
-
     setTimeout(() => {
       Animated.timing(opacityMember, {
         toValue: 1,
         duration: 2000,
         useNativeDriver: true,
       }).start()
-    }, 500) // Delay of 2 seconds (2000 milliseconds)
+    }, 500)
   }
 
   const handleNavigation = useHandleNavigation()
@@ -80,19 +64,16 @@ const DefaultScreen: React.FC = () => {
       fadeAnimation()
       alreadyMember()
       return () => {
-        // Optional: If you want to reset the animation when leaving the screen
         opacityLine.setValue(0)
         scaleX.setValue(0)
       }
     }, []),
   )
   useEffect(() => {
-    // Check if the user is logged in using AsyncStorage
     const checkLoggedInStatus = async () => {
       try {
         const token = await AsyncStorage.getItem('token')
         if (token) {
-          // If user is logged in, navigate to the profile screen
           handleNavigation('ProfileScreen')
         }
       } catch (error) {
@@ -246,14 +227,12 @@ const DefaultScreen: React.FC = () => {
 const styles = StyleSheet.create({
   welcome: {
     fontSize: 32,
-
     letterSpacing: -0.1,
     fontFamily: 'OpenSans_300Light',
-    //fontWeight: '200',
-    shadowColor: 'white', // white shadow color
-    shadowOffset: { width: 1, height: 2 }, // no offset
-    shadowOpacity: 1, // full opacity
-    shadowRadius: 1, // shadow blur radius
+    shadowColor: 'white',
+    shadowOffset: { width: 1, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
     marginTop: -50,
   },
   backgroundImage: {
@@ -267,16 +246,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     letterSpacing: -0.1,
     fontFamily: 'OpenSans_300Light',
-    //fontWeight: '200',
-    shadowColor: 'white', // white shadow color
-    shadowOffset: { width: 1, height: 2 }, // no offset
-    shadowOpacity: 1, // full opacity
-    shadowRadius: 1, // shadow blur radius
+    shadowColor: 'white',
+    shadowOffset: { width: 1, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
   },
   clickToLogIn: {
     backgroundColor: 'black',
     borderRadius: 10,
-    //marginTop: 5,
   },
   buttonLoginSubmit: {
     padding: 5,
@@ -286,14 +263,12 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     color: 'black',
-
     letterSpacing: -0.1,
     fontFamily: 'OpenSans_300Light',
-    //fontWeight: '200',
-    shadowColor: 'white', // white shadow color
-    shadowOffset: { width: 1, height: 2 }, // no offset
-    shadowOpacity: 1, // full opacity
-    shadowRadius: 1, // shadow blur radius
+    shadowColor: 'white',
+    shadowOffset: { width: 1, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
     marginHorizontal: 20,
     textAlign: 'center',
     marginTop: 10,
@@ -304,52 +279,42 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-
-    // padding: 10,
   },
   motto: {
     fontSize: 27,
     letterSpacing: -0.1,
     fontFamily: 'OpenSans_300Light',
-    //fontWeight: '200',
-    shadowColor: 'white', // white shadow color
-    shadowOffset: { width: 1, height: 2 }, // no offset
-    shadowOpacity: 1, // full opacity
-    shadowRadius: 1, // shadow blur radius
+    shadowColor: 'white',
+    shadowOffset: { width: 1, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
     marginHorizontal: 10,
     textAlign: 'center',
     marginBottom: 150,
-
     fontWeight: '400',
-    //fontFamily: 'OpenSans_300Light',
   },
   joinPlaces: {
     fontSize: 67,
     color: 'black',
     marginHorizontal: 20,
     textAlign: 'center',
-
     letterSpacing: -0.1,
     fontFamily: 'OpenSans_300Light',
-    //fontWeight: '200',
-    shadowColor: 'white', // white shadow color
-    shadowOffset: { width: 1, height: 2 }, // no offset
-    shadowOpacity: 1, // full opacity
-    shadowRadius: 1, // shadow blur radius
+    shadowColor: 'white',
+    shadowOffset: { width: 1, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
   },
   logBtn: {
-    //width: 00,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-
     letterSpacing: -0.1,
     fontFamily: 'OpenSans_300Light',
-    //fontWeight: '200',
-    shadowColor: 'white', // white shadow color
-    shadowOffset: { width: 1, height: 2 }, // no offset
-    shadowOpacity: 1, // full opacity
-    shadowRadius: 1, // shadow blur radius
+    shadowColor: 'white',
+    shadowOffset: { width: 1, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
   },
 })
 

@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { View, Text, FlatList, StyleSheet } from 'react-native'
-import axios from 'axios'
-import { config } from '../config/urlConfig'
-//import { TouchableOpacity } from 'react-native'
+
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import { TouchableOpacity } from 'react-native'
 
@@ -15,7 +13,7 @@ interface Participant {
 }
 
 interface ParticipantsListProps {
-  eventId: number // Add eventId prop
+  eventId: number
   participants: Participant[]
 }
 
@@ -61,7 +59,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(245,245,245,0.8)',
     borderRadius: 10,
     margin: 5,
-    // Adjust based on your UI needs
   },
   emptyContainer: {
     alignItems: 'center',

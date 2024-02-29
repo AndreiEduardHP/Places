@@ -8,7 +8,7 @@ export type RootStackParamList = {
   ProfileScreen: undefined
   MapScreen: undefined
   SettingScreen: undefined
-  HomeScreen: SelectedPersonInfoData // Specify parameters expected by HomeScreen
+  HomeScreen: SelectedPersonInfoData
   NewConnectionScreen: undefined
   FriendRequestScreen: undefined
   PaymentScreen: undefined

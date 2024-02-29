@@ -14,9 +14,11 @@ export interface EventData {
   eventDescription: string
   eventImage: string
   eventTime: Date
+  createdByUserId: number
   locationLatitude: number
   locationLongitude: number
   maxParticipants: number
+  eventParticipantsCount: number
 }
 
 export interface Profile {
@@ -29,4 +31,20 @@ export interface Profile {
   lastName: string
   phoneNumber: string
   profilePicture: string
+}
+
+export interface MapMarkerDetail {
+  latitude: number
+  longitude: number
+  key: string
+  eventDescription?: string
+  eventName?: string
+  eventImage?: string
+  maxParticipants: number
+  createdByUserId: number
+}
+export interface MapMarker {
+  latitude: number
+  longitude: number
+  key: string
 }

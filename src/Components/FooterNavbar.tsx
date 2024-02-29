@@ -14,6 +14,7 @@ import {
   darkModeBackGroundColorActive,
   darkModeBackGroundColorNotActive,
 } from '../Utils.tsx/ComponentColors.tsx/BackGroundColor'
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
 type FooterNavProps = {
   style?: TextStyle
@@ -41,13 +42,10 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
       <TouchableOpacity
         onPress={() => handleNavigation('MapScreen')}
         style={styles.menuItem}>
-        <Image
-          source={require('../../assets/Icons/map.png')}
-          style={
-            currentRoute === 'MapScreen'
-              ? styles.selectedIcon
-              : { tintColor: iconTintColor }
-          }
+        <Icon
+          name="map"
+          size={26}
+          color={currentRoute === 'MapScreen' ? '#00B0EF' : iconTintColor}
         />
         <Text style={[styles.text, { color: isDarkMode ? 'black' : 'white' }]}>
           Map
@@ -57,13 +55,10 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
       <TouchableOpacity
         onPress={() => handleNavigation('HomeScreen')}
         style={styles.menuItem}>
-        <Image
-          source={require('../../assets/Icons/home.png')}
-          style={
-            currentRoute === 'HomeScreen'
-              ? styles.selectedIcon
-              : { tintColor: iconTintColor }
-          }
+        <Icon
+          name="home"
+          size={26}
+          color={currentRoute === 'HomeScreen' ? '#00B0EF' : iconTintColor}
         />
         <Text style={[styles.text, { color: isDarkMode ? 'black' : 'white' }]}>
           Home
@@ -73,12 +68,11 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
       <TouchableOpacity
         onPress={() => handleNavigation('NewConnectionScreen')}
         style={styles.menuItem}>
-        <Image
-          source={require('../../assets/Icons/add.png')}
-          style={
-            currentRoute === 'NewConnectionScreen'
-              ? styles.selectedIcon
-              : { tintColor: iconTintColor }
+        <Icon
+          name="add"
+          size={26}
+          color={
+            currentRoute === 'NewConnectionScreen' ? '#00B0EF' : iconTintColor
           }
         />
         <Text style={[styles.text, { color: isDarkMode ? 'black' : 'white' }]}>
@@ -89,13 +83,10 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
       <TouchableOpacity
         onPress={() => handleNavigation('ProfileScreen')}
         style={styles.menuItem}>
-        <Image
-          source={require('../../assets/Icons/user.png')}
-          style={
-            currentRoute === 'ProfileScreen'
-              ? styles.selectedIcon
-              : { tintColor: iconTintColor }
-          }
+        <Icon
+          name="person"
+          size={26}
+          color={currentRoute === 'ProfileScreen' ? '#00B0EF' : iconTintColor}
         />
         <Text style={[styles.text, { color: isDarkMode ? 'black' : 'white' }]}>
           Profile
@@ -105,13 +96,10 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
       <TouchableOpacity
         onPress={() => handleNavigation('SettingScreen')}
         style={styles.menuItem}>
-        <Image
-          source={require('../../assets/Icons/settings.png')}
-          style={
-            currentRoute === 'SettingScreen'
-              ? styles.selectedIcon
-              : { tintColor: iconTintColor }
-          }
+        <Icon
+          name="settings"
+          size={26}
+          color={currentRoute === 'SettingScreen' ? '#00B0EF' : iconTintColor}
         />
         <Text style={[styles.text, { color: isDarkMode ? 'black' : 'white' }]}>
           Settings

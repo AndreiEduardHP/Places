@@ -11,9 +11,9 @@ export const validateEmail = (email: string) => {
 export const validatePhoneNumber = (phoneNumber: string) => {
   const phoneNumberRegex = /^\d{10,}$/
 
-  if (!phoneNumberRegex.test(phoneNumber) && phoneNumber) {
-    return false
+  if (!phoneNumberRegex.test(phoneNumber)) {
+    return true
   }
 
-  return true
+  return false
 }

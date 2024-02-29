@@ -5,47 +5,34 @@ import {
   TouchableOpacity,
   View,
   Text,
-  Button,
   ImageBackground,
   Alert,
 } from 'react-native'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
-import { UserData } from '../Interfaces/IUserData'
 import { t } from 'i18next'
-import { validateEmail } from '../Utils.tsx/EmailValidation'
+import { validatePhoneNumber } from '../Utils.tsx/EmailValidation'
 import {
   disabledButtonStyle,
   enabledButtonStyle,
 } from '../Utils.tsx/ComponentColors.tsx/ButtonsColor'
-import * as Google from 'expo-auth-session/providers/google'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+
 import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import {
-  FirebaseRecaptcha,
-  FirebaseRecaptchaVerifier,
-  FirebaseRecaptchaVerifierModal,
-} from 'expo-firebase-recaptcha'
+import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
 import { initializeApp } from 'firebase/app'
 import { getAuth, signInWithCredential, PhoneAuthProvider } from 'firebase/auth'
+import LoadingComponent from './Loading/Loading'
 import { useNotification } from './Notification/NotificationProvider'
 
-interface Profile {
-  username: string
-}
-
 const LogInForm: React.FC = () => {
-  const [username, setUsername] = useState<string>('')
-  const [email, setEmail] = useState<string>('')
-  const [touchedEmail, setTouchedEmail] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState<string>('')
-  const isFormComplete = !phoneNumber
-  const [userInfo, setUserInfo] = useState(null)
+  const isFormComplete = validatePhoneNumber(phoneNumber)
   const { handleLogin, loggedUser, token } = useUser()
   const [code, setCode] = useState('')
   const recaptchaVerifier = useRef<any>()
   const [verificationId, setVerificationId] = useState<any>()
+  const [isLoading, setIsLoading] = useState(false)
 
   const firebaseConfig = {
     apiKey: 'AIzaSyDK6l7L56LB6nkpTnqE_GK_-FqPE55QVUE',
@@ -60,65 +47,70 @@ const LogInForm: React.FC = () => {
   const auth = getAuth(app)
   const phonePrefix = '+4'
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId:
-      '145140151681-2uapbmtdam6s26ih13i6048sga58jqla.apps.googleusercontent.com',
-    iosClientId:
-      '145140151681-gukeedo5oup7a0352e4neq1m04a8vcit.apps.googleusercontent.com',
-  })
   const handleNavigation = useHandleNavigation()
+  const { showNotificationMessage } = useNotification()
 
   const onLoginPress = async (phoneNumber: string) => {
-    sendVerification
-    confirmCode
     try {
       await handleLogin(phoneNumber)
-
-      // At this point, if login was successful, loggedUser and token will be updated
-      console.log('Logged User:', loggedUser)
-      console.log('Token:', token)
-
-      // Redirect to 'DefaultScreen'
-      handleNavigation('ProfileScreen') // Replace 'DefaultScreen' with the actual name of your desired screen
+      setIsLoading(false)
+      handleNavigation('ProfileScreen')
     } catch (error) {
-      // Handle login error
       console.error('Login Error:', error)
     }
   }
 
   const sendVerification = async () => {
-    const phoneProvider = new PhoneAuthProvider(auth)
     try {
-      const verificationId = await phoneProvider.verifyPhoneNumber(
-        phonePrefix + phoneNumber,
-        recaptchaVerifier.current,
+      const response = await axios.get(
+        `${config.BASE_URL}/api/userprofile/checkifphonenumberexists?phoneNumber=${phoneNumber}`,
       )
-      setVerificationId(verificationId)
-      return verificationId // Return verificationId for further processing
+
+      if (response.status == 200) {
+        try {
+          const phoneProvider = new PhoneAuthProvider(auth)
+          const verificationId = await phoneProvider.verifyPhoneNumber(
+            phonePrefix + phoneNumber,
+            recaptchaVerifier.current,
+          )
+          setVerificationId(verificationId)
+          return verificationId
+        } catch (error) {
+          showNotificationMessage('Send code error', 'fail')
+          throw new Error('Failed to send verification code')
+        }
+      } else if (response.status === 204) {
+        showNotificationMessage('phone not found', 'neutral')
+      }
     } catch (error) {
-      Alert.alert('Send code error')
-      throw new Error('Failed to send verification code') // Throw an error to be caught in onLoginPress
+      showNotificationMessage('error', 'fail')
     }
   }
 
   const confirmCode = async () => {
     if (!verificationId) {
-      Alert.alert('Verification error', 'No verification ID available')
-      return false // Indicate failure
+      showNotificationMessage('Verification error', 'fail')
+      return false
     }
 
     try {
+      setIsLoading(true)
       const credential = PhoneAuthProvider.credential(verificationId, code)
       await signInWithCredential(auth, credential)
 
       onLoginPress(phoneNumber)
-      return true // Indicate success
     } catch (error) {
-      Alert.alert('Authentication error')
-      return false // Indicate failure
+      showNotificationMessage('Authentication error', 'fail')
+      setIsLoading(false)
+      return false
     }
   }
 
+  if (isLoading) {
+    return <LoadingComponent />
+
+    // return <Text>sfaasf</Text>
+  }
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -136,7 +128,15 @@ const LogInForm: React.FC = () => {
                 value={phoneNumber}
                 keyboardType="phone-pad"
                 onChangeText={(text) => setPhoneNumber(text)}
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    borderColor:
+                      validatePhoneNumber(phoneNumber) && phoneNumber
+                        ? 'red'
+                        : 'gray',
+                  },
+                ]}
               />
 
               <TouchableOpacity
@@ -144,12 +144,23 @@ const LogInForm: React.FC = () => {
                   styles.touchable,
                   isFormComplete ? disabledButtonStyle : enabledButtonStyle,
                 ]}
-                onPress={() => sendVerification()}
+                onPress={() => onLoginPress(phoneNumber)}
                 disabled={isFormComplete}>
-                <Text style={styles.text}>{t('buttssons.logIn')}</Text>
+                <Text style={[styles.text, {}]}>{t('buttons.logIn')}</Text>
               </TouchableOpacity>
 
-              <Button title="Google" onPress={() => {}} />
+              <TouchableOpacity
+                style={{
+                  marginTop: 10,
+                  backgroundColor: 'black',
+                  alignItems: 'center',
+                  borderRadius: 10,
+                  height: 40,
+
+                  justifyContent: 'center',
+                }}>
+                <Text style={{ color: 'white', padding: 3 }}>Google</Text>
+              </TouchableOpacity>
             </View>
           )}
           {verificationId && (
@@ -186,6 +197,9 @@ const LogInForm: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
   backgroundImage: {
     flex: 1,
@@ -197,8 +211,8 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   input: {
-    width: 250,
-    height: 25,
+    width: 375,
+    height: 40,
 
     margin: 5,
     borderRadius: 10,
@@ -210,11 +224,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
+    marginTop: 10,
     backgroundColor: 'blue',
-    paddingHorizontal: 20,
-    paddingVertical: 5,
-    height: 25,
+    // paddingHorizontal: 10,
+    // paddingVertical: 5,
+    height: 40,
   },
   text: {
     color: 'white',

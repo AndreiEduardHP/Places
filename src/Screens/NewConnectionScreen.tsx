@@ -1,22 +1,9 @@
 import { t } from 'i18next'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  Button,
-  TouchableWithoutFeedback,
-  Keyboard,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  Platform,
-  ImageBackground,
-} from 'react-native'
-import SignUpForm from '../Components/SignUpFrom'
+import { View, Text, StyleSheet, Platform, ImageBackground } from 'react-native'
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
-import MapView, { Marker } from 'react-native-maps'
 import PeopleCard from '../Components/PeopleCard'
 import PlacesBenefits from '../Components/PlacesBenefits'
 import EventsAroundYou from '../Components/EventsAroundYou'
@@ -24,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 
 const NewConnectionScreen: React.FC = () => {
   const { t } = useTranslation()
-  const { loggedUser, handleLogout } = useUser()
+  const { loggedUser } = useUser()
 
   return (
     <ImageBackground
@@ -69,8 +56,6 @@ const NewConnectionScreen: React.FC = () => {
           ) : (
             <Text>No user is logged in</Text>
           )}
-
-          {/* Place FooterNavbar at the bottom */}
           <View style={styles.footer}>
             <FooterNavbar currentRoute={'NewConnectionScreen'} />
           </View>
@@ -83,8 +68,6 @@ const NewConnectionScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
-    // backgroundColor: 'white',
   },
   footer: {
     justifyContent: 'flex-end',
@@ -97,7 +80,6 @@ const styles = StyleSheet.create({
     color: 'white',
     letterSpacing: -0.6,
     fontWeight: '400',
-    fontFamily: 'Arial',
     ...Platform.select({
       ios: {
         textShadowColor: 'black',

@@ -19,7 +19,7 @@ import FooterNavbar from '../Components/FooterNavbar'
 import MapView, { Marker } from 'react-native-maps'
 import Geolocation from 'react-native-geolocation-service'
 import * as Location from 'expo-location'
-import CustomeMap from '../Components/Map'
+import CustomeMap from '../Components/MapRelated/Map'
 
 type Marker = {
   latitude: number
@@ -40,7 +40,7 @@ const MapScreen: React.FC = () => {
       ) : (
         <Text>No user is logged in</Text>
       )}
-      <View style={styles.footer}>
+      <View>
         <FooterNavbar currentRoute={'MapScreen'} />
       </View>
     </View>
@@ -51,7 +51,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  footer: {},
 })
 
 export default MapScreen
