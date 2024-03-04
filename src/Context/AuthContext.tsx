@@ -207,9 +207,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     AsyncStorage.removeItem('token')
     showNotificationMessage('Logged out successfully ', 'success')
   }
-  const refreshData = () =>
-    axios
-      .get(
+  const refreshData = async () => {
+    try {
+      const response = await axios.get(
         `${config.BASE_URL}/api/UserProfile/GetUserProfileByPhone/${loggedUser?.phoneNumber}`,
         {
           headers: {
@@ -217,13 +217,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           },
         },
       )
-      .then((response) => {
-        setLoggedUser(response.data)
-        AsyncStorage.setItem('loggedUser', JSON.stringify(response.data))
-      })
-      .catch((error) => {
-        console.error('Error fetching user profile:', error)
-      })
+
+      setLoggedUser(response.data)
+      await AsyncStorage.setItem('loggedUser', JSON.stringify(response.data))
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+    }
+  }
 
   const updateProfileImage = async (imageUri: any, userProfileId: number) => {
     try {

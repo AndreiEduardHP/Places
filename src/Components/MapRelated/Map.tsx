@@ -49,11 +49,7 @@ const CustomeMap: React.FC = () => {
 
   useEffect(() => {
     fetchEvents()
-  }, [])
-
-  const updateSelectedMarker = (updatedMarker: MapMarkerDetail) => {
-    setSelectedMarker(updatedMarker)
-  }
+  }, [selectedMarker])
 
   const fetchEvents = async () => {
     try {
@@ -238,6 +234,11 @@ const CustomeMap: React.FC = () => {
       Linking.openURL(url)
     }
   }
+
+  const refreshSelectedMarkerData = (updatedEvent: MapMarkerDetail) => {
+    setSelectedMarker(updatedEvent)
+  }
+
   if (isLoading) {
     return <LoadingComponent />
   }
@@ -319,6 +320,7 @@ const CustomeMap: React.FC = () => {
           deselectRoute()
         }}>
         <EventDetails
+          refreshSelectedMarkerData={refreshSelectedMarkerData}
           selectedMarker={selectedMarker}
           createdByUserId={selectedMarker?.createdByUserId}
           drawerVisible={drawerVisible}

@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native'
-import { useStripe } from '@stripe/stripe-react-native'
+import { StripeProvider, useStripe } from '@stripe/stripe-react-native'
 import FooterNavbar from '../Components/FooterNavbar'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
@@ -42,7 +42,7 @@ const PaymentScreen = () => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
   const [loading, setLoading] = useState(false)
   const [selectedPackage, setSelectedPackage] = useState(null)
-  const { loggedUser } = useUser()
+  const { loggedUser, refreshData } = useUser()
 
   const fetchPaymentSheetParams = async () => {
     const packageDetails = packages.find((p) => p.id === selectedPackage)
@@ -61,7 +61,7 @@ const PaymentScreen = () => {
         },
       )
       const { clientSecret } = response.data
-      console.log(clientSecret)
+
       return clientSecret
     } catch (error) {
       console.error('Error fetching payment sheet params:', error)
@@ -76,6 +76,7 @@ const PaymentScreen = () => {
 
   const openPaymentSheet = async () => {
     const clientSecret = await fetchPaymentSheetParams()
+
     if (!clientSecret) return
 
     const { error } = await initPaymentSheet({
@@ -88,11 +89,34 @@ const PaymentScreen = () => {
       return
     }
 
-    const result = await presentPaymentSheet()
+    const result = await presentPaymentSheet({})
     if (result.error) {
       Alert.alert('Payment failed', result.error.message)
     } else if (result) {
+      const packageDetails = packages.find((p) => p.id === selectedPackage)
+      updateUserCredits(loggedUser?.id, packageDetails?.price)
+
       Alert.alert('Success', 'Payment successful')
+    }
+  }
+
+  const updateUserCredits = async (userId: any, amount: any) => {
+    try {
+      const response = await axios.post(
+        `${config.BASE_URL}/api/UserProfile/UpdateCredit/${userId}`,
+        { Amount: amount },
+      )
+
+      if (response.status === 200) {
+        console.log('Credits updated successfully:', response.data.credit)
+        refreshData()
+      } else {
+        console.error('Failed to update credits:', response.status)
+        // Handle other statuses
+      }
+    } catch (error) {
+      console.error('Error updating credits:', error)
+      // Handle errors
     }
   }
 
@@ -113,6 +137,9 @@ const PaymentScreen = () => {
             </Text>
           </TouchableOpacity>
         ))}
+        <StripeProvider publishableKey="pk_test_51Op4EpBTlGDnVojpVzF4ZIMSKiYRbkgmTqIaTQWXjQ770OmFqdTYrSTquxwBOJyijVhwv8aRgHcudIJIpNasGiou001kLR8gLR">
+          <Text>sfs</Text>
+        </StripeProvider>
 
         {selectedPackage && (
           <Text style={{ color: 'white' }}>

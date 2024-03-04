@@ -12,20 +12,27 @@ import { ImageConfig } from '../config/imageConfig'
 import { remoteImages } from '../AzureImages/Images'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
+import { MapMarkerDetail } from '../Interfaces/IUserData'
 
 interface EditFormProps {
-  eventId: string | undefined
+  eventId: any
   eventName: string | undefined
   eventDescription: string | undefined
   maxParticipants: number | undefined
   eventImage?: string | undefined
+  latitude: any
+  longitude: any
+  refreshSelectedMarkerData: (updatedEvent: MapMarkerDetail) => void
 }
 
 const EditForm: React.FC<EditFormProps> = ({
   eventId,
   eventName,
+  refreshSelectedMarkerData,
   maxParticipants,
   eventImage,
+  latitude,
+  longitude,
   eventDescription,
 }) => {
   const [editedEventName, setEditedEventName] = useState(eventName || '')
@@ -47,7 +54,23 @@ const EditForm: React.FC<EditFormProps> = ({
           // Other fields you want to update
         },
       )
+      const responseEvent = await axios.get(
+        `${config.BASE_URL}/api/event/${Number(eventId)}`,
+      )
 
+      // Assuming responseEvent.data directly contains the event object
+      const updatedEvent = responseEvent.data
+      const newMarker = {
+        latitude: latitude,
+        longitude: longitude,
+        key: eventId,
+        eventName: updatedEvent.eventName,
+        eventDescription: updatedEvent.eventDescription,
+        eventImage: updatedEvent.eventImage,
+        maxParticipants: updatedEvent.maxParticipants,
+        createdByUserId: updatedEvent.createdByUserId,
+      }
+      refreshSelectedMarkerData(newMarker)
       Alert.alert('Success', 'Event updated successfully')
     } catch (error) {
       // Handle error, maybe show an error message
@@ -61,6 +84,8 @@ const EditForm: React.FC<EditFormProps> = ({
         defaultValue={eventId || ''}
         editable={false} // Prevent editing of eventId
       />
+      <Text>{latitude} latitude</Text>
+      <Text>{longitude} latitude</Text>
       <View>
         <Text style={styles.title}>Event name:</Text>
         <TextInput

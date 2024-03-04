@@ -44,9 +44,7 @@ const SettingScreen: React.FC = () => {
   const handleTicketSubmit = (ticket: {
     title: string
     description: string
-  }) => {
-    console.log(ticket)
-  }
+  }) => {}
 
   return (
     <View style={{ flex: 1 }}>
@@ -85,7 +83,6 @@ const SettingScreen: React.FC = () => {
               <View>
                 <SupportTicket onSubmit={handleTicketSubmit} />
               </View>
-              <ChatComponent></ChatComponent>
             </>
           ) : (
             <Text style={styles.noUserText}>{t('No user is logged in')}</Text>

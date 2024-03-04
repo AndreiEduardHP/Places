@@ -23,6 +23,7 @@ import { config } from '../config/urlConfig'
 import axios from 'axios'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useNotification } from '../Components/Notification/NotificationProvider'
+import { useFocusEffect } from '@react-navigation/native'
 
 const ProfileScreen: React.FC = () => {
   const {
@@ -95,6 +96,7 @@ const ProfileScreen: React.FC = () => {
 
   useEffect(() => {
     fetchFriendRequests()
+
     console.log(loggedUser?.credit)
   }, [])
   useEffect(() => {

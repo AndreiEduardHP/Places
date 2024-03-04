@@ -1,5 +1,5 @@
 // EventDetails.js
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -27,10 +27,12 @@ interface EventDetailsProps {
     eventName?: string
     eventDescription?: string
     eventImage?: string
+    latitude: number
+    longitude: number
     key?: string
     maxParticipants: number | undefined
   } | null
-
+  refreshSelectedMarkerData: (updatedEvent: MapMarkerDetail) => void
   createdByUserId: number | undefined
   drawerVisible: boolean
   isChecked: boolean
@@ -52,7 +54,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
   isChecked,
   setChecked,
   userHasJoined,
-
+  refreshSelectedMarkerData,
   handleUnJoinEvent,
   handleJoinEvent,
   routeDistance,
@@ -64,6 +66,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
   const [participantsCount, setParticipantsCount] = useState(0)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const { loggedUser } = useUser()
+  const [qrCode, setQrCode] = useState('')
 
   const handleOpenModal = () => {
     setIsModalVisible(true)
@@ -73,6 +76,34 @@ const EventDetails: React.FC<EventDetailsProps> = ({
   const handleCloseModal = () => {
     setIsModalVisible(false)
   }
+
+  const fetchQRCode = async (
+    eventId: string | undefined,
+    userId: number | undefined,
+  ) => {
+    try {
+      const response = await axios.get(
+        `${config.BASE_URL}/api/userprofileevent/GetQRCode/${selectedMarker?.key}/${loggedUser?.id}`,
+      )
+      if (response.status === 200 && response.data) {
+        setQrCode(response.data.qrCode)
+      } else {
+        setQrCode('')
+      }
+    } catch (error) {
+      setQrCode('')
+    }
+  }
+
+  useEffect(() => {
+    const loadQRCode = async () => {
+      if (selectedMarker?.key && loggedUser?.id) {
+        fetchQRCode(selectedMarker.key, loggedUser.id)
+      }
+    }
+
+    loadQRCode()
+  }, [selectedMarker?.key, loggedUser?.id, userHasJoined])
 
   return (
     <View
@@ -89,26 +120,70 @@ const EventDetails: React.FC<EventDetailsProps> = ({
               alignItems: 'center',
               justifyContent: 'space-between',
             }}>
-            <View style={{ width: '100%' }}>
+            <View>
               <View
                 style={{
                   flexDirection: 'row',
-
+                  alignItems: 'center',
                   justifyContent: 'space-between',
                 }}>
-                <View style={{}}>
-                  <Text style={[styles.title, { marginLeft: 5 }]}>
-                    Event Name: {selectedMarker?.eventName}
-                  </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                  }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      flex: 1,
+                    }}>
+                    {createdByUserId === loggedUser?.id && (
+                      <TouchableOpacity
+                        onPress={handleOpenModal}
+                        style={{ marginRight: 5, paddingTop: 1 }}>
+                        <MaterialIcons name="edit" size={30} color="black" />
+                      </TouchableOpacity>
+                    )}
+                    <View style={{ flex: 1, marginLeft: 5 }}>
+                      <Text
+                        style={[
+                          styles.title,
+                          {
+                            fontSize: 30,
+                            flexShrink: 1,
+                          },
+                        ]}
+                        numberOfLines={2} // Adjusted number of lines
+                        ellipsizeMode="tail">
+                        Event Name: {selectedMarker?.eventName}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: '500',
+                        }}>
+                        Max Participants: {selectedMarker?.maxParticipants}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={{ width: 100, height: 100, padding: 5 }}>
+                    {qrCode ? (
+                      <Image
+                        source={{ uri: `data:image/png;base64,${qrCode}` }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                        }}
+                      />
+                    ) : (
+                      <Text style={{ fontSize: 12 }}>No QR Code available</Text>
+                    )}
+                  </View>
                 </View>
 
-                {createdByUserId === loggedUser?.id && (
-                  <View style={{ paddingTop: 3, marginRight: 10 }}>
-                    <TouchableOpacity onPress={handleOpenModal}>
-                      <MaterialIcons name="edit" size={28} color="black" />
-                    </TouchableOpacity>
-                  </View>
-                )}
                 <Modal
                   animationType="slide"
                   transparent={true}
@@ -143,8 +218,11 @@ const EventDetails: React.FC<EventDetailsProps> = ({
                           width: '100%',
                         }}>
                         <EditEventForm
+                          refreshSelectedMarkerData={refreshSelectedMarkerData}
                           eventId={selectedMarker?.key}
                           eventName={selectedMarker?.eventName}
+                          latitude={selectedMarker?.latitude}
+                          longitude={selectedMarker?.longitude}
                           eventDescription={selectedMarker?.eventDescription}
                           maxParticipants={
                             selectedMarker?.maxParticipants
@@ -153,17 +231,6 @@ const EventDetails: React.FC<EventDetailsProps> = ({
                     </View>
                   </View>
                 </Modal>
-              </View>
-              <View>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '500',
-
-                    marginHorizontal: 20,
-                  }}>
-                  Max Participants: {selectedMarker?.maxParticipants}
-                </Text>
               </View>
             </View>
           </View>
