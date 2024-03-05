@@ -19,7 +19,7 @@ import {
 
 import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
+//import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
 import { initializeApp } from 'firebase/app'
 import { getAuth, signInWithCredential, PhoneAuthProvider } from 'firebase/auth'
 import LoadingComponent from './Loading/Loading'
@@ -44,7 +44,10 @@ const LogInForm: React.FC = () => {
     measurementId: 'G-98XG6SNW8N',
   }
   const app = initializeApp(firebaseConfig)
-  const auth = getAuth(app)
+  // const auth = getAuth(app)
+  ////const auth = firebaseAuth.initializeAuth(app, {
+  //  persistence: reactNativePersistence(ReactNativeAsyncStorage),
+  //})
   const phonePrefix = '+4'
 
   const handleNavigation = useHandleNavigation()
@@ -68,11 +71,11 @@ const LogInForm: React.FC = () => {
 
       if (response.status == 200) {
         try {
-          const phoneProvider = new PhoneAuthProvider(auth)
-          const verificationId = await phoneProvider.verifyPhoneNumber(
-            phonePrefix + phoneNumber,
-            recaptchaVerifier.current,
-          )
+          //   const phoneProvider = new PhoneAuthProvider(auth)
+          //   const verificationId = await phoneProvider.verifyPhoneNumber(
+          //    phonePrefix + phoneNumber,
+          //    recaptchaVerifier.current,
+          //   )
           setVerificationId(verificationId)
           return verificationId
         } catch (error) {
@@ -96,7 +99,7 @@ const LogInForm: React.FC = () => {
     try {
       setIsLoading(true)
       const credential = PhoneAuthProvider.credential(verificationId, code)
-      await signInWithCredential(auth, credential)
+      // await signInWithCredential(auth, credential)
 
       onLoginPress(phoneNumber)
     } catch (error) {
@@ -117,9 +120,9 @@ const LogInForm: React.FC = () => {
         source={require('../../assets/LoginImage.png')}
         style={styles.backgroundImage}>
         <View>
-          <FirebaseRecaptchaVerifierModal
-            ref={recaptchaVerifier}
-            firebaseConfig={firebaseConfig}
+          <Text //FirebaseRecaptchaVerifierModal
+          //   ref={recaptchaVerifier}
+          //   firebaseConfig={firebaseConfig}
           />
           {!verificationId && (
             <View>
