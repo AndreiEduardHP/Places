@@ -228,7 +228,8 @@ const styles = StyleSheet.create({
   welcome: {
     fontSize: 32,
     letterSpacing: -0.1,
-    fontFamily: 'OpenSans_300Light',
+
+    fontWeight: '300',
     shadowColor: 'white',
     shadowOffset: { width: 1, height: 2 },
     shadowOpacity: 1,
@@ -245,7 +246,8 @@ const styles = StyleSheet.create({
     marginTop: 50,
     fontSize: 18,
     letterSpacing: -0.1,
-    fontFamily: 'OpenSans_300Light',
+
+    fontWeight: '300',
     shadowColor: 'white',
     shadowOffset: { width: 1, height: 2 },
     shadowOpacity: 1,
@@ -264,7 +266,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'black',
     letterSpacing: -0.1,
-    fontFamily: 'OpenSans_300Light',
+
+    fontWeight: '300',
     shadowColor: 'white',
     shadowOffset: { width: 1, height: 2 },
     shadowOpacity: 1,
@@ -283,7 +286,7 @@ const styles = StyleSheet.create({
   motto: {
     fontSize: 27,
     letterSpacing: -0.1,
-    fontFamily: 'OpenSans_300Light',
+
     shadowColor: 'white',
     shadowOffset: { width: 1, height: 2 },
     shadowOpacity: 1,
@@ -291,7 +294,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     textAlign: 'center',
     marginBottom: 150,
-    fontWeight: '400',
+    fontWeight: '300',
   },
   joinPlaces: {
     fontSize: 67,
@@ -299,7 +302,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     textAlign: 'center',
     letterSpacing: -0.1,
-    fontFamily: 'OpenSans_300Light',
+    fontWeight: '300',
     shadowColor: 'white',
     shadowOffset: { width: 1, height: 2 },
     shadowOpacity: 1,
@@ -310,7 +313,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     letterSpacing: -0.1,
-    fontFamily: 'OpenSans_300Light',
+    fontWeight: '300',
     shadowColor: 'white',
     shadowOffset: { width: 1, height: 2 },
     shadowOpacity: 1,

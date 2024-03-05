@@ -293,12 +293,12 @@ const EventDetails: React.FC<EventDetailsProps> = ({
           onPress={userHasJoined ? handleUnJoinEvent : handleJoinEvent}
           disabled={
             !userHasJoined &&
-            participantsCount === (selectedMarker?.maxParticipants || Infinity)
+            participantsCount === selectedMarker?.maxParticipants
           }>
           <Text style={styles.joinEvent}>
             {
               !userHasJoined &&
-              participantsCount >= (selectedMarker?.maxParticipants || Infinity)
+              participantsCount === selectedMarker?.maxParticipants
                 ? 'Limit Reached'
                 : userHasJoined
                   ? 'Unjoin Event'

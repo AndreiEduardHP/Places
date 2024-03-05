@@ -164,14 +164,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   title: {
-    fontFamily: 'OpenSans_300Light',
-    fontWeight: '400',
+    fontWeight: '200',
     fontSize: 28,
     letterSpacing: -1,
   },
   buttons: {
-    fontFamily: 'OpenSans_300Light',
-    fontWeight: 'bold',
+    fontWeight: '300',
     fontSize: 14,
   },
 })

@@ -44,14 +44,14 @@ const EditForm: React.FC<EditFormProps> = ({
   )
 
   const saveEvent = async () => {
+    console.log(editedMaxParticipants)
     try {
       const response = await axios.put(
         `${config.BASE_URL}/api/event/updateEvent/${Number(eventId)}`,
         {
           eventName: editedEventName,
           eventDescription: editedEventDescription,
-          // maxParticipants: Number(editedMaxParticipants),
-          // Other fields you want to update
+          maxParticipants: Number(editedMaxParticipants),
         },
       )
       const responseEvent = await axios.get(
