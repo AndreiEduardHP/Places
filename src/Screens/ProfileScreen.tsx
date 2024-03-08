@@ -24,80 +24,19 @@ import axios from 'axios'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useNotification } from '../Components/Notification/NotificationProvider'
 import { useFocusEffect } from '@react-navigation/native'
+import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import ProfileSection from '../Components/SettingSections/ProfileSection'
+import ProfileDetails from '../Components/SettingSections/ProfileDetails'
 
 const ProfileScreen: React.FC = () => {
-  const {
-    loggedUser,
-    handleLogout,
-    updateProfileImage,
-    refreshData,
-
-    friendRequestsCount,
-    fetchFriendRequests,
-    fetchFriendCount,
-  } = useUser()
+  const { loggedUser, fetchFriendRequests, fetchFriendCount } = useUser()
   const { t } = useTranslation()
-  const handleNavigation = useHandleNavigation()
+  const { backgroundColor, textColor } = useThemeColor()
+
   const [connectionsCount, setConnectionsCount] = useState<number>(0)
-  const { showNotificationMessage } = useNotification()
-  const imageUri = `data:image/jpeg;base64,${loggedUser?.profilePicture}`
-
-  const selectImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-    if (status !== 'granted') {
-      alert('Sorry, we need camera roll permissions to make this work!')
-      return
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    })
-
-    if (!result.canceled && result.assets) {
-      const image = result.assets[0]
-      uploadImage(loggedUser?.id, image)
-    } else {
-      showNotificationMessage('Image picking was cancelled or failed', 'fail')
-    }
-  }
-  const uploadImage = async (userProfileId: any, imageFile: any) => {
-    try {
-      const formData = new FormData()
-      formData.append('userProfileId', userProfileId)
-      const file = {
-        uri: imageFile.uri,
-        name: imageFile.fileName,
-        type: imageFile.type,
-      }
-
-      formData.append('imageFile', file as any)
-
-      const response = await axios.post(
-        `${config.BASE_URL}/api/UserProfile/UpdateUserImage/${userProfileId}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        },
-      )
-
-      if (response.status === 200) {
-        showNotificationMessage('Image upload succesfully', 'success')
-        refreshData()
-      } else {
-        showNotificationMessage('Image upload failed', 'fail')
-      }
-    } catch (error) {
-      console.error('Network error:', error)
-    }
-  }
 
   useEffect(() => {
     fetchFriendRequests()
-
-    console.log(loggedUser?.credit)
   }, [])
   useEffect(() => {
     if (loggedUser?.id) {
@@ -111,71 +50,230 @@ const ProfileScreen: React.FC = () => {
     }
   }, [loggedUser, fetchFriendCount])
 
-  const shareLink = async () => {
-    try {
-      const result = await Share.share({
-        title: 'Check this out!',
-        message: 'Check out this cool app: ',
-        url: 'https://www.places.com',
-      })
+  console.log(loggedUser?.themeColor)
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: backgroundColor,
+      flex: 1,
+    },
+    gradient: {
+      height: 120,
+      position: 'absolute',
+      zIndex: 10,
+      top: 100,
+    },
+    header: {
+      alignItems: 'center',
+    },
+    text: {
+      fontSize: 32,
+      fontWeight: '300',
+      marginHorizontal: 20,
+      color: textColor,
+    },
 
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-        } else {
-        }
-      } else if (result.action === Share.dismissedAction) {
-      }
-    } catch (error) {
-      alert('error')
-    }
-  }
+    profilePic: {
+      width: 110,
+      height: 110,
+      marginVertical: 5,
 
+      borderRadius: 100,
+      ...Platform.select({
+        ios: {
+          shadowColor: 'white',
+          shadowOffset: { width: 1, height: 2 },
+          shadowOpacity: 0.8,
+          shadowRadius: 2,
+        },
+        android: {},
+      }),
+    },
+    item: {
+      width: '100%',
+      height: 120,
+    },
+    name: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginTop: 10,
+      letterSpacing: -0.7,
+      color: 'white',
+    },
+    title: {
+      color: 'white',
+    },
+    phone: {
+      color: 'white',
+      marginTop: 5,
+      fontSize: 18,
+    },
+    email: {
+      color: 'white',
+      marginTop: 5,
+      fontSize: 18,
+    },
+    walletContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      padding: 20,
+      borderBottomWidth: 3,
+      borderBottomColor: 'rgba(255, 255, 255, 0.35)',
+      borderRadius: 8,
+    },
+    walletText: {
+      fontSize: 18,
+      fontWeight: '500',
+      color: 'white',
+    },
+    walletTextsum: {
+      fontSize: 18,
+      fontWeight: '500',
+      color: 'rgba(140, 255, 0, 0.9)',
+    },
+    ordersText: {
+      fontSize: 18,
+      color: 'white',
+    },
+    button: {
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(11, 11, 11, 0.41)',
+      borderRadius: 8,
+    },
+    buttonText: {
+      fontSize: 16,
+
+      color: 'white',
+    },
+    logoutButton: {
+      padding: 20,
+      borderTopWidth: 2,
+      borderTopColor: 'rgba(255,255, 255, 0.35)',
+      borderRadius: 8,
+      ...Platform.select({
+        ios: {
+          shadowColor: 'rgba(0, 0, 0, 0.15)',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.8,
+          shadowRadius: 1,
+        },
+        android: {
+          elevation: 1,
+        },
+      }),
+    },
+    logoutButtonText: {
+      fontSize: 16,
+      color: 'rgba(255,111,111,1)',
+      paddingTop: 3,
+      fontWeight: '400',
+    },
+    deleteAccountButton: {
+      padding: 20,
+      ...Platform.select({
+        ios: {
+          shadowColor: 'rgba(0, 0, 0, 0.15)',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.8,
+          shadowRadius: 1,
+        },
+        android: {
+          elevation: 1,
+        },
+      }),
+    },
+    deleteAccountButtonText: {
+      fontSize: 16,
+      color: 'rgba(255,111,111,1)',
+      paddingTop: 3,
+      fontWeight: '400',
+    },
+    editIcon: { paddingTop: 5, alignItems: 'center', color: 'white' },
+    editIconLogo: { paddingTop: 70, alignItems: 'center' },
+  })
+  const userProfileData: {
+    icon: string
+    label: string
+    value: string | number | undefined
+  }[] = [
+    { icon: 'location-city', label: 'City', value: loggedUser?.city },
+    { icon: 'credit-score', label: 'Credits', value: loggedUser?.credit },
+    { icon: 'alternate-email', label: 'Email', value: loggedUser?.email },
+    { icon: 'interests', label: 'Interest', value: loggedUser?.interest },
+    {
+      icon: 'phone-callback',
+      label: 'Phone Number',
+      value: loggedUser?.phoneNumber,
+    },
+    { icon: 'badge', label: 'Username', value: loggedUser?.username },
+    // Add more data as needed
+  ]
   return (
-    <>
+    <View style={styles.container}>
+      <ScrollView style={styles.container}>
+        <Text style={styles.text}>Account Details</Text>
+        <ProfileSection showEditIcon={false}></ProfileSection>
+        <ProfileDetails data={userProfileData}></ProfileDetails>
+      </ScrollView>
+      <FooterNavbar currentRoute={''}></FooterNavbar>
+    </View>
+  )
+  {
+    /* <>
       <ScrollView style={styles.container}>
         <ImageBackground
           source={require('../../assets/menu-bg.jpg')}
           resizeMode="cover"
-          imageStyle={{ opacity: 0.86 }}>
+          imageStyle={{ opacity: 0.85 }}>
           <View style={styles.header}>
-            <View
-              style={{
-                flexDirection: 'row',
+            <LinearGradient
+              colors={
+                loggedUser?.themeColor === 'dark'
+                  ? generateBlackGradientColors(10)
+                  : generateWhiteGradientColors(10)
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.item}>
+              <View
+                style={{
+                  flexDirection: 'row',
 
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                paddingLeft: 50,
-              }}>
-              <Image
-                source={
-                  loggedUser?.profilePicture !== ''
-                    ? { uri: imageUri }
-                    : require('../../assets/DefaultUserIcon.png')
-                }
-                style={styles.profilePic}
-              />
-              <TouchableOpacity
-                onPress={() => {
-                  selectImage()
-                }}
-                style={styles.editIconLogo}>
-                <View style={{ flexDirection: 'row' }}>
-                  <Image
-                    style={{
-                      width: 24,
-                      height: 24,
-                      marginRight: 5,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      tintColor: 'white',
-                    }}
-                    source={require('../../assets/Icons/edit.png')}
-                  />
-                  <Text style={styles.editIcon}>Edit</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  paddingLeft: 50,
+                }}>
+                <Image
+                  source={
+                    loggedUser?.profilePicture !== ''
+                      ? { uri: imageUri }
+                      : require('../../assets/DefaultUserIcon.png')
+                  }
+                  style={styles.profilePic}
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    selectImage()
+                  }}
+                  style={styles.editIconLogo}>
+                  <View style={{ flexDirection: 'row' }}>
+                    <Image
+                      style={{
+                        width: 24,
+                        height: 24,
+                        marginRight: 5,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        tintColor: 'white',
+                      }}
+                      source={require('../../assets/Icons/edit.png')}
+                    />
+                    <Text style={styles.editIcon}>Edit</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
 
             <View style={{ flexDirection: 'row' }}>
               <Greeting style={styles.name} />
@@ -246,7 +344,7 @@ const ProfileScreen: React.FC = () => {
             onPress={() => handleNavigation('PaymentScreen')}>
             <Text style={styles.buttonText}>Payment</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={shareLink} style={styles.button}>
+          <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>Tell Your Friend</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -309,139 +407,8 @@ const ProfileScreen: React.FC = () => {
       <View>
         <FooterNavbar currentRoute={'ProfileScreen'} />
       </View>
-    </>
-  )
+    </> */
+  }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'rgba(0,0,0,1)',
-    flex: 1,
-  },
-  gradient: {
-    height: 120,
-    position: 'absolute',
-    zIndex: 10,
-    top: 100,
-  },
-  header: {
-    alignItems: 'center',
-
-    padding: 10,
-  },
-
-  profilePic: {
-    width: 110,
-    height: 110,
-    borderRadius: 100,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'white',
-        shadowOffset: { width: 1, height: 2 },
-        shadowOpacity: 0.8,
-        shadowRadius: 2,
-      },
-      android: {},
-    }),
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 10,
-    letterSpacing: -0.7,
-    color: 'white',
-  },
-  title: {
-    color: 'white',
-  },
-  phone: {
-    color: 'white',
-    marginTop: 5,
-    fontSize: 18,
-  },
-  email: {
-    color: 'white',
-    marginTop: 5,
-    fontSize: 18,
-  },
-  walletContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    borderBottomWidth: 3,
-    borderBottomColor: 'rgba(255, 255, 255, 0.35)',
-    borderRadius: 8,
-  },
-  walletText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: 'white',
-  },
-  walletTextsum: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: 'rgba(140, 255, 0, 0.9)',
-  },
-  ordersText: {
-    fontSize: 18,
-    color: 'white',
-  },
-  button: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(11, 11, 11, 0.41)',
-    borderRadius: 8,
-  },
-  buttonText: {
-    fontSize: 16,
-
-    color: 'white',
-  },
-  logoutButton: {
-    padding: 20,
-    borderTopWidth: 2,
-    borderTopColor: 'rgba(255,255, 255, 0.35)',
-    borderRadius: 8,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(0, 0, 0, 0.15)',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.8,
-        shadowRadius: 1,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  logoutButtonText: {
-    fontSize: 16,
-    color: 'rgba(255,111,111,1)',
-    paddingTop: 3,
-    fontWeight: '400',
-  },
-  deleteAccountButton: {
-    padding: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(0, 0, 0, 0.15)',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.8,
-        shadowRadius: 1,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  deleteAccountButtonText: {
-    fontSize: 16,
-    color: 'rgba(255,111,111,1)',
-    paddingTop: 3,
-    fontWeight: '400',
-  },
-  editIcon: { paddingTop: 5, alignItems: 'center', color: 'white' },
-  editIconLogo: { paddingTop: 70, alignItems: 'center' },
-})
 
 export default ProfileScreen

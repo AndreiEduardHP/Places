@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   StyleSheet,
   TextInput,
@@ -9,6 +9,8 @@ import {
   Image,
   TouchableWithoutFeedback,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
@@ -25,6 +27,9 @@ import { ImageConfig } from '../config/imageConfig'
 import { useNotification } from './Notification/NotificationProvider'
 import Checkbox from 'expo-checkbox'
 import { useUser } from '../Context/AuthContext'
+import TermsAndConditions from './TermsAndConditions'
+import { ScrollView } from 'react-native-gesture-handler'
+import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
 
 interface EditFormProps {
   latitude?: number
@@ -58,25 +63,17 @@ const EditForm: React.FC<EditFormProps> = ({
   const [showTimePicker, setShowTimePicker] = useState(false)
 
   const [formComplete, setFormComplete] = useState<boolean>(false)
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(false)
 
   useEffect(() => {
     const { eventName, eventDescription, maxParticipants } = formData
     const isComplete =
       eventName.trim() !== '' &&
       eventDescription.trim() !== '' &&
-      maxParticipants.trim() !== ''
+      maxParticipants.trim() !== '' &&
+      termsAccepted
     setFormComplete(isComplete)
-  }, [formData])
-
-  const formatDateAndTime = (date: Date) => {
-    const day = date.getDate().toString().padStart(2, '0') // Add leading 0 if day is less than 10
-    const month = (date.getMonth() + 1).toString().padStart(2, '0') // Months are 0-indexed, add leading 0 if month is less than 10
-    const year = date.getFullYear()
-    const hours = date.getHours().toString().padStart(2, '0') // Add leading 0 if hours are less than 10
-    const minutes = date.getMinutes().toString().padStart(2, '0') // Add leading 0 if minutes are less than 10
-
-    return `${day}/${month}/${year} ${hours}:${minutes}`
-  }
+  }, [formData, termsAccepted])
 
   const onTimeChange = (event: any, selectedTime: Date | undefined) => {
     setShowTimePicker(false)
@@ -180,161 +177,173 @@ const EditForm: React.FC<EditFormProps> = ({
   }
 
   return (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-      <View style={styles.container}>
-        <View style={{ alignItems: 'center' }}>
-          <Text style={{ fontSize: 22 }}>
-            Your credits: {loggedUser?.credit}.
-          </Text>
-          <View
-            style={{
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginTop: 5,
-            }}>
-            <Text
-              style={{
-                textAlign: 'center',
-                fontSize: 16,
-              }}>
-              One credit will be deducted from your account when creating the
-              event.
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={'padding'}
+      keyboardVerticalOffset={64}>
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <ScrollView contentContainerStyle={[styles.container, { flexGrow: 1 }]}>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ fontSize: 22 }}>
+              Your credits: {loggedUser?.credit}.
             </Text>
-          </View>
-        </View>
-
-        <TextInput
-          placeholder="Event Name"
-          value={formData.eventName}
-          onChangeText={(text) => handleChange('eventName', text)}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Event Description"
-          value={formData.eventDescription}
-          onChangeText={(text) => handleChange('eventDescription', text)}
-          style={styles.input}
-        />
-
-        <TextInput
-          placeholder="Event Max Participants"
-          value={formData.maxParticipants}
-          onChangeText={(text) => handleChange('maxParticipants', text)}
-          style={styles.input}
-          keyboardType="numeric"
-        />
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: 'grey',
-            borderRadius: 10,
-          }}>
-          <View style={{ backgroundColor: 'black', borderRadius: 10 }}>
-            <TouchableOpacity
-              onPress={showDatepicker}
-              style={styles.datePicker}>
-              <Text style={{ color: 'white' }}>Select Date & Time</Text>
-            </TouchableOpacity>
-            <View style={{}}>
-              {showDatePicker && (
-                <View style={[{ flexDirection: 'row' }]}>
-                  <Text style={{ color: 'white', padding: 10, fontSize: 16 }}>
-                    Select a Date:
-                  </Text>
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    is24Hour={true}
-                    accentColor="white"
-                    themeVariant="dark"
-                    textColor="white"
-                    onChange={onDateChange}
-                  />
-                </View>
-              )}
-              {showTimePicker && (
-                <View style={[{ flexDirection: 'row' }]}>
-                  <Text style={{ color: 'white', padding: 10, fontSize: 16 }}>
-                    Select a Time:
-                  </Text>
-                  <DateTimePicker
-                    value={date}
-                    mode="time"
-                    accentColor="white"
-                    themeVariant="dark"
-                    textColor="white"
-                    is24Hour={true}
-                    onChange={onTimeChange}
-                  />
-                </View>
-              )}
+            <View
+              style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginTop: 5,
+              }}>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 16,
+                }}>
+                One credit will be deducted from your account when creating the
+                event.
+              </Text>
             </View>
           </View>
-        </View>
-        {formData.eventTime ? (
-          <Text>
-            Selected date and time:
-            {formatDateAndTime(date)}
-          </Text>
-        ) : (
-          <Text> {date.toLocaleString()} </Text>
-        )}
-        <TouchableOpacity
-          onPress={() => {
-            selectImage()
-          }}>
-          <View style={{ flexDirection: 'row' }}>
-            <Image
-              style={{
-                width: 24,
-                height: 24,
-                marginRight: 5,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              source={require('../../assets/Icons/edit.png')}
-            />
-            <Text>Upload</Text>
+
+          <TextInput
+            placeholder="Event Name"
+            value={formData.eventName}
+            onChangeText={(text) => handleChange('eventName', text)}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Event Description"
+            value={formData.eventDescription}
+            onChangeText={(text) => handleChange('eventDescription', text)}
+            style={styles.input}
+          />
+
+          <TextInput
+            placeholder="Event Max Participants"
+            value={formData.maxParticipants}
+            onChangeText={(text) => handleChange('maxParticipants', text)}
+            style={styles.input}
+            keyboardType="numeric"
+          />
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: 'grey',
+              borderRadius: 10,
+            }}>
+            <View style={{ backgroundColor: 'black', borderRadius: 10 }}>
+              <TouchableOpacity
+                onPress={showDatepicker}
+                style={styles.datePicker}>
+                <Text style={{ color: 'white' }}>Select Date & Time</Text>
+              </TouchableOpacity>
+              <View style={{}}>
+                {showDatePicker && (
+                  <View style={[{ flexDirection: 'row' }]}>
+                    <Text style={{ color: 'white', padding: 10, fontSize: 16 }}>
+                      Select a Date:
+                    </Text>
+                    <DateTimePicker
+                      value={date}
+                      mode="date"
+                      is24Hour={true}
+                      accentColor="white"
+                      themeVariant="dark"
+                      textColor="white"
+                      minimumDate={new Date()}
+                      onChange={onDateChange}
+                    />
+                  </View>
+                )}
+                {showTimePicker && (
+                  <View style={[{ flexDirection: 'row' }]}>
+                    <Text style={{ color: 'white', padding: 10, fontSize: 16 }}>
+                      Select a Time:
+                    </Text>
+                    <DateTimePicker
+                      value={date}
+                      mode="time"
+                      accentColor="white"
+                      themeVariant="dark"
+                      textColor="white"
+                      is24Hour={true}
+                      onChange={onTimeChange}
+                    />
+                  </View>
+                )}
+              </View>
+            </View>
           </View>
-        </TouchableOpacity>
-        <Image
-          source={{ uri: ImageConfig.IMAGE_CONFIG + eventImg }}
-          style={{ width: 100, height: 100 }}
-        />
-        <TouchableOpacity
-          style={[
-            styles.touchable,
-            !formComplete ? disabledButtonStyle : enabledButtonStyle,
-            { width: 125, marginTop: 10 },
-          ]}
-          onPress={createEvent}
-          disabled={
-            loggedUser?.credit === null ||
-            undefined ||
-            loggedUser?.credit === 0 ||
-            !formComplete
-          }>
-          <Text style={styles.text}>
-            {loggedUser?.credit === null ||
-            loggedUser?.credit === undefined ||
-            loggedUser?.credit === 0
-              ? 'Not enough credit'
-              : 'Save'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableWithoutFeedback>
+          {formData.eventTime ? (
+            <Text>
+              Selected date and time:
+              {formatDateAndTime(date)}
+            </Text>
+          ) : (
+            <Text> {date.toLocaleString()} </Text>
+          )}
+          <TouchableOpacity
+            onPress={() => {
+              selectImage()
+            }}>
+            <View style={{ flexDirection: 'row' }}>
+              <Image
+                style={{
+                  width: 24,
+                  height: 24,
+                  marginRight: 5,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                source={require('../../assets/Icons/edit.png')}
+              />
+              <Text>Upload</Text>
+            </View>
+          </TouchableOpacity>
+          {eventImg && (
+            <Image
+              source={{ uri: ImageConfig.IMAGE_CONFIG + eventImg }}
+              style={{ width: 100, height: 100 }}
+            />
+          )}
+          <View style={{ marginVertical: 10 }}></View>
+          <TermsAndConditions
+            accepted={termsAccepted}
+            onToggle={() => {
+              setTermsAccepted(!termsAccepted)
+              console.log(termsAccepted)
+            }}></TermsAndConditions>
+          <TouchableOpacity
+            style={[
+              styles.touchable,
+              !formComplete ? disabledButtonStyle : enabledButtonStyle,
+              { width: 125 },
+            ]}
+            onPress={createEvent}
+            disabled={
+              loggedUser?.credit === null ||
+              undefined ||
+              loggedUser?.credit === 0 ||
+              !formComplete
+            }>
+            <Text style={styles.text}>
+              {loggedUser?.credit === null ||
+              loggedUser?.credit === undefined ||
+              loggedUser?.credit === 0
+                ? 'Not enough credit'
+                : 'Save'}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderTopColor: 'black',
-    borderWidth: 1,
-    width: '100%',
-    //  justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    margin: 10,
+    height: 700,
   },
   input: {
     width: 250,

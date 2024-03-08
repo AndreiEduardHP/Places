@@ -22,6 +22,8 @@ import { UserProvider } from '../Context/AuthContext'
 import Chat from '../Components/Chat/Chat'
 import PaymentScreen from '../Screens/PaymentScreen'
 import EditUserProfileScreen from '../Screens/EditUserProfileScreen'
+import AccountPreferenceScreen from '../Screens/AccountPreferenceScreen'
+import SupportScreen from '../Screens/SupportScreen'
 
 const Stack = createStackNavigator<RootStackParamList>()
 
@@ -38,7 +40,7 @@ const StackNavigator: React.FC = () => {
                 backgroundColor: 'black',
               }}>
               <Navbar title="Places" />
-              <Stack.Navigator initialRouteName="DefaultScreen">
+              <Stack.Navigator initialRouteName="NewConnectionScreen">
                 <Stack.Screen
                   name="DefaultScreen"
                   component={DefaultScreen}
@@ -47,6 +49,16 @@ const StackNavigator: React.FC = () => {
                 <Stack.Screen
                   name="LoginScreen"
                   component={LoginScreen}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="SupportScreen"
+                  component={SupportScreen}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="AccountPreferenceScreen"
+                  component={AccountPreferenceScreen}
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen

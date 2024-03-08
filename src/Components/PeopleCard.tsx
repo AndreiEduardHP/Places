@@ -8,6 +8,8 @@ import { config } from '../config/urlConfig'
 import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import { useNotification } from './Notification/NotificationProvider'
+import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
 type Person = {
   friendRequestStatus: string
@@ -57,13 +59,110 @@ const Item: React.FC<ItemProps> = ({
   onConnect,
 }) => {
   const navigate = useHandleNavigation()
+  const { textColor } = useThemeColor()
+  const [isExpanded, setIsExpanded] = useState(false)
 
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded)
+  }
+  const styles = StyleSheet.create({
+    title: {
+      marginLeft: 10,
+      marginTop: 10,
+      fontSize: 32,
+      paddingLeft: 10,
+      color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '400',
+      ...Platform.select({
+        ios: {
+          textShadowColor: 'black',
+          textShadowOffset: { width: 1, height: 1 },
+          textShadowRadius: 2,
+        },
+        android: {
+          elevation: 5,
+        },
+      }),
+    },
+    item: {
+      paddingHorizontal: 20,
+      paddingVertical: 7,
+      marginTop: 5,
+      marginHorizontal: 16,
+      borderColor: 'rgba(0,0,0,0.2)',
+      borderWidth: 1,
+      borderRadius: 6,
+      ...Platform.select({
+        ios: {
+          shadowColor: 'rgba(0, 0, 0, 0.5)',
+          shadowOffset: { width: 2, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 10,
+        },
+        android: {},
+      }),
+    },
+
+    profileContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    profileImage: {
+      width: 70,
+      height: 70,
+      borderRadius: 50,
+      zIndex: 20,
+      opacity: 0.9,
+    },
+    userName: {
+      fontSize: 20,
+      fontWeight: '400',
+      marginLeft: 10,
+      color: textColor,
+      textShadowColor: 'black',
+      textShadowOffset: { width: 0, height: 0 },
+      textShadowRadius: 4,
+    },
+    description: {
+      fontSize: 14,
+      marginTop: 5,
+      color: textColor,
+    },
+    statsContainer: {
+      justifyContent: 'space-between',
+      marginTop: 5,
+    },
+    stats: {
+      fontSize: 14,
+      color: textColor,
+    },
+    connect: {
+      fontSize: 14,
+      alignItems: 'center',
+
+      marginTop: 15,
+      borderWidth: 2,
+      borderRadius: 10,
+      padding: 5,
+      borderColor: textColor,
+    },
+  })
   return (
     <LinearGradient
       colors={['rgba(255, 255, 255, 0.21)', 'rgba(2, 2, 2, 0.30)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0.9 }}
-      style={styles.item}>
+      style={[
+        styles.item,
+        {
+          borderColor:
+            textColor === 'white' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+          borderWidth: 1,
+        },
+      ]}>
       <View style={styles.profileContainer}>
         <TouchableOpacity
           onPress={() =>
@@ -85,53 +184,62 @@ const Item: React.FC<ItemProps> = ({
               },
             })
           }>
-          <Image
-            style={styles.profileImage}
-            source={
-              profilePicture
-                ? { uri: ImageConfig.IMAGE_CONFIG + profilePicture }
-                : require('../../assets/DefaultUserIcon.png')
-            }
-          />
-        </TouchableOpacity>
-        <View style={{ alignItems: 'center' }}>
-          <Text style={styles.userName}>Username:</Text>
-          <Text
+          <View
             style={{
-              padding: 5,
-              color: 'rgba(255,255,255,1)',
-              textShadowColor: 'black',
-              textShadowOffset: { width: 0, height: 0 },
-              textShadowRadius: 3,
+              flexDirection: 'row',
+              alignItems: 'center',
             }}>
-            {username}{' '}
-          </Text>
-        </View>
+            <Image
+              style={styles.profileImage}
+              source={
+                profilePicture
+                  ? { uri: ImageConfig.IMAGE_CONFIG + profilePicture }
+                  : require('../../assets/DefaultUserIcon.png')
+              }
+            />
+            <Text
+              style={{
+                padding: 5,
+                marginLeft: 10,
+                color: textColor,
+                fontSize: 24,
+              }}>
+              {firstName} {lastName}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={toggleExpand}>
+          <Icon
+            name={isExpanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+            size={45}
+            color={textColor === 'white' ? 'white' : 'black'}></Icon>
+        </TouchableOpacity>
       </View>
-      <View style={{ marginTop: 15 }}>
-        <Text style={styles.description}>
-          Name: {firstName} {lastName}
-        </Text>
-      </View>
-      <View style={styles.statsContainer}>
-        <Text style={styles.stats}>Interests: {interest}</Text>
-      </View>
+      {isExpanded && (
+        <View>
+          <View style={{ marginTop: 15 }}>
+            <Text style={styles.description}>
+              Name: {firstName} {lastName}
+            </Text>
+          </View>
+          <View style={styles.statsContainer}>
+            <Text style={styles.stats}>Interests: {interest}</Text>
+          </View>
 
-      <TouchableOpacity style={styles.connect} onPress={onConnect}>
-        <Text
-          style={{
-            color: 'rgba(255,255,255,1)',
-            textShadowColor: 'black',
-            textShadowOffset: { width: 0, height: 0 },
-            textShadowRadius: 3,
-          }}>
-          {areFriends
-            ? 'Message'
-            : friendRequestStatus === 'Pending'
-              ? 'Pending'
-              : 'Connect'}
-        </Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.connect} onPress={onConnect}>
+            <Text
+              style={{
+                color: textColor,
+              }}>
+              {areFriends
+                ? 'Message'
+                : friendRequestStatus === 'Pending'
+                  ? 'Pending'
+                  : 'Connect'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </LinearGradient>
   )
 }
@@ -208,90 +316,29 @@ const PeopleCard: React.FC = () => {
       />
     )
   }
-
+  const { textColor } = useThemeColor()
+  const styles = StyleSheet.create({
+    title: {
+      marginLeft: 10,
+      marginTop: 10,
+      fontSize: 32,
+      paddingLeft: 10,
+      color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
+    },
+  })
   return (
-    <FlatList
-      data={data}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      horizontal={true}
-    />
+    <View style={{ flex: 1 }}>
+      <Text style={styles.title}>People around you</Text>
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        horizontal={false}
+      />
+    </View>
   )
 }
-
-const styles = StyleSheet.create({
-  item: {
-    padding: 20,
-    marginVertical: 8,
-    marginLeft: 16,
-    borderColor: 'rgba(0,0,0,0.2)',
-    borderWidth: 1,
-    borderRadius: 6,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(0, 0, 0, 0.5)',
-        shadowOffset: { width: 2, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
-      },
-      android: {},
-    }),
-  },
-
-  profileContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  profileImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 50,
-    zIndex: 20,
-    opacity: 0.9,
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: '400',
-    marginLeft: 10,
-    color: 'rgba(255,255,255,1)',
-    textShadowColor: 'black',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
-  },
-  description: {
-    fontSize: 14,
-    marginTop: 5,
-    color: 'rgba(255,255,255,1)',
-    textShadowColor: 'black',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
-  },
-  statsContainer: {
-    justifyContent: 'space-between',
-    marginTop: 5,
-  },
-  stats: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,1)',
-    textShadowColor: 'black',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 5,
-  },
-  connect: {
-    fontSize: 14,
-    alignItems: 'center',
-
-    marginTop: 15,
-    borderWidth: 2,
-    borderRadius: 10,
-    padding: 5,
-    borderColor: 'rgba(255,255,255,1)',
-
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 5,
-  },
-})
 
 export default PeopleCard

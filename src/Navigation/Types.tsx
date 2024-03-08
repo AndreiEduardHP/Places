@@ -13,6 +13,8 @@ export type RootStackParamList = {
   FriendRequestScreen: undefined
   PaymentScreen: undefined
   EditUserProfileScreen: undefined
+  AccountPreferenceScreen: undefined
+  SupportScreen: undefined
   SelectedPersonInfo: SelectedPersonInfoData
   Chat: { chatId: number }
 }

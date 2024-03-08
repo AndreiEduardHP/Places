@@ -26,7 +26,7 @@ import EventSection from '../Components/SettingSections/EventSection'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 
-const SettingScreen: React.FC = () => {
+const SupportScreen: React.FC = () => {
   const { t } = useTranslation()
   const { loggedUser, refreshData } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
@@ -80,16 +80,10 @@ const SettingScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.container}>
-        <Text style={styles.text}>Settings</Text>
-        <TouchableOpacity onPress={() => handleNavigation('ProfileScreen')}>
-          <ProfileSection showEditIcon={false}></ProfileSection>
-        </TouchableOpacity>
-
-        <AccountSection></AccountSection>
-        <EventSection></EventSection>
-        <InformationSection></InformationSection>
+        <Text style={styles.text}>Support Section</Text>
+        <SupportTicket onSubmit={handleTicketSubmit} />
       </ScrollView>
-      <FooterNavbar currentRoute={'SettingScreen'}></FooterNavbar>
+      <FooterNavbar currentRoute={''}></FooterNavbar>
     </View>
   )
   {
@@ -142,4 +136,4 @@ const SettingScreen: React.FC = () => {
   }
 }
 
-export default SettingScreen
+export default SupportScreen

@@ -50,14 +50,12 @@ const LogInForm: React.FC = () => {
   //})
   const phonePrefix = '+4'
 
-  const handleNavigation = useHandleNavigation()
   const { showNotificationMessage } = useNotification()
 
   const onLoginPress = async (phoneNumber: string) => {
     try {
       await handleLogin(phoneNumber)
       setIsLoading(false)
-      handleNavigation('ProfileScreen')
     } catch (error) {
       console.error('Login Error:', error)
     }
@@ -188,9 +186,6 @@ const LogInForm: React.FC = () => {
               </TouchableOpacity>
             </View>
           )}
-          {loggedUser?.username !== null ? (
-            <Text>{loggedUser?.username}</Text>
-          ) : null}
         </View>
       </ImageBackground>
     </View>

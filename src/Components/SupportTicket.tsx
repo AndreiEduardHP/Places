@@ -55,12 +55,15 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
   }
   const handleFeedback = (rating: number) => {
     setFeedback(rating)
-    console.log(rating)
   }
 
   return (
     <View style={styles.centeredView}>
-      <Button title="Open Ticket Form" onPress={() => setModalVisible(true)} />
+      <TouchableOpacity
+        onPress={() => setModalVisible(true)}
+        style={styles.ticket}>
+        <Text style={styles.ticketText}>Open Ticket Form</Text>
+      </TouchableOpacity>
 
       <Modal
         animationType="slide"
@@ -106,18 +109,18 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
             <View
               style={{
                 flexDirection: 'row',
-                justifyContent: 'space-between',
+                justifyContent: 'space-evenly',
                 marginTop: 20,
               }}>
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
-                onPress={() => handleSubmit()}>
-                <Text style={styles.textStyle}>Submit</Text>
+                onPress={() => setModalVisible(!modalVisible)}>
+                <Text style={styles.textStyle}>Close</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
-                onPress={() => setModalVisible(!modalVisible)}>
-                <Text style={styles.textStyle}>Close</Text>
+                onPress={() => handleSubmit()}>
+                <Text style={styles.textStyle}>Submit</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -132,6 +135,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 32,
+  },
+  ticketText: {
+    color: 'white',
+    fontWeight: '400',
+  },
+  ticket: {
+    backgroundColor: 'black',
+    padding: 10,
+    borderColor: 'rgba(255,255,255,0.5)',
+    borderWidth: 1,
+    borderRadius: 20,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -164,17 +178,18 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-    marginHorizontal: 15,
+    borderRadius: 15,
+    padding: 7,
+    width: 80,
+    alignItems: 'center',
+    marginHorizontal: 30,
   },
   buttonClose: {
-    backgroundColor: '#2196F3',
+    backgroundColor: 'black',
   },
   textStyle: {
     color: 'white',
-    fontWeight: 'bold',
+    fontWeight: '400',
     // textAlign: 'center',
   },
   label: {

@@ -12,8 +12,9 @@ import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useNotification } from '../Components/Notification/NotificationProvider'
 import i18n from '../TranslationFiles/i18n'
+import { useHandleNavigation } from '../Navigation/NavigationUtil'
 
-interface Profile {
+export interface Profile {
   id: number
   username: string
   email: string
@@ -80,6 +81,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([])
   const [friendRequestsCount, setFriendRequestsCount] = useState<number>(0)
   const { showNotificationMessage } = useNotification()
+  const handleNavigation = useHandleNavigation()
   useEffect(() => {
     const checkTokenExpiration = async () => {
       try {
@@ -190,13 +192,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           'tokenExpirationDate',
           expirationDate.toISOString(),
         )
-        i18n.changeLanguage(loggedUser?.languagePreference)
+        handleNavigation('NewConnectionScreen')
+        if (profileResponse.data.languagePreference) {
+          i18n.changeLanguage(profileResponse.data.languagePreference)
+        } else {
+          // Default to Romanian (ro) if languagePreference is null or undefined
+          i18n.changeLanguage('en')
+        }
+
         showNotificationMessage('Login authentication successful 👍', 'success')
       } else {
         console.error('Token is missing or undefined.')
       }
     } catch (error) {
-      console.error('Login Error:', error)
+      showNotificationMessage('Number not found! ', 'fail')
     }
   }
 

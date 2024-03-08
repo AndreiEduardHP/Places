@@ -3,7 +3,14 @@ import { Marker } from 'react-native-maps'
 import MapView from 'react-native-map-clustering'
 import * as Location from 'expo-location'
 import MapViewDirections from 'react-native-maps-directions'
-import { View, Linking } from 'react-native'
+import {
+  View,
+  Linking,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Keyboard,
+} from 'react-native'
 import BottomDrawer from '../BottomDrawer'
 import EventForm from '../EventForm'
 import { config } from '../../config/urlConfig'
@@ -15,6 +22,7 @@ import UserLocationMarker from './UserLocationMarkerComponent'
 import SavedMarker from './SavedMarkerComponent'
 import EventDetails from './EventDetailsDrawer'
 import { MapMarker, MapMarkerDetail } from '../../Interfaces/IUserData'
+import { mapCustomStyle } from './MapStyle'
 
 const CustomeMap: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<MapMarker | null>(null)
@@ -250,6 +258,9 @@ const CustomeMap: React.FC = () => {
         style={{ flex: 1 }}
         initialRegion={region}
         showsTraffic={true}
+        userInterfaceStyle={
+          loggedUser?.themeColor === 'dark' ? 'dark' : 'light'
+        }
         onLongPress={handleMapPress}
         onMapReady={() => setIsMapReady(true)}>
         {markers.map((marker) => (
@@ -289,6 +300,7 @@ const CustomeMap: React.FC = () => {
             }}
             eventName={marker.eventName}
             eventDescription={marker.eventDescription}
+            createdByUserId={marker.createdByUserId}
             onPress={() => handleMarkerPress(marker)}
           />
         ))}
@@ -318,6 +330,7 @@ const CustomeMap: React.FC = () => {
         onClose={() => {
           setDrawerVisible(false)
           deselectRoute()
+          Keyboard.dismiss()
         }}>
         <EventDetails
           refreshSelectedMarkerData={refreshSelectedMarkerData}
@@ -336,6 +349,7 @@ const CustomeMap: React.FC = () => {
           refreshParticipantsTrigger={refreshParticipantsTrigger}
         />
       </BottomDrawer>
+
       <BottomDrawer
         title="Add new event"
         visible={addNewEvent}
@@ -343,6 +357,7 @@ const CustomeMap: React.FC = () => {
           setAddNewEvent(false)
           deselectRoute()
           setMarkers(markers.slice(0, -1))
+          Keyboard.dismiss()
         }}>
         <EventForm
           key={`${addEventMarker?.latitude}-${addEventMarker?.longitude}`}

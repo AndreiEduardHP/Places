@@ -8,7 +8,11 @@ import {
   Animated,
   Platform,
   PanResponder,
+  KeyboardAvoidingView,
+  ScrollView,
+  KeyboardAvoidingViewComponent,
 } from 'react-native'
+import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 
 // Define a type for the component props
 interface BottomDrawerProps {
@@ -28,6 +32,7 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
   const translateY = useRef(new Animated.Value(0)).current
   const animatedHeight = useRef(new Animated.Value(0)).current
   const [currentHeight, setCurrentHeight] = useState(720)
+  const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
 
   useEffect(() => {
     if (visible) {
@@ -71,6 +76,55 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
     }),
   ).current
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      borderBottomColor: 'black',
+      borderBottomWidth: 1,
+    },
+    drawerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: 'white',
+      borderTopLeftRadius: 20,
+
+      borderTopRightRadius: 20,
+      ...Platform.select({
+        ios: {
+          shadowColor: 'black',
+          shadowOffset: { width: 0, height: -5 },
+          shadowOpacity: 1,
+          shadowRadius: 1,
+        },
+        android: {
+          elevation: 5,
+        },
+      }),
+      // Make sure to adjust the container to accommodate the full drawer height
+      //  height: 550, // Adjust this based on your drawer content
+      overflow: 'hidden',
+    },
+    closeButton: {
+      alignSelf: 'flex-end',
+      padding: 16,
+    },
+    closeImage: {
+      width: 26, // Adjust the width of the image as needed
+      height: 26, // Adjust the height of the image as needed
+      // Add any additional styles for the image
+    },
+    title: {
+      marginLeft: 20,
+      marginTop: 20,
+      fontSize: 18,
+    },
+  })
   return (
     <Animated.View
       {...panResponder.panHandlers}
@@ -81,7 +135,7 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
           height: animatedHeight,
         },
       ]}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
           <Image
@@ -94,46 +148,5 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
     </Animated.View>
   )
 }
-
-const styles = StyleSheet.create({
-  drawerContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(255,255,255,0.99)',
-    borderTopLeftRadius: 20,
-
-    borderTopRightRadius: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { width: 0, height: -5 },
-        shadowOpacity: 1,
-        shadowRadius: 1,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
-    // Make sure to adjust the container to accommodate the full drawer height
-    //  height: 550, // Adjust this based on your drawer content
-    overflow: 'hidden',
-  },
-  closeButton: {
-    alignSelf: 'flex-end',
-    padding: 16,
-  },
-  closeImage: {
-    width: 26, // Adjust the width of the image as needed
-    height: 26, // Adjust the height of the image as needed
-    // Add any additional styles for the image
-  },
-  title: {
-    marginLeft: 20,
-    marginTop: 20,
-    fontSize: 18,
-  },
-})
 
 export default BottomDrawer

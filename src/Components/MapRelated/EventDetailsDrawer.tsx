@@ -106,12 +106,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
   }, [selectedMarker?.key, loggedUser?.id, userHasJoined])
 
   return (
-    <View
-      style={{
-        borderTopColor: 'rgba(0,0,0,0.6)',
-        borderTopWidth: 1,
-        borderRadius: 5,
-      }}>
+    <View>
       <View>
         <View style={{}}>
           <View

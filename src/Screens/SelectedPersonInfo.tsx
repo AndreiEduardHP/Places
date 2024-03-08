@@ -19,6 +19,9 @@ import { ImageConfig } from '../config/imageConfig'
 import { RouteProp, useRoute } from '@react-navigation/native'
 import { RootStackParamList } from '../Navigation/Types'
 import { useNotification } from '../Components/Notification/NotificationProvider'
+import ProfileDetails from '../Components/SettingSections/ProfileDetails'
+import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import LineComponent from '../Components/LineComponent'
 
 interface Event {
   id: number
@@ -30,8 +33,26 @@ const SelectedPersonInfo: React.FC = () => {
   const { t } = useTranslation()
 
   const route = useRoute<RouteProp<RootStackParamList, 'HomeScreen'>>()
+  const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
   const { showNotificationMessage } = useNotification()
   const personData = route.params?.personData
+  const userProfileData: {
+    icon: string
+    label: string
+    value: string | number | undefined
+  }[] = [
+    { icon: 'location-city', label: 'City', value: personData?.city },
+
+    { icon: 'alternate-email', label: 'Email', value: personData?.email },
+    { icon: 'interests', label: 'Interest', value: personData?.interest },
+    {
+      icon: 'phone-callback',
+      label: 'Phone Number',
+      value: personData?.phoneNumber,
+    },
+    { icon: 'badge', label: 'Username', value: personData?.username },
+    // Add more data as needed
+  ]
 
   const handleEmail = () => {
     const recipientEmail = personData?.email
@@ -71,82 +92,128 @@ const SelectedPersonInfo: React.FC = () => {
       .catch((err) => showNotificationMessage('An error occurred', 'fail'))
   }
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: backgroundColor,
+    },
+    contactButtons: {
+      marginVertical: 5,
+      marginLeft: 10,
+
+      width: '100%',
+    },
+    scrollContainer: {
+      flex: 1,
+    },
+    personInfoContainer: {
+      flex: 1,
+    },
+    avatar: {
+      width: 70,
+      height: 70,
+      borderRadius: 50,
+    },
+    infoTextContainer: {
+      flex: 1,
+      marginTop: 15,
+    },
+    username: {
+      fontSize: 26,
+      fontWeight: '400',
+      marginLeft: 10,
+      color: textColor,
+    },
+    name: {
+      fontSize: 16,
+      marginBottom: 5,
+      color: textColor,
+    },
+    info: {
+      fontSize: 14,
+      marginBottom: 3,
+      color: textColor,
+    },
+    noPersonText: {
+      textAlign: 'center',
+      color: textColor,
+      fontSize: 16,
+    },
+    contactButtonsText: {
+      color: 'rgba(100,110,200,1)',
+      fontSize: 18,
+      padding: 5,
+    },
+    text: {
+      fontSize: 32,
+      fontWeight: '300',
+      marginHorizontal: 20,
+      color: textColor,
+    },
+  })
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Text style={styles.text}>User Information</Text>
         {personData ? (
           <View style={styles.personInfoContainer}>
-            <ImageBackground
-              source={require('../../assets/zzz.jpg')}
-              resizeMode="cover"
-              style={styles.scrollContainer}>
+            <View
+              style={{
+                alignItems: 'center',
+                flexDirection: 'row',
+                marginLeft: 10,
+                marginTop: 20,
+              }}>
+              <Image
+                source={
+                  personData.profilePicture !== ''
+                    ? {
+                        uri:
+                          ImageConfig.IMAGE_CONFIG + personData.profilePicture,
+                      }
+                    : require('../../assets/DefaultUserIcon.png')
+                }
+                style={styles.avatar}
+              />
+              <Text style={styles.username}>
+                UserName: {personData.username}
+              </Text>
+            </View>
+            <View style={styles.infoTextContainer}>
+              <ProfileDetails data={userProfileData}></ProfileDetails>
               <View
                 style={{
-                  marginLeft: 20,
-                  marginRight: 30,
-                  alignItems: 'center',
+                  marginHorizontal: 10,
+                  backgroundColor: backgroundColorGrey,
+                  borderRadius: 10,
+                  marginTop: 20,
                 }}>
-                <Text style={styles.username}>
-                  UserName: {personData.username}
-                </Text>
-
-                <Image
-                  source={
-                    personData.profilePicture !== ''
-                      ? {
-                          uri:
-                            ImageConfig.IMAGE_CONFIG +
-                            personData.profilePicture,
-                        }
-                      : require('../../assets/DefaultUserIcon.png')
-                  }
-                  style={styles.avatar}
-                />
-              </View>
-              <View style={styles.infoTextContainer}>
-                <Text style={styles.name}>
-                  Name: {personData.firstName} {personData.lastName}
-                </Text>
-                <Text style={styles.info}>Interest: {personData.interest}</Text>
-                <Text style={styles.info}>
-                  Friends: {personData.areFriends ? 'Yes' : 'No'}
-                </Text>
-                <Text style={styles.info}>City: {personData.city}</Text>
-                <Text style={styles.info}>Email: {personData.email}</Text>
-                <Text style={styles.info}>
-                  Friend Request Status:
-                  {personData.friendRequestStatus
-                    ? personData.friendRequestStatus
-                    : 'No friend request sent'}
-                </Text>
-                <Text style={styles.info}>
-                  Phone Number: {personData.phoneNumber}
-                </Text>
                 <TouchableOpacity
                   onPress={handleEmail}
-                  style={[styles.contactButtons, { marginTop: 30 }]}>
-                  <Text style={{ color: 'rgba(150,180,255,1)' }}>
-                    Send Email
-                  </Text>
+                  style={[styles.contactButtons]}>
+                  <Text style={styles.contactButtonsText}>Send Email</Text>
                 </TouchableOpacity>
+                <LineComponent />
                 <TouchableOpacity
                   onPress={handleCall}
                   style={styles.contactButtons}>
-                  <Text style={{ color: 'rgba(150,180,255,1)' }}>Call</Text>
+                  <Text style={styles.contactButtonsText}>Call</Text>
                 </TouchableOpacity>
+                <LineComponent />
                 <TouchableOpacity
                   onPress={handleSMS}
                   style={styles.contactButtons}>
-                  <Text style={{ color: 'rgba(150,180,255,1)' }}>Send SMS</Text>
+                  <Text style={styles.contactButtonsText}>Send SMS</Text>
                 </TouchableOpacity>
+                <LineComponent />
 
                 <TouchableOpacity style={styles.contactButtons}>
-                  <Text style={{ color: 'rgba(150,180,255,1)' }}>
+                  <Text style={styles.contactButtonsText}>
                     Send Private Message
                   </Text>
                 </TouchableOpacity>
               </View>
-            </ImageBackground>
+            </View>
           </View>
         ) : (
           <Text style={styles.noPersonText}>No person selected</Text>
@@ -159,53 +226,5 @@ const SelectedPersonInfo: React.FC = () => {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contactButtons: {
-    marginTop: 5,
-    width: '100%',
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  personInfoContainer: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-  },
-  infoTextContainer: {
-    flex: 1,
-    marginHorizontal: 25,
-    marginTop: 40,
-  },
-  username: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: 'white',
-  },
-  name: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: 'white',
-  },
-  info: {
-    fontSize: 14,
-    marginBottom: 3,
-    color: 'white',
-  },
-  noPersonText: {
-    textAlign: 'center',
-    color: 'white',
-    fontSize: 16,
-  },
-})
 
 export default SelectedPersonInfo

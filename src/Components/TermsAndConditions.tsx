@@ -28,7 +28,14 @@ const TermsAndConditions: React.FC<Props> = ({ accepted, onToggle }) => {
         disabled={checkBoxEnabled}
       />
       <TouchableOpacity onPress={() => setModalVisible(true)}>
-        <Text style={styles.text}>I agree to the Terms and Conditions</Text>
+        <View style={{ flexDirection: 'row' }}>
+          <View>
+            <Text style={styles.textAgree}>I agree to the </Text>
+          </View>
+          <View>
+            <Text style={styles.textTerms}>Terms and Conditions</Text>
+          </View>
+        </View>
       </TouchableOpacity>
 
       <Modal
@@ -114,6 +121,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 10,
+  },
+  textAgree: {},
+  textTerms: {
+    color: 'blue',
   },
   checkbox: {
     marginRight: 8,

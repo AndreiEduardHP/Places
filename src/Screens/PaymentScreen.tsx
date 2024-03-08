@@ -108,22 +108,19 @@ const PaymentScreen = () => {
       )
 
       if (response.status === 200) {
-        console.log('Credits updated successfully:', response.data.credit)
         refreshData()
       } else {
         console.error('Failed to update credits:', response.status)
-        // Handle other statuses
       }
     } catch (error) {
       console.error('Error updating credits:', error)
-      // Handle errors
     }
   }
 
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
-        <Text style={styles.title}>Select a Subscription Plan</Text>
+        <Text style={styles.title}>Select a Pack</Text>
         {packages.map((packages) => (
           <TouchableOpacity
             key={packages.id}
@@ -133,7 +130,8 @@ const PaymentScreen = () => {
             ]}
             onPress={() => setSelectedPackage(packages.id as any)}>
             <Text style={styles.buttonText}>
-              {packages.name} - {packages.price} (credits:{packages.credits})
+              {packages.name} - {packages.price} RON (credits:{packages.credits}
+              )
             </Text>
           </TouchableOpacity>
         ))}

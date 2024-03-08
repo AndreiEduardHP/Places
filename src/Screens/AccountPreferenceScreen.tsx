@@ -11,7 +11,7 @@ import {
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
 import DarkMode from '../Components/SwitchDarkMode'
-
+import RNPickerSelect from 'react-native-picker-select'
 import i18n from '../TranslationFiles/i18n'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
@@ -24,15 +24,37 @@ import InformationSection from '../Components/SettingSections/Information'
 import AccountSection from '../Components/SettingSections/AccountSettings'
 import EventSection from '../Components/SettingSections/EventSection'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { useHandleNavigation } from '../Navigation/NavigationUtil'
+import AccountPreference from '../Components/SettingSections/AccountPreference'
 
-const SettingScreen: React.FC = () => {
+const AccountPreferenceScreen: React.FC = () => {
   const { t } = useTranslation()
   const { loggedUser, refreshData } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
   const { showNotificationMessage } = useNotification()
-  const handleNavigation = useHandleNavigation()
+  const changeLanguagePicker = async (lng: string) => {
+    const apiUrl = `${config.BASE_URL}/api/UserProfilePreference/${loggedUser?.id}/preferences`
 
+    const requestBody = {
+      LanguagePreference: lng,
+    }
+
+    try {
+      const response = await axios.put(apiUrl, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      showNotificationMessage(
+        'User preferences updated successfully',
+        'success',
+      )
+      refreshData()
+    } catch (error) {
+      showNotificationMessage('Error updating user preferences:', 'fail')
+    }
+    i18n.changeLanguage(lng)
+  }
   const handleTicketSubmit = (ticket: {
     title: string
     description: string
@@ -56,7 +78,15 @@ const SettingScreen: React.FC = () => {
       //  alignItems: 'center',
       padding: 10,
     },
-
+    dropdown: {
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      borderWidth: 1,
+      borderColor: 'gray',
+      borderRadius: 10,
+      color: textColor,
+      paddingRight: 30,
+    },
     header: {
       fontSize: 28,
       fontWeight: '400',
@@ -80,66 +110,13 @@ const SettingScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.container}>
-        <Text style={styles.text}>Settings</Text>
-        <TouchableOpacity onPress={() => handleNavigation('ProfileScreen')}>
-          <ProfileSection showEditIcon={false}></ProfileSection>
-        </TouchableOpacity>
+        <Text style={styles.text}>Account Preference</Text>
 
-        <AccountSection></AccountSection>
-        <EventSection></EventSection>
-        <InformationSection></InformationSection>
+        <AccountPreference></AccountPreference>
       </ScrollView>
-      <FooterNavbar currentRoute={'SettingScreen'}></FooterNavbar>
+      <FooterNavbar currentRoute={''}></FooterNavbar>
     </View>
   )
-  {
-    /*  
-   <KeyboardAvoidingView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>{t('Settings')}</Text>
-        <View style={styles.content}>
-          {loggedUser ? (
-            <>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}>
-                <Text style={styles.text}>Change theme:</Text>
-                <DarkMode />
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}>
-                <Text style={[styles.text, {}]}>Change language:</Text>
-                <RNPickerSelect
-                  onValueChange={(value: any) => changeLanguagePicker(value)}
-                  items={[
-                    { label: 'English', value: 'en' },
-                    { label: 'Română', value: 'ro' },
-                  ]}
-                  style={{
-                    inputIOS: styles.dropdown,
-                    inputAndroid: styles.dropdown,
-                  }}
-                  useNativeAndroidPickerStyle={false}
-                />
-              </View>
-              <View>
-                <SupportTicket onSubmit={handleTicketSubmit} />
-              </View>
-            </>
-          ) : (
-            <Text style={styles.noUserText}>{t('No user is logged in')}</Text>
-          )}
-        </View>
-      </ScrollView>
-      <FooterNavbar currentRoute={'SettingScreen'} />
-    </KeyboardAvoidingView>
-  */
-  }
 }
 
-export default SettingScreen
+export default AccountPreferenceScreen

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   StyleSheet,
   TextInput,
@@ -81,6 +81,7 @@ const SignUpForm: React.FC = () => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [flagSource, setFlagSource] = useState(countryData.ro.flag) // Default flag
   const [phonePrefix, setPhonePrefix] = useState(countryData.ro.prefix)
+  const foundCountry = countries.find((c) => c.value === country)
 
   const isFormComplete =
     !email ||
@@ -118,10 +119,15 @@ const SignUpForm: React.FC = () => {
     const countryInfo = countryData[value]
     if (countryInfo) {
       setCountry(value)
+
       setFlagSource(countryInfo.flag)
       setPhonePrefix(countryInfo.prefix)
     }
   }
+  useEffect(() => {
+    console.log(foundCountry?.label) // This will log the found country object, or undefined if not found
+  }, [country])
+
   const submitUserProfile = async () => {
     let axiosConfig = {
       headers: {
@@ -138,9 +144,12 @@ const SignUpForm: React.FC = () => {
       phoneNumber: phoneNumber,
       email: email,
       city: city,
-      interest: interest,
+      interest: selectedInterests.join(';'),
+      country: foundCountry?.label,
+      themeColor: 'dark',
+      languagePreference: 'en',
     }
-
+    console.log(userData)
     try {
       const response = await axios.post(
         `${config.BASE_URL}/api/UserProfile?locationId=${1}`,
@@ -367,7 +376,7 @@ const pickerSelectStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    //  width: '100%',
     height: '90%',
     borderColor: 'black',
     justifyContent: 'space-between',

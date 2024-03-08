@@ -80,12 +80,6 @@ const EditForm: React.FC<EditFormProps> = ({
   }
   return (
     <View style={{ alignItems: 'center', marginTop: 10 }}>
-      <TextInput
-        defaultValue={eventId || ''}
-        editable={false} // Prevent editing of eventId
-      />
-      <Text>{latitude} latitude</Text>
-      <Text>{longitude} latitude</Text>
       <View>
         <Text style={styles.title}>Event name:</Text>
         <TextInput
