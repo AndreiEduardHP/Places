@@ -24,6 +24,7 @@ import PaymentScreen from '../Screens/PaymentScreen'
 import EditUserProfileScreen from '../Screens/EditUserProfileScreen'
 import AccountPreferenceScreen from '../Screens/AccountPreferenceScreen'
 import SupportScreen from '../Screens/SupportScreen'
+import JoinedEventsScreen from '../Screens/MyEvents'
 
 const Stack = createStackNavigator<RootStackParamList>()
 
@@ -49,6 +50,11 @@ const StackNavigator: React.FC = () => {
                 <Stack.Screen
                   name="LoginScreen"
                   component={LoginScreen}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="JoinedEventsScreen"
+                  component={JoinedEventsScreen}
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen

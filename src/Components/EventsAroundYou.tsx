@@ -54,9 +54,6 @@ const Item: React.FC<Event> = ({
           textShadowOffset: { width: 1, height: 1 },
           textShadowRadius: 2,
         },
-        android: {
-          elevation: 5,
-        },
       }),
     },
     item: {
@@ -75,9 +72,6 @@ const Item: React.FC<Event> = ({
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 1,
           shadowRadius: 2,
-        },
-        android: {
-          elevation: 10,
         },
       }),
     },

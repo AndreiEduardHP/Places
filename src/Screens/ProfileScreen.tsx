@@ -157,9 +157,6 @@ const ProfileScreen: React.FC = () => {
           shadowOpacity: 0.8,
           shadowRadius: 1,
         },
-        android: {
-          elevation: 1,
-        },
       }),
     },
     logoutButtonText: {
@@ -176,9 +173,6 @@ const ProfileScreen: React.FC = () => {
           shadowOffset: { width: 0, height: 1 },
           shadowOpacity: 0.8,
           shadowRadius: 1,
-        },
-        android: {
-          elevation: 1,
         },
       }),
     },

@@ -102,9 +102,6 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
           shadowOpacity: 1,
           shadowRadius: 1,
         },
-        android: {
-          elevation: 5,
-        },
       }),
       // Make sure to adjust the container to accommodate the full drawer height
       //  height: 550, // Adjust this based on your drawer content

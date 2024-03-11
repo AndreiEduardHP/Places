@@ -15,11 +15,14 @@ import UserProfilePicture from '../UserProfilePicture'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import LineComponent from '../LineComponent'
+import { useNavigation } from '@react-navigation/native'
+import { useHandleNavigation } from '../../Navigation/NavigationUtil'
 
 const EventSection: React.FC = () => {
   const { t } = useTranslation()
   const { loggedUser, refreshData } = useUser()
   const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
+  const handleNavigation = useHandleNavigation()
 
   const styles = StyleSheet.create({
     container: {
@@ -71,14 +74,16 @@ const EventSection: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <TouchableOpacity style={styles.row}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => handleNavigation('JoinedEventsScreen')}>
           <Icon name="event-available" size={30} color={textColor}></Icon>
           <Text style={styles.text}>Joined Events</Text>
         </TouchableOpacity>
         <LineComponent />
         <TouchableOpacity style={styles.row}>
           <Icon name="event-available" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Joined Events</Text>
+          <Text style={styles.text}>Something Else?</Text>
         </TouchableOpacity>
       </View>
     </View>

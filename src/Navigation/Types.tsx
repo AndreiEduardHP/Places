@@ -16,6 +16,7 @@ export type RootStackParamList = {
   AccountPreferenceScreen: undefined
   SupportScreen: undefined
   SelectedPersonInfo: SelectedPersonInfoData
+  JoinedEventsScreen: undefined
   Chat: { chatId: number }
 }
 
