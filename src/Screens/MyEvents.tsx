@@ -29,12 +29,22 @@ import EventSection from '../Components/SettingSections/EventSection'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import AccountPreference from '../Components/SettingSections/AccountPreference'
 import { ImageConfig } from '../config/imageConfig'
+import Icon from 'react-native-vector-icons/MaterialIcons'
+import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
+import LoadingComponent from '../Components/Loading/Loading'
+import { useHandleNavigation } from '../Navigation/NavigationUtil'
+import LineComponent from '../Components/LineComponent'
 
 interface Event {
   id: number
   eventName: string
   eventDescription: string
-  eventTime: String
+  eventTime: any
+  eventLocation: {
+    latitude: number
+    longitude: number
+  }
+  locationDetails?: string
 }
 
 const JoinedEventsScreen: React.FC = () => {
@@ -42,18 +52,30 @@ const JoinedEventsScreen: React.FC = () => {
   const { loggedUser, refreshData } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
   const { showNotificationMessage } = useNotification()
-
+  const navigate = useHandleNavigation()
   const [events, setEvents] = useState<Event[]>([])
   const [isModalVisible, setModalVisible] = useState<boolean>(false)
   const [currentQRCode, setCurrentQRCode] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const fetchEvents = async () => {
       if (loggedUser?.id) {
         const apiUrl = `${config.BASE_URL}/api/userprofileevent/joinedevents/${loggedUser.id}`
         try {
-          const response = await axios.get<Event[]>(apiUrl)
-          setEvents(response.data)
+          let response = await axios.get<Event[]>(apiUrl)
+          const eventsWithLocation = await Promise.all(
+            response.data.map(async (event) => {
+              // Prefetch location details here
+              const locationDetails = await fetchLocationDetails(
+                event.eventLocation.latitude,
+                event.eventLocation.longitude,
+              )
+              return { ...event, locationDetails }
+            }),
+          )
+          setEvents(eventsWithLocation)
+          setIsLoading(false)
         } catch (error) {
           console.error('Error fetching joined events:', error)
         }
@@ -62,6 +84,24 @@ const JoinedEventsScreen: React.FC = () => {
 
     fetchEvents()
   }, [loggedUser?.id])
+
+  const fetchLocationDetails = async (latitude: number, longitude: number) => {
+    try {
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I`,
+      )
+
+      if (response.data.results.length > 0) {
+        const formattedAddress = response.data.results[0].formatted_address
+        return formattedAddress
+      } else {
+        return 'Location details not found'
+      }
+    } catch (error) {
+      console.error('Error fetching location details:', error)
+      return 'Error fetching location details'
+    }
+  }
 
   const fetchQRCode = async (eventId: number) => {
     console.log(eventId)
@@ -82,16 +122,68 @@ const JoinedEventsScreen: React.FC = () => {
   }
 
   const renderItem = ({ item }: { item: Event }) => (
-    <TouchableOpacity
-      style={styles.itemContainer}
-      onPress={() => fetchQRCode(item.id)}>
-      <Text style={[styles.itemText, { color: textColor }]}>
-        Event name:{item.eventName} Event Description:{item.eventDescription}
-      </Text>
-      <Text style={[styles.itemText, { color: textColor }]}>
-        Event Time: {item.eventTime}
-      </Text>
-    </TouchableOpacity>
+    <View style={styles.itemContainer}>
+      <View
+        style={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexDirection: 'row',
+        }}>
+        <View style={{ width: '100%' }}>
+          <View>
+            <Text style={[styles.itemText, { color: textColor }]}>
+              Event name: {item.eventName}
+            </Text>
+            <Text style={[styles.itemText, { color: textColor }]}>
+              Event Description: {item.eventDescription}
+            </Text>
+            <Text style={[styles.itemText, { color: textColor }]}>
+              Event Time: {formatDateAndTime(new Date(item.eventTime))}
+            </Text>
+            <Text style={[styles.itemText, { color: textColor }]}>
+              Event Location: {item.locationDetails}
+            </Text>
+          </View>
+
+          <View
+            style={{
+              alignItems: 'center',
+            }}>
+            <TouchableOpacity
+              onPress={() =>
+                navigate('MapScreen', {
+                  latitude: item.eventLocation.latitude,
+                  longitude: item.eventLocation.longitude,
+                })
+              }
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.4)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 300,
+                marginTop: 10,
+                borderRadius: 10,
+                height: 30,
+              }}>
+              <Text style={{ color: 'white' }}>See location on map</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => fetchQRCode(item.id)}
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.4)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 300,
+                marginTop: 10,
+                borderRadius: 10,
+                height: 30,
+              }}>
+              <Text style={{ color: 'white' }}>See QR</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
   )
 
   const styles = StyleSheet.create({
@@ -160,7 +252,17 @@ const JoinedEventsScreen: React.FC = () => {
       justifyContent: 'flex-end',
     },
   })
-  return (
+  return isLoading ? (
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <LoadingComponent />
+      </View>
+
+      <View>
+        <FooterNavbar currentRoute={''} />
+      </View>
+    </View>
+  ) : (
     <View style={styles.container}>
       <Text style={styles.text}>Joined Events:</Text>
       <FlatList

@@ -12,9 +12,12 @@ import {
 import { useFocusEffect } from '@react-navigation/native'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Profile, useUser } from '../Context/AuthContext'
+import * as Notifications from 'expo-notifications'
 
 const DefaultScreen: React.FC = () => {
   const { t } = useTranslation()
+  const { handleLogin, updateNotificationToken } = useUser()
   const opacityMember = useRef(new Animated.Value(0)).current
   const opacityLine = useRef(new Animated.Value(0)).current
   const opacity = useRef(new Animated.Value(0)).current
@@ -69,17 +72,24 @@ const DefaultScreen: React.FC = () => {
       }
     }, []),
   )
-  useEffect(() => {
-    const checkLoggedInStatus = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token')
-        if (token) {
-          handleNavigation('ProfileScreen')
+  const checkLoggedInStatus = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token')
+      if (token) {
+        const userProfileString = await AsyncStorage.getItem('loggedUser')
+        if (userProfileString) {
+          const userProfile: Profile = JSON.parse(userProfileString)
+          const token = (await Notifications.getExpoPushTokenAsync()).data
+          console.log(token)
+          updateNotificationToken(userProfile.id, token)
+          handleLogin(userProfile.phoneNumber)
         }
-      } catch (error) {
-        console.error('Error checking logged in status:', error)
       }
+    } catch (error) {
+      console.error('Error checking logged in status:', error)
     }
+  }
+  useEffect(() => {
     checkLoggedInStatus()
   }, [])
 

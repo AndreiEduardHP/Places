@@ -10,6 +10,11 @@ import {
   Platform,
   ScrollView,
   Keyboard,
+  TextInput,
+  Text,
+  Button,
+  FlatList,
+  TouchableOpacity,
 } from 'react-native'
 import BottomDrawer from '../BottomDrawer'
 import EventForm from '../EventForm'
@@ -22,7 +27,11 @@ import UserLocationMarker from './UserLocationMarkerComponent'
 import SavedMarker from './SavedMarkerComponent'
 import EventDetails from './EventDetailsDrawer'
 import { MapMarker, MapMarkerDetail } from '../../Interfaces/IUserData'
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
 import { mapCustomStyle } from './MapStyle'
+import GooglePlacesInput from './GoogleAutocomplete'
+import { RouteProp, useRoute } from '@react-navigation/native'
+import { RootStackParamList } from '../../Navigation/Types'
 
 const CustomeMap: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<MapMarker | null>(null)
@@ -44,7 +53,7 @@ const CustomeMap: React.FC = () => {
     useState(false)
 
   const { loggedUser } = useUser()
-
+  const route = useRoute<RouteProp<RootStackParamList, 'MapScreen'>>()
   const [region] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
@@ -54,6 +63,25 @@ const CustomeMap: React.FC = () => {
   const [savedMarkers, setSavedMarkers] = useState<MapMarkerDetail[]>([])
   const [isChecked, setChecked] = useState(false)
   const { showNotificationMessage } = useNotification()
+
+  useEffect(() => {
+    ;(async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        console.error('Permission to access location was denied')
+        return
+      }
+
+      let location = await Location.getCurrentPositionAsync({})
+      if (location) {
+        setCurrentLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          key: 'currentLocation',
+        })
+      }
+    })()
+  }, [])
 
   useEffect(() => {
     fetchEvents()
@@ -88,38 +116,40 @@ const CustomeMap: React.FC = () => {
       isMapReady &&
       currentLocation &&
       mapRef.current &&
+      isLoading === false &&
+      route.params?.latitude !== undefined &&
+      route.params?.longitude !== undefined
+    ) {
+      const targetLatitude = route.params.latitude || currentLocation.latitude
+      const targetLongitude =
+        route.params.longitude || currentLocation.longitude
+
+      mapRef.current.animateToRegion({
+        latitude: targetLatitude,
+        longitude: targetLongitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      })
+    } else if (
+      isMapReady &&
+      currentLocation &&
+      mapRef.current &&
       isLoading === false
     ) {
-      setTimeout(() => {
-        mapRef.current.animateToRegion({
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        })
-      }, 500)
+      mapRef.current.animateToRegion({
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      })
     }
-  }, [currentLocation, isMapReady, isLoading])
-
-  useEffect(() => {
-    ;(async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        console.error('Permission to access location was denied')
-        return
-      }
-
-      let location = await Location.getCurrentPositionAsync({})
-      if (location) {
-        setCurrentLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-
-          key: 'currentLocation',
-        })
-      }
-    })()
-  }, [])
+  }, [
+    currentLocation,
+    isMapReady,
+    isLoading,
+    route.params?.latitude,
+    route.params?.longitude,
+  ])
 
   const handleMapPress = async (e: any) => {
     // Check if there is already a marker at the pressed coordinates
@@ -246,6 +276,32 @@ const CustomeMap: React.FC = () => {
   const refreshSelectedMarkerData = (updatedEvent: MapMarkerDetail) => {
     setSelectedMarker(updatedEvent)
   }
+  const handleNewLocationSelected = async (location: any) => {
+    const newMarker = {
+      latitude: location.latitude,
+      longitude: location.longitude,
+      key: `${location.latitude},${location.longitude}`,
+      title: location.title, // Optional
+    }
+    setAddNewEvent(true)
+    await setAddEventMarker(newMarker)
+    setMarkers(
+      (currentMarkers) => [...currentMarkers, newMarker] as MapMarkerDetail[],
+    )
+
+    // Optionally, center the map on the new marker
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        },
+        1000,
+      ) // Adjust timing and delta values as needed
+    }
+  }
 
   if (isLoading) {
     return <LoadingComponent />
@@ -262,6 +318,7 @@ const CustomeMap: React.FC = () => {
           loggedUser?.themeColor === 'dark' ? 'dark' : 'light'
         }
         onLongPress={handleMapPress}
+        onPress={() => Keyboard.dismiss()}
         onMapReady={() => setIsMapReady(true)}>
         {markers.map((marker) => (
           <Marker
@@ -324,6 +381,24 @@ const CustomeMap: React.FC = () => {
           />
         )}
       </MapView>
+      <View
+        style={{
+          position: 'absolute',
+          width: '90%',
+          left: '5%',
+          right: '5%',
+          backgroundColor: 'white',
+          shadowColor: 'black',
+          shadowOffset: { width: 2, height: 2 },
+          shadowOpacity: 0.5,
+          shadowRadius: 4,
+          elevation: 4,
+          padding: 1,
+          borderRadius: 8,
+          top: '1%',
+        }}>
+        <GooglePlacesInput onLocationSelected={handleNewLocationSelected} />
+      </View>
       <BottomDrawer
         title="Event Details"
         visible={drawerVisible}

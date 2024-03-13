@@ -18,6 +18,7 @@ import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import { useHandleNavigation } from '../Navigation/NavigationUtil'
 
 type Event = {
   id: number
@@ -25,20 +26,26 @@ type Event = {
   eventDescription: string
   eventImage: string
   eventTime: string
+  locationLatitude: number
+  locationLongitude: number
 }
 const Item: React.FC<Event> = ({
   eventName,
   eventDescription,
   eventImage,
   eventTime,
+  locationLatitude,
+  locationLongitude,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
+  const navigate = useHandleNavigation()
   const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
 
   // Function to toggle the isExpanded state
   const toggleExpand = () => {
     setIsExpanded(!isExpanded)
   }
+
   const styles = StyleSheet.create({
     title: {
       marginLeft: 10,
@@ -159,6 +166,19 @@ const Item: React.FC<Event> = ({
           <Text style={styles.description}>
             Date and Time: {formatDateAndTime(new Date(eventTime))}
           </Text>
+          <TouchableOpacity
+            onPress={() =>
+              navigate('MapScreen', {
+                latitude: locationLatitude,
+                longitude: locationLongitude,
+              })
+            }
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.4)',
+              alignItems: 'center',
+            }}>
+            <Text style={styles.description}>See location on map</Text>
+          </TouchableOpacity>
         </View>
       )}
     </LinearGradient>
@@ -173,7 +193,6 @@ const EventsAroundYou: React.FC = () => {
   useEffect(() => {
     fetchEvents()
   }, [])
-  useEffect(() => {}, [])
 
   const fetchEvents = async () => {
     try {
@@ -193,6 +212,8 @@ const EventsAroundYou: React.FC = () => {
       eventImage={item.eventImage}
       id={item.id}
       eventTime={item.eventTime}
+      locationLatitude={item.locationLatitude}
+      locationLongitude={item.locationLongitude}
     />
   )
   if (isLoading) {
@@ -212,6 +233,7 @@ const EventsAroundYou: React.FC = () => {
   return (
     <View style={{ flex: 1 }}>
       <Text style={styles.title}>Events around you</Text>
+
       <FlatList
         data={eventData}
         windowSize={4}

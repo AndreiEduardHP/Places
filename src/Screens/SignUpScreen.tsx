@@ -13,9 +13,11 @@ import {
   ScrollView,
 } from 'react-native'
 import SignUpForm from '../Components/SignUpFrom'
+import * as Notifications from 'expo-notifications'
 
 const SignUpScreen: React.FC = () => {
   const { t } = useTranslation()
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}

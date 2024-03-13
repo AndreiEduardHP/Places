@@ -41,7 +41,7 @@ const StackNavigator: React.FC = () => {
                 backgroundColor: 'black',
               }}>
               <Navbar title="Places" />
-              <Stack.Navigator initialRouteName="NewConnectionScreen">
+              <Stack.Navigator initialRouteName="DefaultScreen">
                 <Stack.Screen
                   name="DefaultScreen"
                   component={DefaultScreen}

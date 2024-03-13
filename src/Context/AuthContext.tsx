@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useNotification } from '../Components/Notification/NotificationProvider'
 import i18n from '../TranslationFiles/i18n'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
+import * as Notifications from 'expo-notifications'
 
 export interface Profile {
   id: number
@@ -28,6 +29,7 @@ export interface Profile {
   credit: number
   languagePreference: string
   dateAccountCreation: string
+  notificationToken: string
 }
 
 interface UserContextType {
@@ -43,6 +45,10 @@ interface UserContextType {
   setFriendRequests: Dispatch<SetStateAction<FriendRequest[]>>
   friendRequestsCount: number
   fetchFriendRequests: () => Promise<void>
+  updateNotificationToken: (
+    userProfileId: number,
+    notificationToken: string,
+  ) => Promise<void>
   fetchFriendCount: (userId: number) => Promise<number>
 }
 
@@ -51,6 +57,12 @@ export const UserContext = createContext<UserContextType>({
   setLoggedUser: () => {},
   token: null,
   setToken: () => {},
+  updateNotificationToken: async (
+    userProfileId: number,
+    notificationToken: string,
+  ) => {
+    console.warn('updateProfileImage function is not implemented')
+  },
   handleLogin: async () => {},
   handleLogout: () => {},
   refreshData: () => {},
@@ -148,12 +160,25 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       }
     }
   }
-  useEffect(() => {
-    if (loggedUser && token) {
-      fetchFriendRequests()
-    }
-  }, [loggedUser, token])
 
+  const updateNotificationToken = async (
+    userProfileId: number,
+    notificationToken: string,
+  ) => {
+    try {
+      await axios.post(
+        `${config.BASE_URL}/api/UserProfile/UpdateUserNotificationToken/${userProfileId}?notificationToken=${notificationToken}`,
+
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      )
+    } catch (error) {
+      console.error('Network error:', error)
+    }
+  }
   const handleLogin = async (phoneNumber: string) => {
     try {
       const authResponse = await axios.post(
@@ -183,10 +208,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
         const expirationDate = new Date()
         expirationDate.setDate(expirationDate.getDate() + 3)
-        await AsyncStorage.setItem(
-          'loggedUser',
-          JSON.stringify(profileResponse.data),
-        )
+        const profileData: Profile = profileResponse.data
+        await AsyncStorage.setItem('loggedUser', JSON.stringify(profileData))
         await AsyncStorage.setItem('token', newToken)
         await AsyncStorage.setItem(
           'tokenExpirationDate',
@@ -260,6 +283,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       showNotificationMessage('Error uploading image:', 'fail')
     }
   }
+  useEffect(() => {
+    if (loggedUser && token) {
+      fetchFriendRequests()
+    }
+  }, [loggedUser, token])
 
   return (
     <UserContext.Provider
@@ -267,6 +295,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         loggedUser,
         setLoggedUser,
         token,
+        updateNotificationToken,
         setToken,
         handleLogin,
         handleLogout,

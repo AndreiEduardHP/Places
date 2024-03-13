@@ -15,6 +15,8 @@ import {
 import { useUser } from '../../Context/AuthContext'
 import * as signalR from '@microsoft/signalr'
 import { config } from '../../config/urlConfig'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
 interface Message {
   id: number
@@ -145,7 +147,9 @@ const ChatRoom: React.FC<Props> = ({
             onChangeText={setMessageInput}
             placeholderTextColor="white"
           />
-          <Button title="Send" color={'white'} onPress={handleSendMessage} />
+          <TouchableOpacity onPress={handleSendMessage}>
+            <Text style={{ color: 'white', fontSize: 18 }}>Send</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </KeyboardAvoidingView>

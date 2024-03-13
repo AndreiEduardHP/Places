@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet, Share } from 'react-native'
 
@@ -13,6 +13,7 @@ const AccountSection: React.FC = () => {
   const { t } = useTranslation()
   const { loggedUser, refreshData } = useUser()
   const handleNavigation = useHandleNavigation()
+  const { friendRequestsCount } = useUser()
 
   const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
 
@@ -60,19 +61,26 @@ const AccountSection: React.FC = () => {
           <Text style={styles.text}>Privacy</Text>
         </TouchableOpacity>
         <LineComponent />
-        <TouchableOpacity style={styles.row}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => handleNavigation('Chat')}>
           <Icon name="manage-accounts" size={30} color={textColor}></Icon>
           <Text style={styles.text}>Chats</Text>
         </TouchableOpacity>
         <LineComponent />
-        <TouchableOpacity style={styles.row}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => handleNavigation('FriendRequestScreen')}>
           <Icon name="notifications-active" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Notifications</Text>
+          <Text style={styles.text}>Notifications {friendRequestsCount}</Text>
         </TouchableOpacity>
+
         <LineComponent />
-        <TouchableOpacity style={styles.row}>
-          <Icon name="backup" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Storage and Data</Text>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => handleNavigation('PaymentScreen')}>
+          <Icon name="payment" size={30} color={textColor}></Icon>
+          <Text style={styles.text}>Payments</Text>
         </TouchableOpacity>
       </View>
     </View>

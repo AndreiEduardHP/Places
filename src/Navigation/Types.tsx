@@ -6,7 +6,13 @@ export type RootStackParamList = {
   SignUp: undefined
   AboutUs: undefined
   ProfileScreen: undefined
-  MapScreen: undefined
+  MapScreen:
+    | {
+        latitude: number
+        longitude: number
+      }
+    | undefined
+
   SettingScreen: undefined
   HomeScreen: SelectedPersonInfoData
   NewConnectionScreen: undefined

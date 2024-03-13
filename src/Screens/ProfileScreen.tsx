@@ -1,5 +1,5 @@
 import { t } from 'i18next'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   View,
@@ -11,6 +11,7 @@ import {
   Platform,
   ImageBackground,
   Share,
+  Alert,
 } from 'react-native'
 import SignUpForm from '../Components/SignUpFrom'
 import LogInForm from '../Components/LogInForm'
@@ -33,24 +34,6 @@ const ProfileScreen: React.FC = () => {
   const { t } = useTranslation()
   const { backgroundColor, textColor } = useThemeColor()
 
-  const [connectionsCount, setConnectionsCount] = useState<number>(0)
-
-  useEffect(() => {
-    fetchFriendRequests()
-  }, [])
-  useEffect(() => {
-    if (loggedUser?.id) {
-      fetchFriendCount(loggedUser.id)
-        .then((count) => {
-          setConnectionsCount(count)
-        })
-        .catch((error) => {
-          console.error('Error fetching friend count:', error)
-        })
-    }
-  }, [loggedUser, fetchFriendCount])
-
-  console.log(loggedUser?.themeColor)
   const styles = StyleSheet.create({
     container: {
       backgroundColor: backgroundColor,
@@ -206,9 +189,11 @@ const ProfileScreen: React.FC = () => {
     <View style={styles.container}>
       <ScrollView style={styles.container}>
         <Text style={styles.text}>Account Details</Text>
+        <Text style={styles.text}>unde e {loggedUser?.notificationToken}</Text>
         <ProfileSection showEditIcon={false}></ProfileSection>
         <ProfileDetails data={userProfileData}></ProfileDetails>
       </ScrollView>
+
       <FooterNavbar currentRoute={''}></FooterNavbar>
     </View>
   )

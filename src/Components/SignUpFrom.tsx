@@ -30,6 +30,7 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler'
 import Checkbox from 'expo-checkbox'
 import RNPickerSelect from 'react-native-picker-select'
 import Picker from 'react-native-picker-select'
+import * as Notifications from 'expo-notifications'
 
 const interests = [
   'Travel and Adventure',
@@ -148,6 +149,7 @@ const SignUpForm: React.FC = () => {
       country: foundCountry?.label,
       themeColor: 'dark',
       languagePreference: 'en',
+      notificationToken: (await Notifications.getExpoPushTokenAsync()).data,
     }
     console.log(userData)
     try {
