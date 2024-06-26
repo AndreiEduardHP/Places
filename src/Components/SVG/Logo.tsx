@@ -1,10 +1,11 @@
 import * as React from 'react'
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { useUser } from '../../Context/AuthContext'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const SvgComponent = (props: any) => {
   const { loggedUser } = useUser()
-  const colorBg = loggedUser?.themeColor === 'light' ? 'white' : 'black'
+
   const color = loggedUser?.themeColor === 'light' ? 'black' : 'white'
   return (
     <Svg

@@ -5,29 +5,42 @@ import { config } from '../config/urlConfig'
 import { FriendRequest, useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
 import { useNotification } from '../Components/Notification/NotificationProvider'
+import { useTranslation } from 'react-i18next'
+import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
+import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 
 const FriendRequestScreen = () => {
   const { fetchFriendRequests, friendRequests } = useUser()
   const { showNotificationMessage } = useNotification()
+  const { t } = useTranslation()
+  const themeColors = useThemeColor()
 
   const declineFriendRequest = async (requestId: number) => {
     showNotificationMessage(`Declining friend request ${requestId}`, 'neutral')
   }
 
-  const renderFriendRequest = ({ item }: { item: FriendRequest }) => (
-    <View style={styles.requestContainer}>
-      <Text>{item.senderName}</Text>
-      <Text>{item.requestDate}</Text>
-      <Button
-        title="Accept"
-        onPress={() => acceptFriendRequest(item.requestId)}
-      />
-      <Button
-        title="Decline"
-        onPress={() => declineFriendRequest(item.requestId)}
-      />
-    </View>
-  )
+  const renderFriendRequest = ({ item }: { item: FriendRequest }) => {
+    return (
+      <View
+        style={[
+          styles.requestContainer,
+          { backgroundColor: themeColors.backgroundColor },
+        ]}>
+        <Text style={{ color: themeColors.textColor }}>{item.senderName}</Text>
+        <Text style={{ color: themeColors.textColor }}>
+          {formatDateAndTime(new Date(item.requestDate))}
+        </Text>
+        <Button
+          title="Accept"
+          onPress={() => acceptFriendRequest(item.requestId)}
+        />
+        <Button
+          title="Decline"
+          onPress={() => declineFriendRequest(item.requestId)}
+        />
+      </View>
+    )
+  }
 
   const acceptFriendRequest = async (requestId: number) => {
     try {
@@ -36,7 +49,7 @@ const FriendRequestScreen = () => {
       )
       if (response.status === 200) {
         alert('Friend request accepted.')
-        fetchFriendRequests() // Refresh the friend requests list
+        fetchFriendRequests()
       }
     } catch (error) {
       console.error('Error accepting friend request:', error)
@@ -45,7 +58,7 @@ const FriendRequestScreen = () => {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: themeColors.backgroundColor }}>
       {friendRequests.length > 0 ? (
         <FlatList
           data={friendRequests}
@@ -58,8 +71,11 @@ const FriendRequestScreen = () => {
             flex: 1,
             marginTop: 50,
             alignItems: 'center',
+            backgroundColor: themeColors.backgroundColor,
           }}>
-          <Text style={styles.noRequest}>No requests</Text>
+          <Text style={[styles.noRequest, { color: themeColors.textColor }]}>
+            {t('friendRequestScreen.noRequests')}
+          </Text>
         </View>
       )}
       <FooterNavbar currentRoute={''}></FooterNavbar>

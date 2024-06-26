@@ -1,11 +1,227 @@
 {
   "translation": {
-    "logIn": "Login",
-    "this line is translated": "This line is translated",
+    "supportScreen": {
+      "supportSection": "Secțiune de Suport"
+    },
+    "settingsScreen": {
+      "settings": "Setări"
+    },
+    "selectedPersonInfo": {
+      "userInformation": "Informații Utilizator",
+      "userName": "Nume Utilizator",
+      "sendEmail": "Trimite Email",
+      "call": "Apel",
+      "sendSms": "Trimite SMS",
+      "sendPrivateMessage": "Trimite Mesaj Privat",
+      "noPersonSelected": "Nici o Persoană Selectată"
+    },
+    "defaultScreen": {
+      "welcome": "Bun venit la Places",
+      "alreadyMember": "Deja membru?",
+      "clickToLogIn": "Mergi la Logare",
+      "description": "Bun venit la Places, hub-ul de networking de prim rang unde mintea de afaceri se întâlnește.",
+      "motto": "unde afacerile întâlnesc oportunitatea",
+      "joinPlaces": "Alătură-te Places",
+      "clickToSignUp": "Înregistrează-te",
+      "noAccount": "Nu ai un cont?",
+      "joinUsOn": "Alătură-te pe"
+    },
+    "profileScreen": {
+      "accountDetails": "Detalii Cont",
+      "myAwards": "Premiile mele"
+    },
+    "paymentsScreen": {
+      "basicPack": "Pachet de Bază",
+      "standardPack": "Pachet Standard",
+      "premiumPack": "Pachet Premium",
+      "selectAPack": "Selectează un Pachet",
+      "credits": "Credite",
+      "youHaveSelected": "Ai Selectat",
+      "payments": "Plăți"
+    },
+    "signUpScreen": {
+      "signUp": "Înregistrare",
+      "firstName": "Prenume",
+      "lastName": "Nume",
+      "username": "Nume Utilizator",
+      "email": "Email",
+      "phoneNumber": "Număr de Telefon",
+      "city": "Oraș",
+      "interest": "Interes",
+      "country": "Țară",
+      "selectMinimumOneInterest": "Selectează cel puțin un interes",
+      "noteSelections": "Notă: aceste selecții vor influența întreaga experiență Places și este important să selectezi doar cele relevante!"
+    },
+    "logInScreen": {
+      "phoneNumber": "Număr de telefon"
+    },
+    "newConnectionScreen": {
+      "dear": "Dragă"
+    },
+    "friendRequestScreen": {
+      "noRequests": "Nici o Cerere"
+    },
+    "editUserProfileScreen": {
+      "editUserProfile": "Editează Profilul Utilizatorului"
+    },
+    "myEvents": {
+      "eventName": "Nume Eveniment",
+      "eventDescription": "Descriere Eveniment",
+      "eventTime": "Timp Eveniment",
+      "eventLocation": "Locație Eveniment",
+      "seeLocationOnMap": "Vezi locația pe hartă",
+      "seeQR": "Vezi QR",
+      "joinedEvents": "Evenimente la care participi",
+      "noQrAvailable": "Niciun QR disponibil",
+      "searchPlaceholder": "Cauta eveniment"
+    },
+    "updateUser": {
+      "firstName": "Prenume",
+      "lastName": "Nume",
+      "userName": "Nume Utilizator",
+      "phoneNumber": "Număr de Telefon",
+      "email": "Email",
+      "city": "Oraș",
+      "interest": "Interes",
+      "updateProfile": "Actualizează Profil"
+    },
+    "accountPreferenceScreen": {
+      "accountPreference": "Preferințe Cont"
+    },
+    "termsAndConditions": {
+      "iAgreeToThe": "Sunt de acord cu",
+      "termsAndConditions": "Termeni și Condiții"
+    },
+    "supportTicket": {
+      "openTicketForm": "Deschide Formular de Ticket",
+      "title": "Titlu",
+      "description": "Descriere",
+      "feedBack": "Feedback"
+    },
+    "peopleCard": {
+      "name": "Nume",
+      "interests": "Interese",
+      "message": "Mesaj",
+      "pending": "În așteptare",
+      "connect": "Conectare",
+      "peopleAroundYou": "Persoane în jurul tău",
+      "searchPlaceholder": "Cauta persoana"
+    },
+    "greeting": {
+      "goodMorning": "Bună dimineața",
+      "goodAfternoon": "Bună ziua",
+      "goodEvening": "Bună seara"
+    },
+    "footerNavbar": {
+      "map": "Hartă",
+      "home": "Acasă",
+      "new": "Nou",
+      "settings": "Setări"
+    },
+    "eventsAroundYou": {
+      "eventsAroundYou": "Evenimente în jurul tău",
+      "seeLocationOnMap": "Vezi locația pe Hartă",
+      "dateAndTime": "Data și Ora",
+      "description": "Descriere",
+      "searchPlaceholder": "Cauta eveniment"
+    },
+    "eventParticipants": {
+      "totalParticipants": "Participanți Totali",
+      "note": "Notă: unii participanți s-ar putea să nu apară în listă în funcție de preferințele lor!"
+    },
+    "eventForm": {
+      "eventName": "Nume Eveniment",
+      "notEnoughCredit": "Credit Insuficient",
+      "eventDescription": "Descriere Eveniment",
+      "eventMaxParticipants": "Număr Maxim de Participanți la Eveniment",
+      "selectDateAndTime": "Selectează Data și Ora",
+      "selectDate": "Selectează o Dată:",
+      "selectTime": "Selectează o Oră:",
+      "selectedDate": "Dată și oră selectate:",
+      "yourCredits": "Creditele tale",
+      "otherRelevantInformation": "Alte informatii relevante",
+      "minusCredit": "Un credit va fi dedus din contul tău la crearea evenimentului."
+    },
+    "editEventForm": {
+      "eventName": "Nume Eveniment",
+      "eventDescription": "Descriere Eveniment",
+      "eventMaxParticipants": "Număr Maxim de Participanți la Eveniment"
+    },
+    "accountPreference": {
+      "darkMode": "Mod Întunecat",
+      "changeLanguage": "Schimbă Limba",
+      "editProfile": "Editează Profil"
+    },
+    "homeScreen": {
+      "title": "Conectează-te cu profesioniști din lumea afacerilor",
+      "description": "Places este conceput pentru a acoperi distanța dintre tine și lumea afacerilor. Indiferent dacă ești în căutare de servicii, parteneriate sau doar pentru a rețea, Places aduce comunitatea de afaceri la îndemâna ta. Descoperă profesioniști locali, conectează-te cu afaceri și începe conversații semnificative care te ajută să îți mărești rețeaua profesională.",
+      "features": "Caracteristici",
+      "discover": "Descoperă afaceri și profesioniști locali",
+      "connect": "Conectează-te și rețelează cu persoane cu interese similare",
+      "access": "Accesează informații și servicii de afaceri cu ușurință",
+      "stay": "Rămâi la curent cu ultimele evenimente și știri de afaceri"
+    },
+    "accountSettings": {
+      "account": "Cont",
+      "privacy": "Confidențialitate",
+      "chats": "Chat-uri",
+      "notifications": "Notificări",
+      "payments": "Plăți"
+    },
+    "eventSection": {
+      "joinedEvents": "Evenimente la care participi",
+      "myEvents": "Evenimentele mele"
+    },
+    "bottomDrawer": {
+      "eventDetails": "Detalii eveniment"
+    },
+    "information": {
+      "help": "Ajutor",
+      "tellAFriend": "Spune unui prieten",
+      "aboutUs": "Despre Noi"
+    },
+    "labels": {
+      "city": "Oraș",
+      "credits": "Credite",
+      "email": "Email",
+      "interest": "Interes",
+      "phoneNumber": "Număr de Telefon",
+      "username": "Nume de Utilizator"
+    },
+    "buttons": {
+      "signUp": "Înregistrare",
+      "logIn": "Logare",
+      "close": "Închide",
+      "submit": "Trimite",
+      "save": "Salvează",
+      "confirm": "Confirmă",
+      "upload": "Încarcă",
+      "logOut": "Deconectare",
+      "deleteAccount": "Șterge Contul"
+    },
+    "map": {
+      "unJoinEvent": "Iesi din eveniment",
+      "joinEvent": "Participă la eveniment",
+      "limitReached": "Limită atinsă",
+      "event": "Eveniment",
+      "description": "Descriere",
+      "noQrAvailable": "Niciun QR disponibil",
+      "maxParticipants": "Număr maxim participanti",
+      "eventName": "Nume Eveniment",
+      "currentLocation": "Locatia mea",
+      "editEventDetails": "Modifică detaliile evenimentului",
+      "showParticipantListPreference": "Nu vreau să apar in lista participantilor"
+    },
+    "openInGoogleMaps": "Deschide in Google Maps",
+    "this line is translated": "Această linie este tradusă",
     "aboutUs": "Despre Noi",
-    "signUp": "Inregistreaza-te",
-    "english": "Engleza",
-    "romana": "Romana",
-    "Settings": "Setari"
+    "signUp": "Înregistrare",
+    "english": "Engleză",
+    "romana": "Română",
+    "Settings": "Setări",
+    "about": "Despre",
+    "dear": "Dragă",
+    "noUserIsLoggedIn": "Niciun utilizator nu este autentificat!",
+    "noParticipantsFound": "Nu s-au găsit participanți!"
   }
 }

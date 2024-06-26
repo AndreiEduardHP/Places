@@ -4,9 +4,13 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
   Text,
   ImageBackground,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
 } from 'react-native'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
@@ -24,6 +28,8 @@ import { initializeApp } from 'firebase/app'
 import { getAuth, signInWithCredential, PhoneAuthProvider } from 'firebase/auth'
 import LoadingComponent from './Loading/Loading'
 import { useNotification } from './Notification/NotificationProvider'
+import { LinearGradient } from 'expo-linear-gradient'
+import SvgComponent from './SVG/Logo'
 
 const LogInForm: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState<string>('')
@@ -33,7 +39,7 @@ const LogInForm: React.FC = () => {
   const recaptchaVerifier = useRef<any>()
   const [verificationId, setVerificationId] = useState<any>()
   const [isLoading, setIsLoading] = useState(false)
-
+  const handleNavigation = useHandleNavigation()
   const firebaseConfig = {
     apiKey: 'AIzaSyDK6l7L56LB6nkpTnqE_GK_-FqPE55QVUE',
     authDomain: 'places-a28da.firebaseapp.com',
@@ -109,15 +115,43 @@ const LogInForm: React.FC = () => {
 
   if (isLoading) {
     return <LoadingComponent />
-
-    // return <Text>sfaasf</Text>
   }
   return (
-    <View style={styles.container}>
-      <ImageBackground
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        {/* <ImageBackground
         source={require('../../assets/LoginImage.png')}
-        style={styles.backgroundImage}>
-        <View>
+  style={styles.backgroundImage}> */}
+        <ImageBackground
+          source={require('../../assets/Untitled.png')}
+          style={{
+            width: '100%',
+            height: 370,
+            flex: 1,
+          }}
+          resizeMode="cover"></ImageBackground>
+        <LinearGradient
+          colors={[
+            'rgba(255,255,255,1)',
+            'rgba(212,220,222,0.75)',
+
+            'rgba(0,0,0,0.1)',
+
+            'rgba(0,0,0,1)',
+          ]} // Start and end colors
+          start={{ x: 0, y: 0 }} // Optional gradient direction start point
+          end={{ x: 0, y: 1 }} // Optional gradient direction end point
+          style={{
+            position: 'absolute',
+            top: '35%',
+            height: '100%',
+            alignItems: 'center',
+            borderTopStartRadius: 30,
+            borderTopEndRadius: 30,
+            paddingTop: 35,
+            width: '100%',
+            zIndex: 1,
+          }}>
           <Text //FirebaseRecaptchaVerifierModal
           //   ref={recaptchaVerifier}
           //   firebaseConfig={firebaseConfig}
@@ -139,28 +173,128 @@ const LogInForm: React.FC = () => {
                   },
                 ]}
               />
-
               <TouchableOpacity
-                style={[
-                  styles.touchable,
-                  isFormComplete ? disabledButtonStyle : enabledButtonStyle,
-                ]}
                 onPress={() => onLoginPress(phoneNumber)}
                 disabled={isFormComplete}>
-                <Text style={[styles.text, {}]}>{t('buttons.logIn')}</Text>
+                <LinearGradient
+                  colors={['#5151C6', '#888BF4']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[
+                    styles.touchable,
+                    isFormComplete
+                      ? styles.disabledButtonStyle
+                      : styles.enabledButtonStyle,
+                  ]}>
+                  <Text style={[styles.text, {}]}>{t('buttons.logIn')}</Text>
+                </LinearGradient>
               </TouchableOpacity>
-
-              <TouchableOpacity
+              <View style={{ alignItems: 'center', marginVertical: 10 }}>
+                <Text style={styles.orLogIn}>OR LOG IN BY</Text>
+              </View>
+              <View
                 style={{
-                  marginTop: 10,
-                  backgroundColor: 'black',
+                  flexDirection: 'row',
+                  gap: 20,
                   alignItems: 'center',
-                  borderRadius: 10,
-                  height: 40,
-
                   justifyContent: 'center',
                 }}>
-                <Text style={{ color: 'white', padding: 3 }}>Google</Text>
+                <LinearGradient
+                  colors={[
+                    'rgba(136, 139, 244, 0.3)',
+                    'rgba(81, 81, 198, 0.3)',
+                  ]} // Start and end colors of the gradient
+                  style={{
+                    borderRadius: 50,
+                    marginTop: 10,
+
+                    alignItems: 'center',
+
+                    width: 70,
+                    height: 70,
+
+                    justifyContent: 'center',
+                  }}
+                  start={{ x: 0, y: 0 }} // Horizontal gradient
+                  end={{ x: 1, y: 0 }}>
+                  <TouchableOpacity>
+                    <Image
+                      source={require('../../assets/Icons/google.png')}
+                      style={{
+                        width: 45,
+                        height: 45,
+                      }}
+                    />
+                  </TouchableOpacity>
+                </LinearGradient>
+                <LinearGradient
+                  colors={[
+                    'rgba(136, 139, 244, 0.3)',
+                    'rgba(81, 81, 198, 0.3)',
+                  ]} // Start and end colors of the gradient
+                  style={{
+                    borderRadius: 50,
+                    marginTop: 10,
+
+                    alignItems: 'center',
+
+                    width: 70,
+                    height: 70,
+
+                    justifyContent: 'center',
+                  }}
+                  start={{ x: 0, y: 0 }} // Horizontal gradient
+                  end={{ x: 1, y: 0 }}>
+                  <TouchableOpacity>
+                    <Image
+                      source={require('../../assets/Icons/facebook1.png')}
+                      style={{
+                        width: 45,
+                        height: 45,
+                      }}
+                    />
+                  </TouchableOpacity>
+                </LinearGradient>
+                <LinearGradient
+                  colors={[
+                    'rgba(136, 139, 244, 0.3)',
+                    'rgba(81, 81, 198, 0.3)',
+                  ]} // Start and end colors of the gradient
+                  style={{
+                    borderRadius: 50,
+                    marginTop: 10,
+
+                    alignItems: 'center',
+
+                    width: 70,
+                    height: 70,
+
+                    justifyContent: 'center',
+                  }}
+                  start={{ x: 0, y: 0 }} // Horizontal gradient
+                  end={{ x: 1, y: 0 }}>
+                  <TouchableOpacity>
+                    <Image
+                      source={require('../../assets/Icons/apple-logo.png')}
+                      style={{
+                        width: 45,
+                        height: 45,
+                      }}
+                    />
+                  </TouchableOpacity>
+                </LinearGradient>
+              </View>
+              <TouchableOpacity
+                onPress={() => handleNavigation('SignUp')}
+                style={{
+                  marginTop: 120,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Text style={styles.bodyText}>Don't have account?</Text>
+
+                <Text style={styles.signUpText}>SIGN UP</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -182,22 +316,74 @@ const LogInForm: React.FC = () => {
                 ]}
                 onPress={confirmCode} // Trigger the code confirmation logic
                 disabled={code.length !== 6}>
-                <Text style={{ color: 'white' }}>Confirm</Text>
+                <Text style={{ color: 'white' }}>{t('buttons.confirm')}</Text>
               </TouchableOpacity>
             </View>
           )}
-        </View>
-      </ImageBackground>
-    </View>
+        </LinearGradient>
+        {/*</ImageBackground>*/}
+      </View>
+    </TouchableWithoutFeedback>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
-    alignItems: 'center',
+    backgroundColor: 'black',
+    //alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+  },
+  disabledButtonStyle: {
+    opacity: 0.55,
+  },
+  enabledButtonStyle: {
+    opacity: 1,
+  },
+  bodyText: {
+    // width: 208, // Numeric value, px is assumed
+    height: 28, // Numeric value, px is assumed
+    //  fontFamily: 'Circular Std', // Make sure the font is available in your project
+    fontSize: 26,
+    lineHeight: 28, // Calculated as 150% of 16px
+    // textAlign: 'center',
+    letterSpacing: -0.2, // Negative letter spacing, make sure it looks good on your device
+    color: 'white', // Text color
+    // The following flex properties may be omitted if not necessary for layout
+  },
+  signUpText: {
+    height: 26, // Numeric value, px is assumed
+    fontFamily: 'Circular Std', // Make sure the font is available in your project
+    fontSize: 26,
+    lineHeight: 28, // Calculated as 150% of 16px
+    textAlign: 'center',
+    marginLeft: 10,
+    letterSpacing: -0.2, // Negative letter spacing, make sure it looks good on your device
+    color: '#888BF4', // Text color
+    ...Platform.select({
+      ios: {
+        shadowColor: '#fff', // White shadow color
+        shadowOffset: { width: 1, height: 2 }, // Shadow direction and distance
+        shadowOpacity: 0.2, // Full color intensity
+        shadowRadius: 2, // Blur radius
+      },
+      android: {
+        // Android doesn't support colored shadows natively
+        // You might need a workaround like an image or custom drawing
+        elevation: 5, // Adds a default black shadow
+      },
+    }),
+  },
+  orLogIn: {
+    fontFamily: 'Circular Std', // Make sure this font is imported if custom
+    fontStyle: 'normal', // Default, usually doesn't need to be set
+    fontWeight: '400', // React Native supports 'normal', 'bold', or specific numbers
+    fontSize: 25, // Assuming pixels, just the numeric value
+
+    textAlign: 'center', // Supported as-is
+    letterSpacing: 2, // Pixels value, but React Native uses density-independent pixels
+
+    color: '#606060', // Hex color, supported as-is
   },
   backgroundImage: {
     flex: 1,
@@ -209,24 +395,25 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   input: {
+    paddingVertical: 13,
+    paddingHorizontal: 20,
     width: 375,
-    height: 40,
-
-    margin: 5,
-    borderRadius: 10,
+    height: 50,
+    backgroundColor: '#F3F5F7',
+    borderRadius: 30,
+    // borderWidth: 1,
     borderColor: 'gray',
-    borderWidth: 1,
-    paddingHorizontal: 5,
   },
   touchable: {
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-    backgroundColor: 'blue',
-    // paddingHorizontal: 10,
-    // paddingVertical: 5,
-    height: 40,
+    alignItems: 'center', // Centers content along the cross-axis (default is column)
+    justifyContent: 'center', // Centers content along the main-axis
+    marginTop: 10, // Margin top
+    backgroundColor: 'blue', // Background color (solid color, not gradient)
+    borderRadius: 30, // Completely round edges
+    paddingHorizontal: 24, // Horizontal padding
+    paddingVertical: 14, // Vertical padding
+    width: 375, // Fixed width
+    height: 50, // Final height as stated
   },
   text: {
     color: 'white',

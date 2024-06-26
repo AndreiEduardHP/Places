@@ -1,38 +1,22 @@
 import { t } from 'i18next'
-import React, { useEffect, useRef, useState } from 'react'
+import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
-  ImageBackground,
-  Share,
-  Alert,
-} from 'react-native'
-import SignUpForm from '../Components/SignUpFrom'
-import LogInForm from '../Components/LogInForm'
-import Greeting from '../Components/Greeting'
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native'
+
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
-import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import * as ImagePicker from 'expo-image-picker'
-import { config } from '../config/urlConfig'
-import axios from 'axios'
-import { LinearGradient } from 'expo-linear-gradient'
-import { useNotification } from '../Components/Notification/NotificationProvider'
-import { useFocusEffect } from '@react-navigation/native'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import ProfileSection from '../Components/SettingSections/ProfileSection'
 import ProfileDetails from '../Components/SettingSections/ProfileDetails'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import { useHandleNavigation } from '../Navigation/NavigationUtil'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
 const ProfileScreen: React.FC = () => {
-  const { loggedUser, fetchFriendRequests, fetchFriendCount } = useUser()
+  const { loggedUser } = useUser()
   const { t } = useTranslation()
   const { backgroundColor, textColor } = useThemeColor()
+  const handleNavigation = useHandleNavigation()
 
   const styles = StyleSheet.create({
     container: {
@@ -173,25 +157,48 @@ const ProfileScreen: React.FC = () => {
     label: string
     value: string | number | undefined
   }[] = [
-    { icon: 'location-city', label: 'City', value: loggedUser?.city },
-    { icon: 'credit-score', label: 'Credits', value: loggedUser?.credit },
-    { icon: 'alternate-email', label: 'Email', value: loggedUser?.email },
-    { icon: 'interests', label: 'Interest', value: loggedUser?.interest },
+    { icon: 'location-city', label: t('labels.city'), value: loggedUser?.city },
+    {
+      icon: 'credit-score',
+      label: t('labels.credits'),
+      value: loggedUser?.credit,
+    },
+    {
+      icon: 'alternate-email',
+      label: t('labels.email'),
+      value: loggedUser?.email,
+    },
+    {
+      icon: 'interests',
+      label: t('labels.interest'),
+      value: loggedUser?.interest,
+    },
     {
       icon: 'phone-callback',
-      label: 'Phone Number',
+      label: t('labels.phoneNumber'),
       value: loggedUser?.phoneNumber,
     },
-    { icon: 'badge', label: 'Username', value: loggedUser?.username },
-    // Add more data as needed
+    { icon: 'badge', label: t('labels.username'), value: loggedUser?.username },
   ]
   return (
     <View style={styles.container}>
       <ScrollView style={styles.container}>
-        <Text style={styles.text}>Account Details</Text>
-        <Text style={styles.text}>unde e {loggedUser?.notificationToken}</Text>
-        <ProfileSection showEditIcon={false}></ProfileSection>
+        <Text style={styles.text}>{t('profileScreen.accountDetails')}</Text>
+        <ProfileSection
+          showEditIcon={false}
+          showTouchIcon={false}></ProfileSection>
         <ProfileDetails data={userProfileData}></ProfileDetails>
+        <TouchableOpacity onPress={() => handleNavigation('MyAwardsScreen')}>
+          <ProfileDetails
+            showIcon={true}
+            data={[
+              {
+                icon: 'military-tech',
+                label: t('profileScreen.myAwards'),
+                value: '2',
+              },
+            ]}></ProfileDetails>
+        </TouchableOpacity>
       </ScrollView>
 
       <FooterNavbar currentRoute={''}></FooterNavbar>

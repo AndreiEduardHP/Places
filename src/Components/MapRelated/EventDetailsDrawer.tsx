@@ -16,11 +16,11 @@ import { remoteImages } from '../../AzureImages/Images'
 import { MapMarkerDetail } from '../../Interfaces/IUserData'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { useUser } from '../../Context/AuthContext'
-import EditForm from '../EventForm'
 import EditEventForm from '../EditEventForm'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import axios from 'axios'
 import { config } from '../../config/urlConfig'
+import { useTranslation } from 'react-i18next'
 
 interface EventDetailsProps {
   selectedMarker: {
@@ -67,12 +67,12 @@ const EventDetails: React.FC<EventDetailsProps> = ({
   const [isModalVisible, setIsModalVisible] = useState(false)
   const { loggedUser } = useUser()
   const [qrCode, setQrCode] = useState('')
+  const { t } = useTranslation()
 
   const handleOpenModal = () => {
     setIsModalVisible(true)
   }
 
-  // Function to handle closing the modal
   const handleCloseModal = () => {
     setIsModalVisible(false)
   }
@@ -146,20 +146,21 @@ const EventDetails: React.FC<EventDetailsProps> = ({
                         style={[
                           styles.title,
                           {
-                            fontSize: 30,
+                            fontSize: 24,
                             flexShrink: 1,
                           },
                         ]}
                         numberOfLines={2} // Adjusted number of lines
                         ellipsizeMode="tail">
-                        Event Name: {selectedMarker?.eventName}
+                        {t('map.eventName')}: {selectedMarker?.eventName}
                       </Text>
                       <Text
                         style={{
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: '500',
                         }}>
-                        Max Participants: {selectedMarker?.maxParticipants}
+                        {t('map.maxParticipants')}:{' '}
+                        {selectedMarker?.maxParticipants}
                       </Text>
                     </View>
                   </View>
@@ -174,7 +175,9 @@ const EventDetails: React.FC<EventDetailsProps> = ({
                         }}
                       />
                     ) : (
-                      <Text style={{ fontSize: 12 }}>No QR Code available</Text>
+                      <Text style={{ fontSize: 12 }}>
+                        {t('map.noQrAvailable')}
+                      </Text>
                     )}
                   </View>
                 </View>
@@ -196,7 +199,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
                             fontSize: 24,
                             width: '100%',
                           }}>
-                          Edit event Details
+                          {t('map.editEventDetails')}
                         </Text>
                         <TouchableOpacity
                           style={[styles.button, styles.buttonClose]}
@@ -280,7 +283,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({
             />
 
             <Text style={styles.paragraph}>
-              Do not show me in the participants list
+              {t('map.showParticipantListPreference')}
             </Text>
           </View>
         )}
@@ -294,10 +297,10 @@ const EventDetails: React.FC<EventDetailsProps> = ({
             {
               !userHasJoined &&
               participantsCount === selectedMarker?.maxParticipants
-                ? 'Limit Reached'
+                ? t('map.limitReached')
                 : userHasJoined
-                  ? 'Unjoin Event'
-                  : 'Join Event' // Shows based on the user's
+                  ? t('map.unJoinEvent')
+                  : t('map.joinEvent') // Shows based on the user's
             }
           </Text>
         </TouchableOpacity>
@@ -350,9 +353,9 @@ const EventDetails: React.FC<EventDetailsProps> = ({
                   flexDirection: 'row',
                 }}>
                 <TouchableOpacity
-                  style={[styles.closeTraficInfo, { marginLeft: 20 }]}
+                  style={[styles.closeTraficInfo]}
                   onPress={openGoogleMaps}>
-                  <Text>Open in Google Maps</Text>
+                  <Text>{t('openInGoogleMaps')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -413,16 +416,17 @@ const styles = StyleSheet.create({
   },
   closeTraficInfo: {
     alignItems: 'center',
+
     justifyContent: 'center',
-    marginTop: 10,
-    width: 150,
+    marginTop: 5,
+    width: 170,
     height: 35,
     borderRadius: 10,
     borderColor: 'black',
     borderWidth: 1,
   },
   title: {
-    fontSize: 28,
+    fontSize: 18,
   },
   eventDescription: {
     fontSize: 16,
@@ -448,7 +452,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 10,
-    paddingTop: 10,
+    paddingTop: 1,
   },
   paragraph: {
     fontSize: 15,
@@ -456,8 +460,8 @@ const styles = StyleSheet.create({
   },
   checkbox: {
     marginHorizontal: 5,
-    paddingTop: 10,
-    marginTop: 10,
+
+    marginTop: 8,
   },
 })
 

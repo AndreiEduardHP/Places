@@ -15,8 +15,17 @@ import {
 import { useUser } from '../../Context/AuthContext'
 import * as signalR from '@microsoft/signalr'
 import { config } from '../../config/urlConfig'
+import * as Notifications from 'expo-notifications'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import Icon from 'react-native-vector-icons/MaterialIcons'
+import { formatDateAndTime } from '../../Utils.tsx/Services/FormatDate'
+import { useHandleNavigation } from '../../Navigation/NavigationUtil'
+import { Linking } from 'react-native'
+import Constants from 'expo-constants'
+import * as Device from 'expo-device'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Icon } from 'react-native-vector-icons/Icon'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 
 interface Message {
   id: number
@@ -29,9 +38,42 @@ interface Message {
 interface Props {
   messages: Message[]
   selectedRoom: number
-  contact: string // Add contact prop
-  imageUri: string // Add imageUri prop
+  contact: string
+  imageUri: string
   receiverId: number
+  notificationToken: string
+}
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+})
+
+async function sendPushNotification(
+  expoPushToken: string,
+  data: any,
+  from: string | undefined,
+) {
+  const message = {
+    to: expoPushToken,
+    sound: 'default',
+    title: from,
+    body: 'Sent you a new message!',
+    data: { data },
+  }
+
+  await fetch('https://exp.host/--/api/v2/push/send', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Accept-encoding': 'gzip, deflate',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  })
 }
 
 const ChatRoom: React.FC<Props> = ({
@@ -40,13 +82,19 @@ const ChatRoom: React.FC<Props> = ({
   contact,
   imageUri,
   receiverId,
+  notificationToken,
 }) => {
   const [messageInput, setMessageInput] = useState('')
   const [chatHubConnection, setChatHubConnection] = useState<any>()
   const [messagesData, setMessagesData] = useState<Message[]>(messages)
-
-  const flatListRef = useRef<FlatList<Message>>(null)
+  const [expoPushToken, setExpoPushToken] = useState<any>('')
+  const [notification, setNotification] = useState<any>(false)
+  const notificationListener = useRef<any>()
+  const responseListener = useRef<any>()
   const { loggedUser } = useUser()
+  const handleNavigation = useHandleNavigation()
+  const flatListRef = useRef<FlatList<Message>>(null)
+  const { backgroundColor, textColor } = useThemeColor()
 
   useEffect(() => {
     scrollToBottom()
@@ -55,12 +103,11 @@ const ChatRoom: React.FC<Props> = ({
   const scrollToBottom = () => {
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true })
-    }, 100) // Adjust the delay if needed
+    }, 100)
   }
   useEffect(() => {
-    // Inițializează conexiunea SignalR la montarea componentei
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${config.BASE_URL}/chatHub`) // Asigură-te că URL-ul este corect
+      .withUrl(`${config.BASE_URL}/chatHub`)
       .configureLogging(signalR.LogLevel.Information)
       .build()
 
@@ -69,21 +116,25 @@ const ChatRoom: React.FC<Props> = ({
       .then(() => console.log('Connection started!'))
       .catch((err) => console.error('Connection failed: ', err))
 
-    connection.on('ReceiveMessage', (newMessage) => {
+    connection.on('ReceiveMessage', async (newMessage) => {
       setMessagesData((currentMessages) => [...currentMessages, newMessage])
+      await sendPushNotification(
+        notificationToken,
+        selectedRoom,
+        loggedUser?.firstName,
+      )
+      scrollToBottom()
     })
 
     setChatHubConnection(connection)
 
     return () => {
-      // Oprirea conexiunii la demontarea componentei
       connection.stop()
     }
   }, [])
   const handleSendMessage = async () => {
     if (messageInput.trim() === '') return
 
-    // Aici trimiți mesajul folosind conexiunea SignalR
     await chatHubConnection
       ?.send('SendMessage', loggedUser?.id, receiverId, messageInput)
       .then(() => setMessageInput(''))
@@ -93,9 +144,8 @@ const ChatRoom: React.FC<Props> = ({
   return (
     <KeyboardAvoidingView
       behavior={'height'}
-      style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)' }}
-      keyboardVerticalOffset={100} // Adjust as needed
-    >
+      style={{ flex: 1, backgroundColor: backgroundColor }}
+      keyboardVerticalOffset={100}>
       <View style={styles.header}>
         <Image
           source={
@@ -105,16 +155,16 @@ const ChatRoom: React.FC<Props> = ({
           }
           style={styles.profileImage}
         />
-        <Text style={styles.contactName}>
+        <Text style={[styles.contactName, { color: textColor }]}>
           {contact}
-          {receiverId}
-          {selectedRoom}
         </Text>
       </View>
       <View style={{ flex: 1 }}>
         <FlatList
           keyExtractor={(item) =>
-            item.id ? item.id.toString() : Date.now().toString()
+            item.id
+              ? item.id.toString() + Date.now().toString()
+              : Date.now().toString()
           }
           ref={flatListRef}
           data={messagesData}
@@ -127,30 +177,44 @@ const ChatRoom: React.FC<Props> = ({
               ]}>
               <Text
                 style={[
+                  styles.messageText,
                   item.senderId === loggedUser?.id
-                    ? styles.mySenderName
-                    : styles.senderName,
+                    ? { color: 'white' }
+                    : { color: 'black' },
                 ]}>
-                {item.senderId}
+                {item.text}
               </Text>
-
-              <Text style={styles.messageText}>{item.text}</Text>
-              <Text style={styles.timestamp}>{item.timestamp}</Text>
+              <Text style={[styles.timestamp]}>
+                {formatDateAndTime(new Date(item.timestamp))}
+              </Text>
+              {item.senderId === loggedUser?.id ? (
+                <View style={styles.cornerSender} />
+              ) : (
+                <View style={styles.cornerReceiver} />
+              )}
             </View>
           )}
         />
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Type a message..."
-            value={messageInput}
-            onChangeText={setMessageInput}
-            placeholderTextColor="white"
-          />
-          <TouchableOpacity onPress={handleSendMessage}>
-            <Text style={{ color: 'white', fontSize: 18 }}>Send</Text>
-          </TouchableOpacity>
-        </View>
+        <SafeAreaView
+          edges={['bottom']}
+          style={[styles.inputContainer, { backgroundColor: backgroundColor }]}>
+          <View style={styles.input}>
+            <TextInput
+              placeholder="Type a message..."
+              value={messageInput}
+              onChangeText={setMessageInput}
+              placeholderTextColor={textColor}
+              style={{
+                color: textColor,
+                flex: 1,
+                marginRight: 20,
+              }}
+            />
+            <TouchableOpacity onPress={handleSendMessage}>
+              <MaterialIcons name="arrow-upward" size={24} color={textColor} />
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </View>
     </KeyboardAvoidingView>
   )
@@ -161,27 +225,63 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#f0f0f0',
     marginVertical: 5,
-    marginHorizontal: 10,
-    borderRadius: 8,
+    marginLeft: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 10,
+    alignItems: 'flex-start',
+    alignSelf: 'flex-start',
+  },
+  cornerSender: {
+    position: 'absolute',
+    bottom: -7,
+    right: -8,
+    zIndex: -1,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightWidth: 10,
+    borderRightColor: 'transparent',
+    borderBottomWidth: 20,
+    borderBottomColor: '#5DB075',
+    transform: [{ rotate: '133deg' }],
+  },
+  cornerReceiver: {
+    position: 'absolute',
+    bottom: -7,
+    left: -8,
+    zIndex: -1,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightWidth: 10,
+    borderRightColor: 'transparent',
+    borderBottomWidth: 20,
+    borderBottomColor: '#f0f0f0',
+    transform: [{ rotate: '-133deg' }],
   },
   header: {
     flexDirection: 'row',
-    backgroundColor: 'black',
+
     alignItems: 'center',
-    borderTopColor: 'white',
-    borderWidth: 1,
+
     padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
   },
   messageContainerSender: {
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#5DB075',
     marginVertical: 5,
-    marginHorizontal: 10,
-    // width: 221,
-    borderRadius: 8,
+    marginRight: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 0,
     alignItems: 'flex-end',
+    alignSelf: 'flex-end',
+    transform: [{ matrix: [-1, 0, 0, 0, 1, 0, 0, 0, 1] }],
   },
   profileImage: {
     width: 35,
@@ -198,7 +298,6 @@ const styles = StyleSheet.create({
   mySenderName: {
     fontWeight: 'bold',
     marginBottom: 5,
-    color: 'red',
   },
   senderName: {
     fontWeight: 'bold',
@@ -214,22 +313,22 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'black',
-    borderBottomWidth: 1,
-    borderTopWidth: 1,
+    // backgroundColor: ba,
+
     borderTopColor: '#ccc',
-    paddingVertical: 8,
+    paddingTop: 8,
     paddingHorizontal: 10,
   },
   input: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     flex: 1,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 20,
-    paddingVertical: 5,
+    paddingVertical: 10,
     paddingHorizontal: 10,
     color: 'white',
-    marginRight: 10,
   },
 })
 

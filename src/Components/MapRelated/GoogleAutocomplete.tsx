@@ -1,17 +1,20 @@
 import React from 'react'
+import { Keyboard } from 'react-native'
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
 
 interface Location {
   latitude: number
   longitude: number
-  title?: string // Optional, depending on whether you want to store a title for the marker
+  title?: string
 }
 interface GooglePlacesInputProps {
   onLocationSelected: (location: Location) => void
+  onInputChange: (isEmpty: boolean) => void
 }
 
 const GooglePlacesInput: React.FC<GooglePlacesInputProps> = ({
   onLocationSelected,
+  onInputChange,
 }) => {
   return (
     <GooglePlacesAutocomplete
@@ -23,6 +26,7 @@ const GooglePlacesInput: React.FC<GooglePlacesInputProps> = ({
             longitude: details.geometry.location.lng,
             title: data.structured_formatting.main_text,
           })
+          onInputChange(true)
         }
       }}
       query={{
@@ -30,9 +34,18 @@ const GooglePlacesInput: React.FC<GooglePlacesInputProps> = ({
         language: 'en',
       }}
       fetchDetails={true}
+      textInputProps={{
+        onChangeText: (text: string) => {
+          if (text === '') {
+            Keyboard.dismiss()
+            onInputChange(false)
+          }
+        },
+      }}
       styles={{
         textInputContainer: {
           height: 32,
+          zIndex: 2,
         },
         textInput: {
           height: 32,

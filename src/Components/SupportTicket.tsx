@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import {
   View,
   TextInput,
-  Button,
   Text,
   StyleSheet,
   Modal,
@@ -11,6 +10,7 @@ import {
 } from 'react-native'
 import { config } from '../config/urlConfig'
 import { useNotification } from './Notification/NotificationProvider'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   onSubmit: (ticket: {
@@ -26,6 +26,7 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
   const [rating, setFeedback] = useState<number>(0)
   const [modalVisible, setModalVisible] = useState<boolean>(false)
   const { showNotificationMessage } = useNotification()
+  const { t } = useTranslation()
 
   const handleSubmit = async () => {
     if (title && description && rating) {
@@ -62,7 +63,9 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         style={styles.ticket}>
-        <Text style={styles.ticketText}>Open Ticket Form</Text>
+        <Text style={styles.ticketText}>
+          {t('supportTicket.openTicketForm')}
+        </Text>
       </TouchableOpacity>
 
       <Modal
@@ -74,14 +77,14 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
         }}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Text style={styles.label}>Title</Text>
+            <Text style={styles.label}>{t('supportTicket.title')}</Text>
             <TextInput
               style={styles.input}
               onChangeText={setTitle}
               placeholder="Enter the title"
               placeholderTextColor="#888"
             />
-            <Text style={styles.label}>Description</Text>
+            <Text style={styles.label}>{t('supportTicket.description')}</Text>
             <TextInput
               style={styles.input}
               onChangeText={setDescription}
@@ -89,7 +92,7 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
               placeholderTextColor="#888"
             />
             <View style={{ alignItems: 'center', marginTop: 10 }}>
-              <Text style={styles.label}>Feedback</Text>
+              <Text style={styles.label}>{t('supportTicket.feedBack')}</Text>
               <View style={styles.ratingContainer}>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <TouchableOpacity
@@ -115,12 +118,12 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => setModalVisible(!modalVisible)}>
-                <Text style={styles.textStyle}>Close</Text>
+                <Text style={styles.textStyle}>{t('buttons.close')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => handleSubmit()}>
-                <Text style={styles.textStyle}>Submit</Text>
+                <Text style={styles.textStyle}>{t('buttons.submit')}</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -14,6 +14,9 @@ import { useNotification } from '../Components/Notification/NotificationProvider
 import i18n from '../TranslationFiles/i18n'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import * as Notifications from 'expo-notifications'
+import Constants from 'expo-constants'
+import { MapMarker } from 'react-native-maps'
+import * as Location from 'expo-location'
 
 export interface Profile {
   id: number
@@ -27,6 +30,9 @@ export interface Profile {
   profilePicture: string
   themeColor: string
   credit: number
+  shares: number
+  currentLatitude: number
+  currentLongitude: number
   languagePreference: string
   dateAccountCreation: string
   notificationToken: string
@@ -88,6 +94,7 @@ export interface FriendRequest {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+  const [currentLocation, setCurrentLocation] = useState<any>(null)
   const [loggedUser, setLoggedUser] = useState<Profile | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([])
@@ -143,6 +150,31 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   }
 
+  const getLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        console.error('Permission to access location was denied')
+        return null
+      }
+
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      })
+      if (location) {
+        return {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        }
+      } else {
+        return null
+      }
+    } catch (error) {
+      console.error('Error getting current location:', error)
+      return null
+    }
+  }
+
   const fetchFriendRequests = async () => {
     if (loggedUser) {
       try {
@@ -192,9 +224,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       )
 
       const newToken = authResponse.data.token
+
       setToken(newToken)
 
       if (newToken) {
+        let token = await Notifications.getExpoPushTokenAsync({
+          projectId: Constants.expoConfig?.extra?.eas.projectId,
+        })
+
         const profileResponse = await axios.get(
           `${config.BASE_URL}/api/UserProfile/GetUserProfileByPhone/${phoneNumber}`,
           {
@@ -203,6 +240,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             },
           },
         )
+        updateUserNotificationToken(profileResponse.data.id, token.data)
 
         setLoggedUser(profileResponse.data)
 
@@ -219,7 +257,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         if (profileResponse.data.languagePreference) {
           i18n.changeLanguage(profileResponse.data.languagePreference)
         } else {
-          // Default to Romanian (ro) if languagePreference is null or undefined
           i18n.changeLanguage('en')
         }
 
@@ -231,8 +268,34 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       showNotificationMessage('Number not found! ', 'fail')
     }
   }
+  const updateUserNotificationToken = async (
+    userProfileId: number | undefined,
+    notificationToken: string,
+  ) => {
+    try {
+      const location = await getLocation()
+      if (location) {
+        const url = `${config.BASE_URL}/api/userprofile/UpdateUserNotificationToken/${userProfileId}?notificationToken=${notificationToken}&latitude=${location.latitude}&longitude=${location.longitude}`
+
+        await axios.post(
+          url,
+          {},
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+      } else {
+        console.error('Failed to get location.')
+      }
+    } catch (error) {
+      console.error('Error updating notification token:', error)
+    }
+  }
 
   const handleLogout = () => {
+    updateUserNotificationToken(loggedUser?.id, 'disconnected')
     setLoggedUser(null)
     setToken(null)
     AsyncStorage.removeItem('loggedUser')

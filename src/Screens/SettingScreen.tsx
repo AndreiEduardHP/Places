@@ -1,23 +1,11 @@
-import { t } from 'i18next'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-} from 'react-native'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
-import DarkMode from '../Components/SwitchDarkMode'
 
-import i18n from '../TranslationFiles/i18n'
-import { config } from '../config/urlConfig'
-import axios from 'axios'
 import { useNotification } from '../Components/Notification/NotificationProvider'
-import SupportTicket from '../Components/SupportTicket'
-import ChatComponent from './test200'
+
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import ProfileSection from '../Components/SettingSections/ProfileSection'
 import InformationSection from '../Components/SettingSections/Information'
@@ -25,18 +13,13 @@ import AccountSection from '../Components/SettingSections/AccountSettings'
 import EventSection from '../Components/SettingSections/EventSection'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
 const SettingScreen: React.FC = () => {
   const { t } = useTranslation()
-  const { loggedUser, refreshData } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
-  const { showNotificationMessage } = useNotification()
   const handleNavigation = useHandleNavigation()
 
-  const handleTicketSubmit = (ticket: {
-    title: string
-    description: string
-  }) => {}
   const styles = StyleSheet.create({
     containerScroll: {
       flexGrow: 1,
@@ -53,7 +36,7 @@ const SettingScreen: React.FC = () => {
     },
     content: {
       justifyContent: 'center',
-      //  alignItems: 'center',
+
       padding: 10,
     },
 
@@ -80,11 +63,12 @@ const SettingScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.container}>
-        <Text style={styles.text}>Settings</Text>
+        <Text style={styles.text}>{t('settingsScreen.settings')}</Text>
         <TouchableOpacity onPress={() => handleNavigation('ProfileScreen')}>
-          <ProfileSection showEditIcon={false}></ProfileSection>
+          <ProfileSection
+            showEditIcon={false}
+            showTouchIcon={true}></ProfileSection>
         </TouchableOpacity>
-
         <AccountSection></AccountSection>
         <EventSection></EventSection>
         <InformationSection></InformationSection>

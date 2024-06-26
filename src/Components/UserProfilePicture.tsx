@@ -1,6 +1,6 @@
 // UserProfilePicture.js
 import React from 'react'
-import { Image, Platform, StyleSheet, View, Text } from 'react-native'
+import { Image, StyleSheet } from 'react-native'
 import { useUser } from '../Context/AuthContext'
 
 interface Props {

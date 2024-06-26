@@ -13,9 +13,11 @@ import { remoteImages } from '../AzureImages/Images'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
 import { MapMarkerDetail } from '../Interfaces/IUserData'
+import { useTranslation } from 'react-i18next'
 
 interface EditFormProps {
   eventId: any
+  otherRelevantInformation?: string
   eventName: string | undefined
   eventDescription: string | undefined
   maxParticipants: number | undefined
@@ -28,6 +30,7 @@ interface EditFormProps {
 const EditForm: React.FC<EditFormProps> = ({
   eventId,
   eventName,
+  otherRelevantInformation,
   refreshSelectedMarkerData,
   maxParticipants,
   eventImage,
@@ -36,15 +39,18 @@ const EditForm: React.FC<EditFormProps> = ({
   eventDescription,
 }) => {
   const [editedEventName, setEditedEventName] = useState(eventName || '')
+  const { t } = useTranslation()
   const [editedEventDescription, setEditedEventDescription] = useState(
     eventDescription || '',
+  )
+  const [editedEventRelevantInfo, setEditedEventRelevantInfo] = useState(
+    otherRelevantInformation || '',
   )
   const [editedMaxParticipants, setEditedMaxParticipants] = useState(
     maxParticipants ? maxParticipants.toString() : '',
   )
 
   const saveEvent = async () => {
-    console.log(editedMaxParticipants)
     try {
       const response = await axios.put(
         `${config.BASE_URL}/api/event/updateEvent/${Number(eventId)}`,
@@ -52,6 +58,7 @@ const EditForm: React.FC<EditFormProps> = ({
           eventName: editedEventName,
           eventDescription: editedEventDescription,
           maxParticipants: Number(editedMaxParticipants),
+          otherRelevantInformation: editedEventRelevantInfo,
         },
       )
       const responseEvent = await axios.get(
@@ -81,7 +88,7 @@ const EditForm: React.FC<EditFormProps> = ({
   return (
     <View style={{ alignItems: 'center', marginTop: 10 }}>
       <View>
-        <Text style={styles.title}>Event name:</Text>
+        <Text style={styles.title}>{t('editEventForm.eventName')}:</Text>
         <TextInput
           defaultValue={editedEventName}
           onChangeText={setEditedEventName}
@@ -91,7 +98,7 @@ const EditForm: React.FC<EditFormProps> = ({
       </View>
 
       <View>
-        <Text style={styles.title}>Event description:</Text>
+        <Text style={styles.title}>{t('editEventForm.eventDescription')}:</Text>
         <TextInput
           defaultValue={editedEventDescription}
           onChangeText={setEditedEventDescription}
@@ -99,9 +106,22 @@ const EditForm: React.FC<EditFormProps> = ({
           style={styles.input}
         />
       </View>
+      <View>
+        <Text style={styles.title}>
+          {t('eventForm.otherRelevantInformation')}:
+        </Text>
+        <TextInput
+          defaultValue={editedEventRelevantInfo}
+          onChangeText={setEditedEventRelevantInfo}
+          placeholder="Event Relevant Info"
+          style={styles.input}
+        />
+      </View>
 
       <View>
-        <Text style={styles.title}>Max Participants:</Text>
+        <Text style={styles.title}>
+          {t('editEventForm.eventMaxParticipants')}:
+        </Text>
         <TextInput
           defaultValue={editedMaxParticipants}
           onChangeText={setEditedMaxParticipants}
@@ -139,7 +159,7 @@ const EditForm: React.FC<EditFormProps> = ({
               fontSize: 18,
             },
           ]}>
-          Save
+          {t('buttons.save')}
         </Text>
       </TouchableOpacity>
     </View>

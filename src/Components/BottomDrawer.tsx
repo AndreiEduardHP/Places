@@ -4,21 +4,17 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  Image,
   Animated,
   Platform,
   PanResponder,
-  KeyboardAvoidingView,
-  ScrollView,
-  KeyboardAvoidingViewComponent,
 } from 'react-native'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
-// Define a type for the component props
 interface BottomDrawerProps {
-  children: React.ReactNode // Using React.ReactNode for children prop
-  onClose: () => void // Function type for onClose prop
-  visible: boolean // Prop to control the visibility of the drawer
+  children: React.ReactNode
+  onClose: () => void
+  visible: boolean
   title: string
 }
 
@@ -28,19 +24,18 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
   visible,
   title,
 }) => {
-  // Use useRef to persist the animated value without reinitializing on re-renders
   const translateY = useRef(new Animated.Value(0)).current
   const animatedHeight = useRef(new Animated.Value(0)).current
-  const [currentHeight, setCurrentHeight] = useState(720)
+  const [currentHeight, setCurrentHeight] = useState(800)
   const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
 
   useEffect(() => {
     if (visible) {
-      animatedHeight.setValue(720)
-      setCurrentHeight(720)
+      animatedHeight.setValue(800)
+      setCurrentHeight(800)
     }
     Animated.timing(translateY, {
-      toValue: visible ? 0 : currentHeight,
+      toValue: visible ? 60 : currentHeight,
       duration: 500,
       useNativeDriver: false,
     }).start()
@@ -88,6 +83,7 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
     },
     drawerContainer: {
       position: 'absolute',
+      zIndex: 220,
       bottom: 0,
       left: 0,
       right: 0,
@@ -103,18 +99,15 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
           shadowRadius: 1,
         },
       }),
-      // Make sure to adjust the container to accommodate the full drawer height
-      //  height: 550, // Adjust this based on your drawer content
-      overflow: 'hidden',
+      // overflow: 'hidden',
     },
     closeButton: {
       alignSelf: 'flex-end',
       padding: 16,
     },
     closeImage: {
-      width: 26, // Adjust the width of the image as needed
-      height: 26, // Adjust the height of the image as needed
-      // Add any additional styles for the image
+      width: 26,
+      height: 26,
     },
     title: {
       marginLeft: 20,
@@ -123,26 +116,25 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
     },
   })
   return (
-    <Animated.View
-      {...panResponder.panHandlers}
-      style={[
-        styles.drawerContainer,
-        {
-          transform: [{ translateY }],
-          height: animatedHeight,
-        },
-      ]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Image
-            style={styles.closeImage}
-            source={require('../../assets/Icons/cancel.png')} // Replace with the path to your image
-          />
-        </TouchableOpacity>
-      </View>
-      {children}
-    </Animated.View>
+    visible && (
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={[
+          styles.drawerContainer,
+          {
+            transform: [{ translateY }],
+            height: animatedHeight,
+          },
+        ]}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{title}</Text>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Icon size={30} name="highlight-off" />
+          </TouchableOpacity>
+        </View>
+        {children}
+      </Animated.View>
+    )
   )
 }
 

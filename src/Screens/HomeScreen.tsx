@@ -1,12 +1,28 @@
 import { t } from 'i18next'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, Text, Image, StyleSheet, ScrollView } from 'react-native'
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  ImageBackground,
+} from 'react-native'
 
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import SvgComponent from '../Components/SVG/Logo'
+import { LinearGradient } from 'expo-linear-gradient'
+import SVGComponentPRO from '../Components/SVG/Shapes/ConnectPro'
+import Svg, {
+  Defs,
+  Stop,
+  TSpan,
+  Text as T,
+  LinearGradient as L,
+} from 'react-native-svg'
 
 const HomeScreen: React.FC = () => {
   const { t } = useTranslation()
@@ -14,15 +30,14 @@ const HomeScreen: React.FC = () => {
   const { backgroundColor, textColor } = useThemeColor()
 
   const styles = StyleSheet.create({
-    container: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 12,
-    },
+    container: { backgroundColor: backgroundColor, flex: 1 },
     headerContainer: {
-      marginBottom: 20,
+      marginTop: -30,
+    },
+    headerContainer1: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
     },
     headerText: {
       marginTop: 5,
@@ -47,17 +62,22 @@ const HomeScreen: React.FC = () => {
     },
     contentContainer: {
       width: '100%',
+      marginTop: 40,
+      paddingHorizontal: 10,
     },
     image: {
       width: '100%',
       height: 250,
-      borderRadius: 10,
-      marginBottom: 20,
+      borderBottomLeftRadius: 100,
+      borderTopRightRadius: 150,
     },
     title: {
-      fontSize: 20,
+      fontFamily: 'Cochin',
+      fontSize: 38,
+      textAlign: 'center',
       fontWeight: '400',
       marginBottom: 10,
+      color: 'white',
     },
     description: {
       fontSize: 16,
@@ -66,7 +86,9 @@ const HomeScreen: React.FC = () => {
       marginBottom: 20,
     },
     featuresTitle: {
-      fontSize: 18,
+      fontSize: 28,
+      color: 'white',
+      fontFamily: 'Cochin',
       fontWeight: '400',
       marginBottom: 10,
     },
@@ -75,48 +97,57 @@ const HomeScreen: React.FC = () => {
       color: textColor,
       marginBottom: 5,
     },
+    backgroundImage: {
+      flex: 1,
+      marginTop: -30,
+      zIndex: -1,
+
+      resizeMode: 'cover',
+    },
   })
   return (
-    <View style={{ flex: 1, backgroundColor: backgroundColor }}>
-      <Text style={styles.headerText}>Dear {loggedUser?.firstName}</Text>
+    <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.headerContainer}>
-          <View>
-            <Text style={[styles.headerTextAbout]}>About</Text>
+        <Image
+          source={require('../../assets/aboutUsImage.jpg')}
+          style={styles.image}
+        />
+        <LinearGradient
+          colors={['rgba(0,0,0,1)', 'rgba(255, 255, 255,0)']}
+          start={{ x: 1, y: 1 }}
+          end={{ x: 0, y: 0 }}
+          style={styles.headerContainer}>
+          <View style={styles.headerContainer1}>
+            <View>
+              <Text style={[styles.headerTextAbout]}>{t('about')}</Text>
+            </View>
+            <View style={{ paddingTop: 9 }}>
+              <SvgComponent></SvgComponent>
+            </View>
           </View>
-          <View style={{ paddingTop: 9 }}>
-            <SvgComponent></SvgComponent>
-          </View>
-        </View>
+        </LinearGradient>
+        <View
+          style={{
+            marginTop: -30,
+            zIndex: -1,
+            // alignItems: 'center',
+            width: 222,
+            backgroundColor: 'white',
+          }}></View>
+
         <View style={styles.contentContainer}>
-          <Image
-            source={require('../../assets/world.png')}
-            style={styles.image}
-          />
-          <Text style={styles.title}>Connect with Business Professionals</Text>
-          <Text style={styles.description}>
-            Places is designed to bridge the gap between you and the business
-            world. Whether you're looking for services, partnerships, or just to
-            network, Places brings the business community to your fingertips.
-            Discover local professionals, connect with businesses, and start
-            meaningful conversations that help grow your professional network.
-          </Text>
-          <Text style={styles.featuresTitle}>Features</Text>
-          <Text style={styles.featuresText}>
-            - Discover local businesses and professionals
-          </Text>
-          <Text style={styles.featuresText}>
-            - Connect and network with like-minded individuals
-          </Text>
-          <Text style={styles.featuresText}>
-            - Access business information and services easily
-          </Text>
-          <Text style={styles.featuresText}>
-            - Stay updated with the latest business events and news
-          </Text>
+          <Text style={styles.title}>{t('homeScreen.title')}</Text>
+          <Text style={styles.description}>{t('homeScreen.description')}</Text>
+
+          <Text style={styles.featuresTitle}>{t('homeScreen.features')}</Text>
+          <Text style={styles.featuresText}>{t('homeScreen.discover')}</Text>
+          <Text style={styles.featuresText}>{t('homeScreen.connect')}</Text>
+          <Text style={styles.featuresText}>{t('homeScreen.access')}</Text>
+          <Text style={styles.featuresText}>{t('homeScreen.stay')}</Text>
         </View>
       </ScrollView>
-      <FooterNavbar currentRoute={'HomeScreen'} />
+
+      <FooterNavbar currentRoute={''} />
     </View>
   )
 }

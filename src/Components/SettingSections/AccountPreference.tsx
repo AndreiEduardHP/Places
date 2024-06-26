@@ -1,17 +1,9 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Image,
-  Share,
-} from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 
 import { useUser } from '../../Context/AuthContext'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
-import UserProfilePicture from '../UserProfilePicture'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import LineComponent from '../LineComponent'
@@ -28,7 +20,7 @@ const AccountPreference: React.FC = () => {
   const { loggedUser, refreshData, handleLogout } = useUser()
   const { showNotificationMessage } = useNotification()
   const handleNavigation = useHandleNavigation()
-  const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
+  const { textColor, backgroundColorGrey } = useThemeColor()
 
   const styles = StyleSheet.create({
     container: {
@@ -103,7 +95,7 @@ const AccountPreference: React.FC = () => {
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <View style={styles.row}>
             <Icon name="nights-stay" size={30} color={textColor}></Icon>
-            <Text style={styles.text}>Dark Mode</Text>
+            <Text style={styles.text}>{t('accountPreference.darkMode')}</Text>
           </View>
 
           <DarkMode />
@@ -114,7 +106,9 @@ const AccountPreference: React.FC = () => {
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <View style={styles.row}>
             <Icon name="g-translate" size={30} color={textColor}></Icon>
-            <Text style={styles.text}>Change Language</Text>
+            <Text style={styles.text}>
+              {t('accountPreference.changeLanguage')}
+            </Text>
           </View>
           <View>
             <RNPickerSelect
@@ -137,7 +131,9 @@ const AccountPreference: React.FC = () => {
           style={[styles.row, { justifyContent: 'space-between' }]}>
           <View style={styles.row}>
             <Icon name="edit" size={30} color={textColor}></Icon>
-            <Text style={styles.text}>Edit Profile</Text>
+            <Text style={styles.text}>
+              {t('accountPreference.editProfile')}
+            </Text>
           </View>
         </TouchableOpacity>
         <LineComponent />
@@ -149,7 +145,7 @@ const AccountPreference: React.FC = () => {
           style={[styles.row, { justifyContent: 'space-between' }]}>
           <View style={styles.row}>
             <Icon name="logout" size={30} color={textColor}></Icon>
-            <Text style={styles.textExit}>Log Out</Text>
+            <Text style={styles.textExit}>{t('buttons.logOut')}</Text>
           </View>
         </TouchableOpacity>
         <LineComponent />
@@ -161,7 +157,7 @@ const AccountPreference: React.FC = () => {
           style={[styles.row, { justifyContent: 'space-between' }]}>
           <View style={styles.row}>
             <Icon name="delete-forever" size={30} color={textColor}></Icon>
-            <Text style={styles.textExit}>Delete Account</Text>
+            <Text style={styles.textExit}>{t('buttons.deleteAccount')}</Text>
           </View>
         </TouchableOpacity>
       </View>

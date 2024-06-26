@@ -6,8 +6,7 @@ import axios from 'axios'
 import { config } from '../../config/urlConfig'
 import { useUser } from '../../Context/AuthContext'
 import { RouteProp, useRoute } from '@react-navigation/native'
-import signalR, { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
-import { sendMessage } from '@microsoft/signalr/dist/esm/Utils'
+import moment from 'moment'
 
 interface Message {
   id: number
@@ -21,6 +20,7 @@ interface UserProfile {
   id: number
   firstName: string
   lastName: string
+  notificationToken: string
   profilePicture: string
 }
 
@@ -38,6 +38,7 @@ interface Chat {
   imageUri: string
   receiverId: number
   chatId: number
+  notificationToken: string
   messages: Message[]
 }
 
@@ -58,19 +59,24 @@ const Chat: React.FC = () => {
         const response = await axios.get<ChatProfile[]>(
           `${config.BASE_URL}/api/chats?userId=${loggedUser?.id}`,
         )
-        const chatData: Chat[] = response.data.map((chatProfile) => ({
-          id: chatProfile.chatId,
-          contact: `${chatProfile.secondUser.firstName} ${chatProfile.secondUser.lastName}`,
-          lastMessage:
-            chatProfile.messages.length > 0
-              ? chatProfile.messages[chatProfile.messages.length - 1].text
-              : '',
-          imageUri: chatProfile.secondUser.profilePicture,
-          messages: chatProfile.messages,
-          receiverId: chatProfile.secondUser.id,
-          chatId: chatProfile.chatId,
-        }))
+        const chatData: Chat[] = response.data.map((chatProfile) => {
+          const messages = chatProfile.messages.map((message) => ({
+            ...message,
+            timestamp: moment.utc(message.timestamp).local().format(),
+          }))
 
+          return {
+            id: chatProfile.chatId,
+            contact: `${chatProfile.secondUser.firstName} ${chatProfile.secondUser.lastName}`,
+            lastMessage:
+              messages.length > 0 ? messages[messages.length - 1].text : '',
+            imageUri: chatProfile.secondUser.profilePicture,
+            messages: messages,
+            notificationToken: chatProfile.secondUser.notificationToken,
+            receiverId: chatProfile.secondUser.id,
+            chatId: chatProfile.chatId,
+          }
+        })
         setChats(chatData)
 
         if (chatId) {
@@ -101,6 +107,7 @@ const Chat: React.FC = () => {
           contact={selectedChat?.contact || ''}
           imageUri={selectedChat?.imageUri || ''}
           receiverId={selectedChat.receiverId}
+          notificationToken={selectedChat.notificationToken}
         />
       ) : (
         <ChatList chats={chats} onPressChat={onPressChat} />

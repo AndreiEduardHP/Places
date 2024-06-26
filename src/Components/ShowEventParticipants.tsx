@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet } from 'react-native'
 
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import { TouchableOpacity } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 interface Participant {
   id: string
@@ -22,6 +23,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
   participants,
 }) => {
   const navigate = useHandleNavigation()
+  const { t } = useTranslation()
 
   const renderItem = ({ item }: { item: Participant }) => {
     return (
@@ -45,7 +47,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
       style={styles.list}
       ListEmptyComponent={() => (
         <View style={styles.emptyContainer}>
-          <Text>No participants found.</Text>
+          <Text>{t('noParticipantsFound')}</Text>
         </View>
       )}
     />

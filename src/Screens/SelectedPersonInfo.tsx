@@ -9,7 +9,6 @@ import {
   StyleSheet,
   ScrollView,
   Linking,
-  ImageBackground,
 } from 'react-native'
 
 import FooterNavbar from '../Components/FooterNavbar'
@@ -22,12 +21,6 @@ import { useNotification } from '../Components/Notification/NotificationProvider
 import ProfileDetails from '../Components/SettingSections/ProfileDetails'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import LineComponent from '../Components/LineComponent'
-
-interface Event {
-  id: number
-  eventImage: string
-  onConnect: () => void
-}
 
 const SelectedPersonInfo: React.FC = () => {
   const { t } = useTranslation()
@@ -42,7 +35,6 @@ const SelectedPersonInfo: React.FC = () => {
     value: string | number | undefined
   }[] = [
     { icon: 'location-city', label: 'City', value: personData?.city },
-
     { icon: 'alternate-email', label: 'Email', value: personData?.email },
     { icon: 'interests', label: 'Interest', value: personData?.interest },
     {
@@ -51,7 +43,6 @@ const SelectedPersonInfo: React.FC = () => {
       value: personData?.phoneNumber,
     },
     { icon: 'badge', label: 'Username', value: personData?.username },
-    // Add more data as needed
   ]
 
   const handleEmail = () => {
@@ -154,7 +145,9 @@ const SelectedPersonInfo: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.text}>User Information</Text>
+        <Text style={styles.text}>
+          {t('selectedPersonInfo.userInformation')}
+        </Text>
         {personData ? (
           <View style={styles.personInfoContainer}>
             <View
@@ -176,7 +169,7 @@ const SelectedPersonInfo: React.FC = () => {
                 style={styles.avatar}
               />
               <Text style={styles.username}>
-                UserName: {personData.username}
+                {t('selectedPersonInfo.userName')}: {personData.username}
               </Text>
             </View>
             <View style={styles.infoTextContainer}>
@@ -191,32 +184,40 @@ const SelectedPersonInfo: React.FC = () => {
                 <TouchableOpacity
                   onPress={handleEmail}
                   style={[styles.contactButtons]}>
-                  <Text style={styles.contactButtonsText}>Send Email</Text>
+                  <Text style={styles.contactButtonsText}>
+                    {t('selectedPersonInfo.sendEmail')}
+                  </Text>
                 </TouchableOpacity>
                 <LineComponent />
                 <TouchableOpacity
                   onPress={handleCall}
                   style={styles.contactButtons}>
-                  <Text style={styles.contactButtonsText}>Call</Text>
+                  <Text style={styles.contactButtonsText}>
+                    {t('selectedPersonInfo.call')}
+                  </Text>
                 </TouchableOpacity>
                 <LineComponent />
                 <TouchableOpacity
                   onPress={handleSMS}
                   style={styles.contactButtons}>
-                  <Text style={styles.contactButtonsText}>Send SMS</Text>
+                  <Text style={styles.contactButtonsText}>
+                    {t('selectedPersonInfo.sendSms')}
+                  </Text>
                 </TouchableOpacity>
                 <LineComponent />
 
                 <TouchableOpacity style={styles.contactButtons}>
                   <Text style={styles.contactButtonsText}>
-                    Send Private Message
+                    {t('selectedPersonInfo.sendPrivateMessage')}
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         ) : (
-          <Text style={styles.noPersonText}>No person selected</Text>
+          <Text style={styles.noPersonText}>
+            {t('selectedPersonInfo.noPersonSelected')}
+          </Text>
         )}
 
         <View></View>

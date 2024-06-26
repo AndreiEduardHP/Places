@@ -5,12 +5,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Platform,
+  StatusBar,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { t } from 'i18next'
 import { useDarkMode } from '../Context/DarkModeContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-
+import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   darkModeBackGroundColorActive,
   darkModeBackGroundColorNotActive,
@@ -59,98 +61,102 @@ const Navbar: React.FC<NavbarProps> = ({ title }) => {
   const { loggedUser } = useUser()
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        isDarkMode
-          ? darkModeBackGroundColorActive
-          : darkModeBackGroundColorNotActive,
-        { height: navbarHeight, borderBottomWidth: 1, borderColor: textColor },
-      ]}>
-      <View style={styles.titleContainer}>
-        {/*  <Text
-          style={[
-            styles.title,
-            isDarkMode ? darkModeFontColorActive : darkModeFontColorNotActive,
-          ]}
-          onPress={() => handleNavigation('DefaultScreen')}>
-          {title}
-        </Text>*/}
-        <TouchableOpacity onPress={() => handleNavigation('DefaultScreen')}>
-          <SvgComponent></SvgComponent>
-        </TouchableOpacity>
-      </View>
-
-      {!loggedUser && (
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity style={{}} onPress={toggleNavbar}>
-            <View
-              style={[
-                isDarkMode
-                  ? darkModeBackGroundColorNotActive
-                  : darkModeBackGroundColorActive,
-                { borderRadius: 10, width: 50, height: 6, margin: 2 },
-              ]}
-            />
-            <View
-              style={[
-                isDarkMode
-                  ? darkModeBackGroundColorNotActive
-                  : darkModeBackGroundColorActive,
-                { borderRadius: 10, width: 50, height: 6, margin: 2 },
-              ]}
-            />
-            <View
-              style={[
-                isDarkMode
-                  ? darkModeBackGroundColorNotActive
-                  : darkModeBackGroundColorActive,
-                { borderRadius: 10, width: 50, height: 6, margin: 2 },
-              ]}
-            />
-          </TouchableOpacity>
-
-          {showButtonsAbout && (
-            <Animated.View
-              style={{
-                opacity: buttonsOpacity,
-                alignItems: 'flex-end',
-                margin: 2,
-              }}>
-              <TouchableOpacity onPress={() => handleNavigation('AboutUs')}>
-                <Text
-                  style={[
-                    styles.buttons,
-                    { color: isDarkMode ? 'black' : 'white' },
-                  ]}>
-                  {t('aboutUs')}
-                </Text>
+    <>
+      {loggedUser && (
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <Animated.View
+            style={[
+              styles.container,
+              isDarkMode
+                ? darkModeBackGroundColorActive
+                : darkModeBackGroundColorNotActive,
+              {
+                height: navbarHeight,
+                borderBottomWidth: 1,
+                borderColor: textColor,
+              },
+            ]}>
+            <View style={styles.titleContainer}>
+              <TouchableOpacity
+                onPress={() => handleNavigation('DefaultScreen')}>
+                <SvgComponent></SvgComponent>
               </TouchableOpacity>
+            </View>
 
-              <TouchableOpacity onPress={() => changeLanguage('en')}>
-                <Text
-                  style={[
-                    styles.buttons,
-                    { color: isDarkMode ? 'black' : 'white' },
-                  ]}>
-                  {t('english')}
-                </Text>
-              </TouchableOpacity>
+            {!loggedUser && (
+              <View style={styles.buttonsContainer}>
+                <TouchableOpacity style={{}} onPress={toggleNavbar}>
+                  <View
+                    style={[
+                      isDarkMode
+                        ? darkModeBackGroundColorNotActive
+                        : darkModeBackGroundColorActive,
+                      { borderRadius: 10, width: 50, height: 6, margin: 2 },
+                    ]}
+                  />
+                  <View
+                    style={[
+                      isDarkMode
+                        ? darkModeBackGroundColorNotActive
+                        : darkModeBackGroundColorActive,
+                      { borderRadius: 10, width: 50, height: 6, margin: 2 },
+                    ]}
+                  />
+                  <View
+                    style={[
+                      isDarkMode
+                        ? darkModeBackGroundColorNotActive
+                        : darkModeBackGroundColorActive,
+                      { borderRadius: 10, width: 50, height: 6, margin: 2 },
+                    ]}
+                  />
+                </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => changeLanguage('ro')}>
-                <Text
-                  style={[
-                    styles.buttons,
-                    { color: isDarkMode ? 'black' : 'white' },
-                  ]}>
-                  {t('romana')}
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          )}
-        </View>
+                {showButtonsAbout && (
+                  <Animated.View
+                    style={{
+                      opacity: buttonsOpacity,
+                      alignItems: 'flex-end',
+                      margin: 2,
+                    }}>
+                    <TouchableOpacity
+                      onPress={() => handleNavigation('AboutUs')}>
+                      <Text
+                        style={[
+                          styles.buttons,
+                          { color: isDarkMode ? 'black' : 'white' },
+                        ]}>
+                        {t('aboutUs')}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => changeLanguage('en')}>
+                      <Text
+                        style={[
+                          styles.buttons,
+                          { color: isDarkMode ? 'black' : 'white' },
+                        ]}>
+                        {t('english')}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => changeLanguage('ro')}>
+                      <Text
+                        style={[
+                          styles.buttons,
+                          { color: isDarkMode ? 'black' : 'white' },
+                        ]}>
+                        {t('romana')}
+                      </Text>
+                    </TouchableOpacity>
+                  </Animated.View>
+                )}
+              </View>
+            )}
+          </Animated.View>
+        </SafeAreaView>
       )}
-    </Animated.View>
+    </>
   )
 }
 
@@ -158,6 +164,10 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  safeArea: {
+    width: '100%',
+    backgroundColor: 'black', // Ensures the SafeAreaView doesn't add unwanted colors
   },
   titleContainer: {
     alignItems: 'flex-start',

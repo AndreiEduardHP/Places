@@ -1,27 +1,16 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Image,
-  Share,
-} from 'react-native'
+import { View, Text, StyleSheet, Share } from 'react-native'
 
-import { useUser } from '../../Context/AuthContext'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
-import UserProfilePicture from '../UserProfilePicture'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import LineComponent from '../LineComponent'
-import { useNavigation } from '@react-navigation/native'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
 
 const EventSection: React.FC = () => {
   const { t } = useTranslation()
-  const { loggedUser, refreshData } = useUser()
-  const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
+  const { textColor, backgroundColorGrey } = useThemeColor()
   const handleNavigation = useHandleNavigation()
 
   const styles = StyleSheet.create({
@@ -52,25 +41,6 @@ const EventSection: React.FC = () => {
     },
   })
 
-  const shareLink = async () => {
-    try {
-      const result = await Share.share({
-        title: 'Check this out!',
-        message: 'Check out this cool app: ',
-        url: 'https://www.places.com',
-      })
-
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-        } else {
-        }
-      } else if (result.action === Share.dismissedAction) {
-      }
-    } catch (error) {
-      alert('error')
-    }
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -78,12 +48,14 @@ const EventSection: React.FC = () => {
           style={styles.row}
           onPress={() => handleNavigation('JoinedEventsScreen')}>
           <Icon name="event-available" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Joined Events</Text>
+          <Text style={styles.text}>{t('eventSection.joinedEvents')}</Text>
         </TouchableOpacity>
         <LineComponent />
-        <TouchableOpacity style={styles.row}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => handleNavigation('EventsCreatedByMe')}>
           <Icon name="event-available" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Something Else?</Text>
+          <Text style={styles.text}>{t('eventSection.myEvents')}</Text>
         </TouchableOpacity>
       </View>
     </View>

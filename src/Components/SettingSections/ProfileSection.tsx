@@ -16,19 +16,21 @@ import { useNotification } from '../Notification/NotificationProvider'
 import * as ImagePicker from 'expo-image-picker'
 import axios from 'axios'
 import { config } from '../../config/urlConfig'
-import { useNavigation } from '@react-navigation/native'
-import { useHandleNavigation } from '../../Navigation/NavigationUtil'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
 interface ProfileSectionProps {
   showEditIcon: boolean
+  showTouchIcon: boolean
 }
 
-const ProfileSection: React.FC<ProfileSectionProps> = ({ showEditIcon }) => {
+const ProfileSection: React.FC<ProfileSectionProps> = ({
+  showEditIcon,
+  showTouchIcon,
+}) => {
   const { t } = useTranslation()
   const { loggedUser, refreshData } = useUser()
-  const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
+  const { textColor, backgroundColorGrey } = useThemeColor()
   const { showNotificationMessage } = useNotification()
-  const handleNavigation = useHandleNavigation()
 
   const styles = StyleSheet.create({
     editIcon: { paddingTop: 5, alignItems: 'center', color: textColor },
@@ -135,8 +137,19 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ showEditIcon }) => {
         <Text style={[styles.text, { fontSize: 20 }]}>
           {loggedUser?.firstName} {loggedUser?.lastName}
         </Text>
+
         <Text style={[styles.text, {}]}>{loggedUser?.firstName}</Text>
       </View>
+      {showTouchIcon && (
+        <View
+          style={{
+            marginLeft: 'auto',
+            justifyContent: 'center',
+            paddingRight: 10,
+          }}>
+          <MaterialIcons name="arrow-forward-ios" size={22} color="#FFFFFF" />
+        </View>
+      )}
     </View>
   )
 }

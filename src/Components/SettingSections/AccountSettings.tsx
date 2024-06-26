@@ -11,11 +11,10 @@ import { useHandleNavigation } from '../../Navigation/NavigationUtil'
 
 const AccountSection: React.FC = () => {
   const { t } = useTranslation()
-  const { loggedUser, refreshData } = useUser()
   const handleNavigation = useHandleNavigation()
   const { friendRequestsCount } = useUser()
 
-  const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
+  const { textColor, backgroundColorGrey } = useThemeColor()
 
   const styles = StyleSheet.create({
     container: {
@@ -52,27 +51,29 @@ const AccountSection: React.FC = () => {
           style={styles.row}
           onPress={() => handleNavigation('AccountPreferenceScreen')}>
           <Icon name="manage-accounts" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Account</Text>
+          <Text style={styles.text}>{t('accountSettings.account')}</Text>
         </TouchableOpacity>
         <LineComponent />
 
         <TouchableOpacity style={styles.row}>
           <Icon name="privacy-tip" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Privacy</Text>
+          <Text style={styles.text}>{t('accountSettings.privacy')}</Text>
         </TouchableOpacity>
         <LineComponent />
         <TouchableOpacity
           style={styles.row}
           onPress={() => handleNavigation('Chat')}>
           <Icon name="manage-accounts" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Chats</Text>
+          <Text style={styles.text}>{t('accountSettings.chats')}</Text>
         </TouchableOpacity>
         <LineComponent />
         <TouchableOpacity
           style={styles.row}
           onPress={() => handleNavigation('FriendRequestScreen')}>
           <Icon name="notifications-active" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Notifications {friendRequestsCount}</Text>
+          <Text style={styles.text}>
+            {t('accountSettings.notifications')} {friendRequestsCount}
+          </Text>
         </TouchableOpacity>
 
         <LineComponent />
@@ -80,7 +81,7 @@ const AccountSection: React.FC = () => {
           style={styles.row}
           onPress={() => handleNavigation('PaymentScreen')}>
           <Icon name="payment" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Payments</Text>
+          <Text style={styles.text}>{t('accountSettings.payments')}</Text>
         </TouchableOpacity>
       </View>
     </View>

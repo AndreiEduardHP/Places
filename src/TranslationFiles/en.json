@@ -1,5 +1,20 @@
 {
   "translation": {
+    "supportScreen": {
+      "supportSection": "Support Section"
+    },
+    "settingsScreen": {
+      "settings": "Settings"
+    },
+    "selectedPersonInfo": {
+      "userInformation": "User Infromation",
+      "userName": "User Name",
+      "sendEmail": "Send Email",
+      "call": "Call",
+      "sendSms": "Send SMS",
+      "sendPrivateMessage": "Send Private Message",
+      "noPersonSelected": "No Person Selected"
+    },
     "defaultScreen": {
       "welcome": "Welcome to Places",
       "alreadyMember": "Already a member?",
@@ -8,7 +23,21 @@
       "motto": "where business meets opportunity",
       "joinPlaces": "Join Places",
       "clickToSignUp": "Sign Up",
-      "noAccount": "Don't have an account?"
+      "noAccount": "Don't have an account?",
+      "joinUsOn": "Join Us On"
+    },
+    "profileScreen": {
+      "accountDetails": "Account Details",
+      "myAwards": "My awards"
+    },
+    "paymentsScreen": {
+      "basicPack": "Basic Pack",
+      "standardPack": "Standard Pack",
+      "premiumPack": "Premium Pack",
+      "selectAPack": "Select a Pack",
+      "credits": "Credits",
+      "youHaveSelected": "You Have Selected",
+      "payments": "Payments"
     },
     "signUpScreen": {
       "signUp": "Sign Up",
@@ -19,21 +48,180 @@
       "phoneNumber": "Phone Number",
       "city": "City",
       "interest": "Interest",
-      "country": "Country"
+      "country": "Country",
+      "selectMinimumOneInterest": "Select minimum one interest",
+      "noteSelections": "Note: these selections will drive the entire Places experience and is important to select only the relevant one's !"
     },
     "logInScreen": {
       "phoneNumber": "Phone number"
     },
+    "newConnectionScreen": {
+      "dear": "Dear"
+    },
+    "friendRequestScreen": {
+      "noRequests": "No Requests"
+    },
+    "editUserProfileScreen": {
+      "editUserProfile": "Edit User Profile"
+    },
+    "myEvents": {
+      "eventName": "Event Name",
+      "eventDescription": "Event Description",
+      "eventTime": "Event Time",
+      "eventLocation": "Event Location",
+      "seeLocationOnMap": "See location on map",
+      "seeQR": "See QR",
+      "joinedEvents": "Joined Events",
+      "noQrAvailable": "No QR available",
+      "searchPlaceholder": "Search event"
+    },
+    "updateUser": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "userName": "User Name",
+      "phoneNumber": "Phone Number",
+      "email": "Email",
+      "city": "City",
+      "interest": "Interest",
+      "updateProfile": "Update Profile"
+    },
+    "accountPreferenceScreen": {
+      "accountPreference": "Account Preference"
+    },
+    "termsAndConditions": {
+      "iAgreeToThe": "I agree to the",
+      "termsAndConditions": "Terms and Conditions"
+    },
+    "supportTicket": {
+      "openTicketForm": "Open Ticket Form",
+      "title": "Title",
+      "description": "Description",
+      "feedBack": "Feedback"
+    },
+    "peopleCard": {
+      "name": "Name",
+      "interests": "Interests",
+      "message": "Message",
+      "pending": "Pending",
+      "connect": "Connect",
+      "peopleAroundYou": "People around you",
+      "searchPlaceholder": "Search person"
+    },
+    "bottomDrawer": {
+      "eventDetails": "Event details"
+    },
+    "greeting": {
+      "goodMorning": "Good morning",
+      "goodAfternoon": "Good afternoon",
+      "goodEvening": "Good evening"
+    },
+    "footerNavbar": {
+      "map": "Map",
+      "home": "Home",
+      "new": "New",
+      "settings": "Settings"
+    },
+    "homeScreen": {
+      "title": "Connect with Business Professionals",
+      "description": "Places is designed to bridge the gap between you and the business world. Whether you're looking for services, partnerships, or just to network, Places brings the business community to your fingertips. Discover local professionals, connect with businesses, and start meaningful conversations that help grow your professional network.",
+      "features": "Features",
+      "discover": "Discover local businesses and professionals",
+      "connect": "Connect and network with like-minded individuals",
+      "access": "Access business information and services easily",
+      "stay": "Stay updated with the latest business events and news"
+    },
+    "eventsAroundYou": {
+      "eventsAroundYou": "Events around you",
+      "seeLocationOnMap": "See location on Map",
+      "dateAndTime": "Date and Time",
+      "description": "Description",
+      "searchPlaceholder": "Search event"
+    },
+    "eventParticipants": {
+      "totalParticipants": "Total Participants",
+      "note": "Note:some participants might not show up in list based on their preference!"
+    },
+    "eventForm": {
+      "eventName": "Event Name",
+      "notEnoughCredit": "Not enough credit",
+      "eventDescription": "Event Description",
+      "eventMaxParticipants": "Event Max Participants",
+      "selectDateAndTime": "Select Date & Time",
+      "selectDate": "Select a Date:",
+      "selectTime": "Select a Time:",
+      "selectedDate": "Selected date and time:",
+      "yourCredits": "Your credits",
+      "otherRelevantInformation": "Other relevant information",
+      "minusCredit": "One credit will be deducted from your account when creating the event."
+    },
+    "editEventForm": {
+      "eventName": "Event Name",
+      "eventDescription": "Event Description",
+      "eventMaxParticipants": "Event Max Participants"
+    },
+    "accountPreference": {
+      "darkMode": "Dark Mode",
+      "changeLanguage": "Change Language",
+      "editProfile": "Edit Profile"
+    },
+    "accountSettings": {
+      "account": "Account",
+      "privacy": "Privacy",
+      "chats": "Chats",
+      "notifications": "Notifications",
+      "payments": "Payments"
+    },
+    "eventSection": {
+      "joinedEvents": "Joined Events",
+      "myEvents": "My events"
+    },
+    "information": {
+      "help": "Help",
+      "tellAFriend": "Tell a friend",
+      "aboutUs": "About Us"
+    },
     "buttons": {
       "signUp": "Sign Up",
-      "logIn": "Login"
+      "logIn": "Login",
+      "close": "Close",
+      "submit": "Submit",
+      "save": "Save",
+      "confirm": "Confirm",
+      "upload": "Upload",
+      "logOut": "Log Out",
+      "deleteAccount": "Delete Account"
     },
-
+    "labels": {
+      "city": "City",
+      "credits": "Credits",
+      "email": "Email",
+      "interest": "Interest",
+      "phoneNumber": "Phone Number",
+      "username": "Username"
+    },
+    "map": {
+      "unJoinEvent": "Unjoin event",
+      "event": "Event",
+      "description": "Description",
+      "joinEvent": "Join event",
+      "limitReached": "Limit reached",
+      "noQrAvailable": "No QR available",
+      "maxParticipants": "Max participants",
+      "eventName": "Event Name",
+      "currentLocation": "My location",
+      "editEventDetails": "Edit Event Details",
+      "showParticipantListPreference": "Do not show me in participants list"
+    },
+    "openInGoogleMaps": "Open in Google Maps",
     "this line is translated": "This line is translated",
     "aboutUs": "About Us",
     "signUp": "Sign Up",
     "english": "English",
     "romana": "Romanian",
-    "Settings": "Settings"
+    "Settings": "Settings",
+    "about": "About",
+    "dear": "Dear",
+    "noUserIsLoggedIn": "No user is logged in!",
+    "noParticipantsFound": "No participants found!"
   }
 }

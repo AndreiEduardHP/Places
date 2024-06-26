@@ -15,6 +15,8 @@ import {
 } from '../Utils.tsx/ComponentColors.tsx/BackGroundColor'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import { useTranslation } from 'react-i18next'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 type FooterNavProps = {
   style?: TextStyle
@@ -26,6 +28,7 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
   const { isDarkMode } = useDarkMode()
   const { textColor } = useThemeColor()
   const colorScheme = useColorScheme()
+  const { t } = useTranslation()
   const iconTintColor = isDarkMode
     ? colorScheme === 'dark'
       ? 'white'
@@ -40,31 +43,27 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
       borderColor: textColor,
       borderTopWidth: 1,
       //borderTopWidth: 1,
-      padding: 2,
+      paddingTop: 5,
     },
     menuItem: {
       flexDirection: 'column',
       alignItems: 'center',
-      marginTop: 2,
+      // marginTop: 2,
       paddingHorizontal: 16,
     },
-    icon: {
-      // width: 18,
-      // height: 12,
-    },
+    icon: {},
     selectedIcon: {
-      // width: 28,
-      // height: 28,
       tintColor: '#00B0EF',
     },
     text: {
-      marginTop: 2,
+      // marginTop: 1,
       fontWeight: '400',
       alignItems: 'center',
     },
   })
   return (
-    <View
+    <SafeAreaView
+      edges={['bottom']}
       style={[
         styles.container,
 
@@ -81,7 +80,7 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
           color={currentRoute === 'MapScreen' ? '#00B0EF' : iconTintColor}
         />
         <Text style={[styles.text, { color: isDarkMode ? 'black' : 'white' }]}>
-          Map
+          {t('footerNavbar.map')}
         </Text>
       </TouchableOpacity>
 
@@ -94,7 +93,7 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
           color={currentRoute === 'HomeScreen' ? '#00B0EF' : iconTintColor}
         />
         <Text style={[styles.text, { color: isDarkMode ? 'black' : 'white' }]}>
-          Home
+          {t('footerNavbar.home')}
         </Text>
       </TouchableOpacity>
 
@@ -109,7 +108,7 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
           }
         />
         <Text style={[styles.text, { color: isDarkMode ? 'black' : 'white' }]}>
-          New
+          {t('footerNavbar.new')}
         </Text>
       </TouchableOpacity>
 
@@ -122,10 +121,10 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
           color={currentRoute === 'SettingScreen' ? '#00B0EF' : iconTintColor}
         />
         <Text style={[styles.text, { color: isDarkMode ? 'black' : 'white' }]}>
-          Settings
+          {t('footerNavbar.settings')}
         </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   )
 }
 

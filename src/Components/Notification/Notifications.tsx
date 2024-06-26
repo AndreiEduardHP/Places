@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { Ionicons } from '@expo/vector-icons' // Import Ionicons from Expo
+import { Ionicons } from '@expo/vector-icons'
 
 interface NotificationProps {
   message: string
@@ -22,6 +22,13 @@ const Notification: React.FC<NotificationProps> = ({
         : styles.neutralBackground,
     styles.absolute,
   ]
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose()
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [onClose])
 
   return (
     <View style={[containerStyles]}>
@@ -35,7 +42,6 @@ const Notification: React.FC<NotificationProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: 'lightgray',
     padding: 5,
     borderRadius: 7,
     flexDirection: 'row',
@@ -45,13 +51,13 @@ const styles = StyleSheet.create({
     top: '13%',
     left: 15,
     right: 15,
-    zIndex: 999, // Adjust the z-index as needed
+    zIndex: 999,
   },
   successBackground: {
-    backgroundColor: 'rgba(90,190,63,0.9)', // Background color for success type
+    backgroundColor: 'rgba(90,190,63,0.9)',
   },
   failBackground: {
-    backgroundColor: 'rgba(205,0,26,0.9)', // Background color for fail type
+    backgroundColor: 'rgba(205,0,26,0.9)',
   },
   neutralBackground: {
     backgroundColor: 'rgba(57,61,71,0.9)',

@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { ImageConfig } from '../../config/imageConfig'
 import FooterNavbar from '../FooterNavbar'
+import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 
 interface Chat {
   id: number
@@ -23,10 +24,11 @@ interface Props {
 }
 
 const ChatList: React.FC<Props> = ({ chats, onPressChat }) => {
+  const { backgroundColor, textColor } = useThemeColor()
   return (
     <View style={{ flex: 1 }}>
       <FlatList
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)' }}
+        style={{ flex: 1, backgroundColor: backgroundColor }}
         data={chats}
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -44,8 +46,10 @@ const ChatList: React.FC<Props> = ({ chats, onPressChat }) => {
                 />
               </View>
               <View style={{ paddingTop: 4 }}>
-                <Text style={styles.contactName}>{item.contact}</Text>
-                <Text style={styles.lastMessage}>
+                <Text style={[styles.contactName, { color: textColor }]}>
+                  {item.contact}
+                </Text>
+                <Text style={[styles.lastMessage, { color: textColor }]}>
                   Last message: {item.id}
                   {item.id}
                 </Text>

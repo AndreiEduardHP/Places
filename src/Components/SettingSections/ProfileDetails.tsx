@@ -3,13 +3,15 @@ import { View, Text, StyleSheet } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import LineComponent from '../LineComponent'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
 interface ProfileDetailsProps {
   data: { icon: string; label: string; value: string | number | undefined }[]
+  showIcon?: boolean
 }
 
-const ProfileDetails: React.FC<ProfileDetailsProps> = ({ data }) => {
-  const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
+const ProfileDetails: React.FC<ProfileDetailsProps> = ({ data, showIcon }) => {
+  const { textColor, backgroundColorGrey } = useThemeColor()
   const styles = StyleSheet.create({
     container: {
       flexDirection: 'row',
@@ -43,6 +45,15 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({ data }) => {
             <View style={styles.row}>
               <Icon name={item.icon} size={30} color={textColor} />
               <Text style={styles.text}>{`${item.label}: ${item.value}`}</Text>
+              {showIcon && (
+                <View style={{ marginLeft: 'auto' }}>
+                  <MaterialIcons
+                    name="arrow-forward-ios"
+                    size={22}
+                    color="#FFFFFF"
+                  />
+                </View>
+              )}
             </View>
             {index < data.length - 1 && <LineComponent />}
           </React.Fragment>

@@ -1,27 +1,22 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Image,
-  Share,
-} from 'react-native'
-
-import { useUser } from '../../Context/AuthContext'
+import { View, Text, StyleSheet, Share } from 'react-native'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
-import UserProfilePicture from '../UserProfilePicture'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import LineComponent from '../LineComponent'
-import { Line } from 'react-native-svg'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
+import axios from 'axios'
+import { config } from '../../config/urlConfig'
+import { useUser } from '../../Context/AuthContext'
+import { useNotification } from '../Notification/NotificationProvider'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
 const InformationSection: React.FC = () => {
   const { t } = useTranslation()
+  const { textColor, backgroundColorGrey } = useThemeColor()
+  const { showNotificationMessage } = useNotification()
   const { loggedUser, refreshData } = useUser()
-  const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
   const handleNavigation = useHandleNavigation()
 
   const styles = StyleSheet.create({
@@ -51,6 +46,18 @@ const InformationSection: React.FC = () => {
     },
   })
 
+  const increaseSharesCount = async () => {
+    try {
+      const response = await axios.post(
+        `${config.BASE_URL}/api/userprofile/shares/${loggedUser?.id}`,
+      )
+      refreshData()
+      showNotificationMessage('link was sent succesfully', 'success')
+    } catch (err) {
+      showNotificationMessage('Something went wrong', 'fail')
+    }
+  }
+
   const shareLink = async () => {
     try {
       const result = await Share.share({
@@ -60,6 +67,7 @@ const InformationSection: React.FC = () => {
       })
 
       if (result.action === Share.sharedAction) {
+        increaseSharesCount()
         if (result.activityType) {
         } else {
         }
@@ -77,7 +85,7 @@ const InformationSection: React.FC = () => {
           style={[styles.row, { paddingBottom: 10 }]}
           onPress={() => handleNavigation('SupportScreen')}>
           <Icon name="info" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Help</Text>
+          <Text style={styles.text}>{t('information.help')}</Text>
         </TouchableOpacity>
         <LineComponent></LineComponent>
         <TouchableOpacity
@@ -89,7 +97,19 @@ const InformationSection: React.FC = () => {
             },
           ]}>
           <Icon name="favorite" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>Tell a friend</Text>
+          <Text style={styles.text}>{t('information.tellAFriend')}</Text>
+        </TouchableOpacity>
+        <LineComponent></LineComponent>
+        <TouchableOpacity
+          onPress={() => handleNavigation('HomeScreen')}
+          style={[
+            styles.row,
+            {
+              paddingTop: 10,
+            },
+          ]}>
+          <Icon name="business" size={30} color={textColor}></Icon>
+          <Text style={styles.text}>{t('information.aboutUs')}</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -1,9 +1,16 @@
 import axios from 'axios'
 import React, { useEffect, useRef, useState } from 'react'
-import { View, Text, Image, StyleSheet, FlatList, Platform } from 'react-native'
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  FlatList,
+  Platform,
+  TextInput,
+} from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { ImageConfig } from '../config/imageConfig'
-import { LinearGradient } from 'expo-linear-gradient'
 import { config } from '../config/urlConfig'
 import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
@@ -11,6 +18,9 @@ import { useNotification } from './Notification/NotificationProvider'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import * as Notifications from 'expo-notifications'
+import { useTranslation } from 'react-i18next'
+import { Button, Card, SearchBar } from '@rneui/base'
+import LoadingComponent from './Loading/Loading'
 
 type Person = {
   friendRequestStatus: string
@@ -45,6 +55,7 @@ type ItemProps = {
   currentLocationId: string
   onConnect: () => void
 }
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -60,7 +71,6 @@ const Item: React.FC<ItemProps> = ({
   firstName,
   lastName,
   phoneNumber,
-  notificationToken,
   email,
   interest,
   profilePicture,
@@ -70,17 +80,199 @@ const Item: React.FC<ItemProps> = ({
   onConnect,
 }) => {
   const navigate = useHandleNavigation()
-  const { textColor } = useThemeColor()
-  const [isExpanded, setIsExpanded] = useState(false)
+  const { textColor, backgroundColor } = useThemeColor()
   const { loggedUser } = useUser()
-  const [expoPushToken, setExpoPushToken] = useState<any>('')
+  const { t } = useTranslation()
+
+  const styles = StyleSheet.create({
+    item: {
+      paddingHorizontal: 20,
+      paddingVertical: 20,
+      marginTop: 15,
+      marginHorizontal: 5,
+      borderRadius: 15,
+      borderColor:
+        backgroundColor === 'white'
+          ? 'rgba(0,0,0,0.5)'
+          : 'rgba(255,255,255,0.5)',
+      borderWidth: 1,
+      backgroundColor: 'rgba(255,255,255,0.11)',
+      ...Platform.select({
+        ios: {
+          shadowColor: 'rgba(0, 0, 0, 0.3)',
+          shadowOffset: { width: 0, height: 5 },
+          shadowOpacity: 0.3,
+          shadowRadius: 10,
+        },
+        android: {
+          elevation: 5,
+        },
+      }),
+    },
+
+    profileContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    profileImage: {
+      width: 70,
+      height: 70,
+      borderRadius: 10,
+      marginRight: 15,
+      marginBottom: 15,
+    },
+    userName: {
+      fontSize: 20,
+      fontWeight: '500',
+      color: textColor,
+    },
+    description: {
+      fontSize: 14,
+      marginTop: 5,
+      color: textColor,
+    },
+    statsContainer: {
+      justifyContent: 'space-between',
+      marginTop: 10,
+    },
+    stats: {
+      marginTop: 10,
+      fontSize: 14,
+      color: textColor,
+    },
+    connectButton: {
+      marginTop: 20,
+      backgroundColor:
+        textColor === 'white' ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    connectButtonText: {
+      color:
+        backgroundColor === 'white' ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)',
+      fontSize: 16,
+      fontWeight: '500',
+    },
+  })
+
+  return (
+    <Card containerStyle={{ backgroundColor: backgroundColor }}>
+      <View style={styles.profileContainer}>
+        <TouchableOpacity
+          onPress={() =>
+            navigate('SelectedPersonInfo', {
+              personData: {
+                friendRequestStatus,
+                areFriends,
+                id,
+                username,
+                firstName,
+                lastName,
+                phoneNumber,
+                email,
+                interest,
+                profilePicture,
+                city,
+                currentLocationId,
+              },
+            })
+          }>
+          <Image
+            style={styles.profileImage}
+            source={
+              profilePicture
+                ? { uri: ImageConfig.IMAGE_CONFIG + profilePicture }
+                : require('../../assets/DefaultUserIcon.png')
+            }
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            navigate('SelectedPersonInfo', {
+              personData: {
+                friendRequestStatus,
+                areFriends,
+                id,
+                username,
+                firstName,
+                lastName,
+                phoneNumber,
+                email,
+                interest,
+                profilePicture,
+                city,
+                currentLocationId,
+              },
+            })
+          }>
+          <Card.Title style={styles.userName}>
+            {' '}
+            {firstName} {lastName}
+          </Card.Title>
+          <Text style={[styles.userName, { textAlign: 'right' }]}>
+            {username}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <Card.Divider />
+      <Text style={styles.stats}>
+        {t('peopleCard.interests')}: {interest}
+      </Text>
+      <Button
+        containerStyle={{
+          marginVertical: 10,
+        }}
+        buttonStyle={{ backgroundColor: 'rgba(49, 49, 49, 1)' }}
+        onPress={onConnect}
+        title={
+          friendRequestStatus === 'Accepted'
+            ? t('peopleCard.message')
+            : friendRequestStatus === 'Pending'
+              ? t('peopleCard.pending')
+              : t('peopleCard.connect')
+        }>
+        {/* <Text style={styles.connectButtonText}>
+         
+        </Text>*/}
+      </Button>
+    </Card>
+  )
+}
+
+const PeopleCard: React.FC = () => {
+  const [data, setData] = useState<Person[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const { loggedUser } = useUser()
+  const { showNotificationMessage } = useNotification()
+  const handleNavigation = useHandleNavigation()
+  const [refreshTrigger, setRefreshTrigger] = useState(false)
   const [notification, setNotification] = useState<any>(false)
   const notificationListener = useRef<any>()
+  const [expoPushToken, setExpoPushToken] = useState<any>('')
   const responseListener = useRef<any>()
 
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded)
+  // State for search query
+  const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    fetchData()
+  }, [refreshTrigger])
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        `${config.BASE_URL}/api/UserProfile/${loggedUser?.id}`,
+      )
+      setData(response.data)
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    }
   }
+
   useEffect(() => {
     registerForPushNotificationsAsync().then((token) => setExpoPushToken(token))
 
@@ -120,16 +312,13 @@ const Item: React.FC<ItemProps> = ({
       alert('Failed to get push token for push notification!')
       return
     }
-    // Learn more about projectId:
-    // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
+
     token = (await Notifications.getExpoPushTokenAsync()).data
 
     return token
   }
 
   async function sendPushNotification(notificationToken: string) {
-    console.log(notificationToken)
-
     const message = [
       {
         to: notificationToken,
@@ -148,208 +337,6 @@ const Item: React.FC<ItemProps> = ({
       },
       body: JSON.stringify(message),
     })
-    console.log(response)
-  }
-  const styles = StyleSheet.create({
-    title: {
-      marginLeft: 10,
-      marginTop: 10,
-      fontSize: 32,
-      paddingLeft: 10,
-      color: textColor,
-      letterSpacing: -0.6,
-      fontWeight: '400',
-      ...Platform.select({
-        ios: {
-          textShadowColor: 'black',
-          textShadowOffset: { width: 1, height: 1 },
-          textShadowRadius: 2,
-        },
-      }),
-    },
-    item: {
-      paddingHorizontal: 20,
-      paddingVertical: 7,
-      marginTop: 5,
-      marginHorizontal: 16,
-      borderColor: 'rgba(0,0,0,0.2)',
-      borderWidth: 1,
-      borderRadius: 6,
-      ...Platform.select({
-        ios: {
-          shadowColor: 'rgba(0, 0, 0, 0.5)',
-          shadowOffset: { width: 2, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 10,
-        },
-        android: {},
-      }),
-    },
-
-    profileContainer: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    profileImage: {
-      width: 70,
-      height: 70,
-      borderRadius: 50,
-      zIndex: 20,
-      opacity: 0.9,
-    },
-    userName: {
-      fontSize: 20,
-      fontWeight: '400',
-      marginLeft: 10,
-      color: textColor,
-      textShadowColor: 'black',
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 4,
-    },
-    description: {
-      fontSize: 14,
-      marginTop: 5,
-      color: textColor,
-    },
-    statsContainer: {
-      justifyContent: 'space-between',
-      marginTop: 5,
-    },
-    stats: {
-      fontSize: 14,
-      color: textColor,
-    },
-    connect: {
-      fontSize: 14,
-      alignItems: 'center',
-
-      marginTop: 15,
-      borderWidth: 2,
-      borderRadius: 10,
-      padding: 5,
-      borderColor: textColor,
-    },
-  })
-  return (
-    <LinearGradient
-      colors={['rgba(255, 255, 255, 0.21)', 'rgba(2, 2, 2, 0.30)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0.9 }}
-      style={[
-        styles.item,
-        {
-          borderColor:
-            textColor === 'white' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-          borderWidth: 1,
-        },
-      ]}>
-      <View style={styles.profileContainer}>
-        <TouchableOpacity
-          onPress={() =>
-            navigate('SelectedPersonInfo', {
-              personData: {
-                friendRequestStatus,
-                areFriends,
-                id,
-                username,
-                firstName,
-                lastName,
-                phoneNumber,
-                email,
-                interest,
-                profilePicture,
-
-                city,
-                currentLocationId,
-              },
-            })
-          }>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-            <Image
-              style={styles.profileImage}
-              source={
-                profilePicture
-                  ? { uri: ImageConfig.IMAGE_CONFIG + profilePicture }
-                  : require('../../assets/DefaultUserIcon.png')
-              }
-            />
-            <Text
-              style={{
-                padding: 5,
-                marginLeft: 10,
-                color: textColor,
-                fontSize: 24,
-              }}>
-              {firstName} {lastName}
-            </Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={toggleExpand}>
-          <Icon
-            name={isExpanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-            size={45}
-            color={textColor === 'white' ? 'white' : 'black'}></Icon>
-        </TouchableOpacity>
-      </View>
-      {isExpanded && (
-        <View>
-          <View style={{ marginTop: 15 }}>
-            <Text style={styles.description}>
-              Name: {firstName} {lastName}
-            </Text>
-          </View>
-          <View style={styles.statsContainer}>
-            <Text style={styles.stats}>Interests: {interest}</Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.connect}
-            onPress={() => {
-              onConnect()
-              sendPushNotification(notificationToken)
-            }}>
-            <Text
-              style={{
-                color: textColor,
-              }}>
-              {areFriends
-                ? 'Message'
-                : friendRequestStatus === 'Pending'
-                  ? 'Pending'
-                  : 'Connect'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </LinearGradient>
-  )
-}
-
-const PeopleCard: React.FC = () => {
-  const [data, setData] = useState<Person[]>([])
-  const { loggedUser } = useUser()
-  const { showNotificationMessage } = useNotification()
-  const handleNavigation = useHandleNavigation()
-  const [refreshTrigger, setRefreshTrigger] = useState(false)
-  useEffect(() => {
-    fetchData()
-  }, [refreshTrigger])
-
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(
-        `${config.BASE_URL}/api/UserProfile/${loggedUser?.id}`,
-      )
-      setData(response.data)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    }
   }
 
   const handleConnectPress = (
@@ -392,9 +379,17 @@ const PeopleCard: React.FC = () => {
         profilePicture={item.profilePicture}
         areFriends={item.areFriends}
         friendRequestStatus={item.friendRequestStatus}
-        onConnect={() =>
+        onConnect={() => {
           handleConnectPress(item.friendRequestStatus, Number(item.id))
-        }
+          if (
+            !(
+              item.friendRequestStatus === 'Pending' ||
+              item.friendRequestStatus === 'Accepted'
+            )
+          ) {
+            sendPushNotification(item.notificationToken)
+          }
+        }}
         id={item.id}
         phoneNumber={item.phoneNumber}
         email={item.email}
@@ -404,8 +399,26 @@ const PeopleCard: React.FC = () => {
       />
     )
   }
+
+  // Filter data based on search query
+  const filteredData = data.filter(
+    (person) =>
+      person.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      person.lastName.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
   const { textColor } = useThemeColor()
+  const { t } = useTranslation()
+
   const styles = StyleSheet.create({
+    input: {
+      //  backgroundColor: useThemeColor().backgroundColor,
+    },
+    container: {
+      borderTopWidth: 0,
+      borderBottomWidth: 0,
+    },
+    inputContainer: {},
     title: {
       marginLeft: 10,
       marginTop: 10,
@@ -415,15 +428,61 @@ const PeopleCard: React.FC = () => {
       letterSpacing: -0.6,
       fontWeight: '300',
     },
+    searchInput: {
+      marginTop: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 1,
+      borderRadius: 10,
+      borderColor: textColor,
+      borderWidth: 1,
+      marginRight: 5,
+      color: textColor,
+      fontSize: 15,
+    },
+    searchBarContainer: { backgroundColor: 'transparent' },
   })
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1 }}>
+        <LoadingComponent />
+        <SearchBar
+          lightTheme={textColor == 'white' ? false : true}
+          containerStyle={styles.searchBarContainer}
+          placeholder={t('peopleCard.searchPlaceholder')}
+          placeholderTextColor={textColor}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={styles.title}>{t('peopleCard.peopleAroundYou')}</Text>
+        </View>
+      </View>
+    )
+  }
+
   return (
     <View style={{ flex: 1 }}>
-      <Text style={styles.title}>People around you</Text>
+      <SearchBar
+        lightTheme={textColor == 'white' ? false : true}
+        inputContainerStyle={styles.inputContainer}
+        inputStyle={styles.input}
+        containerStyle={styles.searchBarContainer}
+        placeholder={t('peopleCard.searchPlaceholder')}
+        placeholderTextColor={textColor}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={styles.title}>{t('peopleCard.peopleAroundYou')}</Text>
+      </View>
+
       <FlatList
-        data={data}
+        data={filteredData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         horizontal={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
     </View>
   )

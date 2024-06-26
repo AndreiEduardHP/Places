@@ -15,6 +15,7 @@ import {
   Button,
   FlatList,
   TouchableOpacity,
+  StyleSheet,
 } from 'react-native'
 import BottomDrawer from '../BottomDrawer'
 import EventForm from '../EventForm'
@@ -27,11 +28,13 @@ import UserLocationMarker from './UserLocationMarkerComponent'
 import SavedMarker from './SavedMarkerComponent'
 import EventDetails from './EventDetailsDrawer'
 import { MapMarker, MapMarkerDetail } from '../../Interfaces/IUserData'
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
-import { mapCustomStyle } from './MapStyle'
 import GooglePlacesInput from './GoogleAutocomplete'
 import { RouteProp, useRoute } from '@react-navigation/native'
 import { RootStackParamList } from '../../Navigation/Types'
+import Stepper from 'react-native-stepper-ui'
+import StepperHorizontal from '../../Screens/Stepper'
+import Icon from 'react-native-vector-icons/MaterialIcons'
+import { t } from 'i18next'
 
 const CustomeMap: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<MapMarker | null>(null)
@@ -44,35 +47,33 @@ const CustomeMap: React.FC = () => {
   const [routeDuration, setRouteDuration] = useState<number | null>(null)
   const [drawerVisible, setDrawerVisible] = useState(false)
   const [addNewEvent, setAddNewEvent] = useState(false)
-  const mapRef = useRef<any>(null)
+  const mapRef = useRef<any>()
   const [isLoading, setIsLoading] = useState(true)
   const [addEventMarker, setAddEventMarker] = useState<MapMarker>()
   const [isMapReady, setIsMapReady] = useState(false)
   const [userHasJoined, setUserHasJoined] = useState(false)
+  const [isInputEmpty, setIsInputEmpty] = useState(true)
   const [refreshParticipantsTrigger, setRefreshParticipantsTrigger] =
     useState(false)
+  const [optionVisible, setOptionVisible] = useState(false)
 
   const { loggedUser } = useUser()
   const route = useRoute<RouteProp<RootStackParamList, 'MapScreen'>>()
-  const [region] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  })
   const [savedMarkers, setSavedMarkers] = useState<MapMarkerDetail[]>([])
   const [isChecked, setChecked] = useState(false)
   const { showNotificationMessage } = useNotification()
 
-  useEffect(() => {
-    ;(async () => {
+  const getLocation = async () => {
+    try {
       let { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== 'granted') {
         console.error('Permission to access location was denied')
         return
       }
 
-      let location = await Location.getCurrentPositionAsync({})
+      let location = await await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      })
       if (location) {
         setCurrentLocation({
           latitude: location.coords.latitude,
@@ -80,7 +81,12 @@ const CustomeMap: React.FC = () => {
           key: 'currentLocation',
         })
       }
-    })()
+    } catch (error) {
+      console.error('Error getting current location:', error)
+    }
+  }
+  useEffect(() => {
+    getLocation()
   }, [])
 
   useEffect(() => {
@@ -114,15 +120,13 @@ const CustomeMap: React.FC = () => {
   useEffect(() => {
     if (
       isMapReady &&
-      currentLocation &&
       mapRef.current &&
       isLoading === false &&
-      route.params?.latitude !== undefined &&
-      route.params?.longitude !== undefined
+      route.params?.latitude &&
+      route.params?.longitude
     ) {
-      const targetLatitude = route.params.latitude || currentLocation.latitude
-      const targetLongitude =
-        route.params.longitude || currentLocation.longitude
+      const targetLatitude = route.params.latitude
+      const targetLongitude = route.params.longitude
 
       mapRef.current.animateToRegion({
         latitude: targetLatitude,
@@ -134,13 +138,15 @@ const CustomeMap: React.FC = () => {
       isMapReady &&
       currentLocation &&
       mapRef.current &&
-      isLoading === false
+      isLoading === false &&
+      !route.params?.latitude &&
+      !route.params?.longitude
     ) {
       mapRef.current.animateToRegion({
         latitude: currentLocation.latitude,
         longitude: currentLocation.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
       })
     }
   }, [
@@ -191,6 +197,9 @@ const CustomeMap: React.FC = () => {
     setMarkers((currentMarkers: any) => [...currentMarkers, newMarker])
   }
 
+  const handleInputChange = (isEmpty: boolean) => {
+    setIsInputEmpty(isEmpty)
+  }
   const handleMarkerPress = (marker: MapMarkerDetail) => {
     setSelectedMarker(marker)
 
@@ -281,15 +290,40 @@ const CustomeMap: React.FC = () => {
       latitude: location.latitude,
       longitude: location.longitude,
       key: `${location.latitude},${location.longitude}`,
-      title: location.title, // Optional
+      title: location.title,
+    }
+    // setAddNewEvent(true)
+    await setAddEventMarker(newMarker)
+    setOptionVisible(true)
+    // setMarkers(
+    //   (currentMarkers) => [...currentMarkers, newMarker] as MapMarkerDetail[],
+    // )
+
+    /* if (mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        },
+        1000,
+      )
+    }*/
+  }
+  const handleAddEvent = (location: MapMarker | null) => {
+    if (!location) return
+    const newMarker: MapMarker = {
+      latitude: location.latitude,
+      longitude: location.longitude,
+      key: `${location.latitude}-${location.longitude}`,
     }
     setAddNewEvent(true)
-    await setAddEventMarker(newMarker)
+
+    setAddEventMarker(newMarker)
     setMarkers(
       (currentMarkers) => [...currentMarkers, newMarker] as MapMarkerDetail[],
     )
-
-    // Optionally, center the map on the new marker
     if (mapRef.current) {
       mapRef.current.animateToRegion(
         {
@@ -299,7 +333,57 @@ const CustomeMap: React.FC = () => {
           longitudeDelta: 0.05,
         },
         1000,
-      ) // Adjust timing and delta values as needed
+      )
+    }
+  }
+  const navigateToLocation = (location: MapMarker | null) => {
+    if (!location) return
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.2,
+          longitudeDelta: 0.1,
+        },
+        1000,
+      )
+    }
+  }
+  const handleOptionSelect = (option: 'add' | 'navigate') => {
+    //  setOptionVisible(false)
+    if (addEventMarker) {
+      if (option === 'add') {
+        handleAddEvent(addEventMarker)
+      } else if (option === 'navigate') {
+        navigateToLocation(addEventMarker)
+      }
+    }
+  }
+  const handleMarkerDragEnd = async (marker: MapMarkerDetail, e: any) => {
+    const newMarker = {
+      ...marker,
+      latitude: e.nativeEvent.coordinate.latitude,
+      longitude: e.nativeEvent.coordinate.longitude,
+    }
+
+    setMarkers((prevMarkers) =>
+      prevMarkers.map((m) => (m.key === marker.key ? newMarker : m)),
+    )
+    // Save the new coordinates to your server here
+    await saveMarkerCoordinates(newMarker)
+    fetchEvents()
+  }
+  const saveMarkerCoordinates = async (marker: MapMarkerDetail) => {
+    try {
+      await axios.put(`${config.BASE_URL}/api/Event/${marker.key}`, {
+        latitude: marker.latitude,
+        longitude: marker.longitude,
+      })
+      showNotificationMessage('Coordinates updated successfully', 'success')
+    } catch (error) {
+      console.error('Error updating coordinates:', error)
+      showNotificationMessage('Failed to update coordinates', 'fail')
     }
   }
 
@@ -312,7 +396,12 @@ const CustomeMap: React.FC = () => {
       <MapView
         ref={mapRef}
         style={{ flex: 1 }}
-        initialRegion={region}
+        initialRegion={{
+          latitude: currentLocation?.latitude || 0,
+          longitude: currentLocation?.longitude || 0,
+          latitudeDelta: 0.1,
+          longitudeDelta: 0.1,
+        }}
         showsTraffic={true}
         userInterfaceStyle={
           loggedUser?.themeColor === 'dark' ? 'dark' : 'light'
@@ -328,16 +417,9 @@ const CustomeMap: React.FC = () => {
               longitude: marker.longitude,
             }}
             draggable={true}
-            onDragEnd={(e) => {
-              const newMarker = {
-                latitude: e.nativeEvent.coordinate.latitude,
-                longitude: e.nativeEvent.coordinate.longitude,
-                key: `${e.nativeEvent.coordinate.latitude},${e.nativeEvent.coordinate.longitude}`,
-              }
-              setAddEventMarker(newMarker)
-            }}
-            title="title"
-            description={`Description: ${marker.latitude} ${marker.longitude}`}
+            onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
+            title={marker.eventName}
+            description={`${t('map.description')}: ${marker.latitude} ${marker.longitude}`}
             onPress={() => handleMarkerPress(marker)}
           />
         ))}
@@ -355,12 +437,17 @@ const CustomeMap: React.FC = () => {
               latitude: marker.latitude,
               longitude: marker.longitude,
             }}
+            draggable={true}
+            onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
+            title={marker.eventName}
+            description={`${t('map.description')}: ${marker.eventDescription}`}
             eventName={marker.eventName}
             eventDescription={marker.eventDescription}
             createdByUserId={marker.createdByUserId}
             onPress={() => handleMarkerPress(marker)}
           />
         ))}
+
         {currentLocation && selectedMarker && (
           <MapViewDirections
             origin={{
@@ -372,8 +459,8 @@ const CustomeMap: React.FC = () => {
               longitude: selectedMarker.longitude,
             }}
             apikey={apiKey}
-            strokeWidth={5}
-            strokeColor="blue"
+            strokeWidth={3}
+            strokeColor="#00B0EF"
             onReady={(result) => {
               setRouteDistance(result.distance)
               setRouteDuration(result.duration)
@@ -384,9 +471,9 @@ const CustomeMap: React.FC = () => {
       <View
         style={{
           position: 'absolute',
-          width: '90%',
-          left: '5%',
-          right: '5%',
+          width: '98%',
+          left: '1%',
+          zIndex: 2,
           backgroundColor: 'white',
           shadowColor: 'black',
           shadowOffset: { width: 2, height: 2 },
@@ -397,32 +484,101 @@ const CustomeMap: React.FC = () => {
           borderRadius: 8,
           top: '1%',
         }}>
-        <GooglePlacesInput onLocationSelected={handleNewLocationSelected} />
+        <GooglePlacesInput
+          onLocationSelected={handleNewLocationSelected}
+          onInputChange={handleInputChange}
+        />
       </View>
+      {optionVisible && isInputEmpty && (
+        <View style={styles.optionContainer}>
+          <TouchableOpacity onPress={() => handleOptionSelect('add')}>
+            <Text style={{ color: 'white' }}>Add Event</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleOptionSelect('navigate')}>
+            <Text style={{ color: 'white' }}>Navigate to Location</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      <View
+        style={{
+          position: 'absolute',
+          width: 'auto',
+          right: '1%',
+          shadowColor: 'black',
+          shadowOffset: { width: 2, height: 2 },
+          shadowOpacity: 0.5,
+          shadowRadius: 4,
+          elevation: 4,
+          bottom: '1%',
+        }}>
+        <TouchableOpacity
+          style={{
+            paddingTop: 4,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+          onPress={() => {
+            mapRef.current.animateToRegion(
+              {
+                latitude: currentLocation?.latitude,
+                longitude: currentLocation?.longitude,
+                latitudeDelta: 0.03,
+                longitudeDelta: 0.03,
+              },
+              1000,
+            )
+          }}>
+          <Icon name="explore" size={46} color={'#00B0EF'}></Icon>
+        </TouchableOpacity>
+      </View>
+
       <BottomDrawer
-        title="Event Details"
+        title={t('bottomDrawer.eventDetails')}
         visible={drawerVisible}
         onClose={() => {
           setDrawerVisible(false)
           deselectRoute()
           Keyboard.dismiss()
         }}>
-        <EventDetails
-          refreshSelectedMarkerData={refreshSelectedMarkerData}
-          selectedMarker={selectedMarker}
-          createdByUserId={selectedMarker?.createdByUserId}
-          drawerVisible={drawerVisible}
-          isChecked={isChecked}
-          setChecked={setChecked}
-          userHasJoined={userHasJoined}
-          handleUnJoinEvent={handleUnJoinEvent}
-          handleJoinEvent={handleJoinEvent}
-          routeDistance={routeDistance}
-          routeDuration={routeDuration}
-          openGoogleMaps={openGoogleMaps}
-          markers={markers}
-          refreshParticipantsTrigger={refreshParticipantsTrigger}
-        />
+        {(userHasJoined ||
+          selectedMarker?.createdByUserId === loggedUser?.id) &&
+        selectedMarker ? (
+          <EventDetails
+            refreshSelectedMarkerData={refreshSelectedMarkerData}
+            selectedMarker={selectedMarker}
+            createdByUserId={selectedMarker?.createdByUserId}
+            drawerVisible={drawerVisible}
+            isChecked={isChecked}
+            setChecked={setChecked}
+            userHasJoined={userHasJoined}
+            handleUnJoinEvent={handleUnJoinEvent}
+            handleJoinEvent={handleJoinEvent}
+            routeDistance={routeDistance}
+            routeDuration={routeDuration}
+            openGoogleMaps={openGoogleMaps}
+            markers={markers}
+            refreshParticipantsTrigger={refreshParticipantsTrigger}
+          />
+        ) : (
+          selectedMarker && (
+            <StepperHorizontal
+              refreshSelectedMarkerData={refreshSelectedMarkerData}
+              selectedMarker={selectedMarker}
+              createdByUserId={selectedMarker?.createdByUserId}
+              drawerVisible={drawerVisible}
+              isChecked={isChecked}
+              setChecked={setChecked}
+              userHasJoined={userHasJoined}
+              handleUnJoinEvent={handleUnJoinEvent}
+              handleJoinEvent={handleJoinEvent}
+              routeDistance={routeDistance}
+              routeDuration={routeDuration}
+              openGoogleMaps={openGoogleMaps}
+              markers={markers}
+              refreshParticipantsTrigger={refreshParticipantsTrigger}
+            />
+          )
+        )}
       </BottomDrawer>
 
       <BottomDrawer
@@ -444,5 +600,31 @@ const CustomeMap: React.FC = () => {
     </View>
   )
 }
+const styles = StyleSheet.create({
+  optionContainer: {
+    position: 'absolute',
+    top: '6%',
+    left: '1%',
+    right: '1%',
+    zIndex: 0,
+    backgroundColor: '#00B0EF',
+    padding: 13,
+    borderRadius: 8,
+    shadowColor: 'black',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  optionButton: {
+    padding: 10,
+    backgroundColor: '#00B0EF',
+    borderRadius: 8,
+    borderColor: 'black',
+    borderWidth: 1,
+  },
+})
 
 export default CustomeMap

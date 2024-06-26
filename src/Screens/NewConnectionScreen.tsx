@@ -1,33 +1,36 @@
 import { t } from 'i18next'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, Text, StyleSheet, Platform, ImageBackground } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
 import PeopleCard from '../Components/PeopleCard'
-import PlacesBenefits from '../Components/PlacesBenefits'
 import EventsAroundYou from '../Components/EventsAroundYou'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Tab } from '@rneui/base'
 
 const NewConnectionScreen: React.FC = () => {
   const { t } = useTranslation()
-  const { loggedUser } = useUser()
+  const { loggedUser, refreshData } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
+  const [index, setIndex] = React.useState(0)
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: backgroundColor,
     },
+    tabItem: {
+      color: textColor,
+    },
     footer: {
       justifyContent: 'flex-end',
     },
-
     titleDear: {
       marginTop: 5,
       marginLeft: 20,
-
       fontSize: 34,
       letterSpacing: -0.51,
       fontWeight: '400',
@@ -41,7 +44,19 @@ const NewConnectionScreen: React.FC = () => {
       fontWeight: '400',
       fontFamily: '',
     },
+    gradientOverlay: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      height: 30, // Adjust the height as needed
+      bottom: 0,
+    },
   })
+
+  useEffect(() => {
+    refreshData()
+  }, [])
+
   return (
     <View style={styles.container}>
       {loggedUser ? (
@@ -50,15 +65,42 @@ const NewConnectionScreen: React.FC = () => {
             style={{
               backgroundColor: backgroundColor,
             }}>
-            <Text style={styles.titleDear}>Dear {loggedUser.firstName}</Text>
+            <Text style={styles.titleDear}>
+              {t('newConnectionScreen.dear')} {loggedUser.firstName}{' '}
+              {loggedUser.currentLatitude} {loggedUser.currentLongitude}
+            </Text>
           </View>
+          <Tab value={index} onChange={setIndex}>
+            <Tab.Item titleStyle={styles.tabItem}>People</Tab.Item>
+            <Tab.Item titleStyle={styles.tabItem}>Events</Tab.Item>
+          </Tab>
+          {index === 0 && (
+            <View style={{ flex: 1 }}>
+              <PeopleCard />
+              <LinearGradient
+                colors={[
+                  textColor === 'white'
+                    ? 'rgba(0,0,0,1)'
+                    : 'rgba(255,255,255,0.2)',
+                  'transparent',
+                ]}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 0, y: 0 }}
+                style={styles.gradientOverlay}
+              />
+            </View>
+          )}
 
-          <PeopleCard />
-
-          <EventsAroundYou />
+          {index === 1 && <EventsAroundYou />}
+          {/*   <LinearGradient
+            colors={['rgba(0,0,0,1)', 'transparent']}
+            start={{ x: 0.5, y: 1 }}
+            end={{ x: 0.5, y: 0 }}
+            style={styles.gradientOverlay}
+          />  */}
         </View>
       ) : (
-        <Text>No user is logged in</Text>
+        <Text>{t('noUserIsLoggedIn')}</Text>
       )}
       <View style={styles.footer}>
         <FooterNavbar currentRoute={'NewConnectionScreen'} />

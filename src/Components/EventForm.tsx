@@ -5,18 +5,13 @@ import {
   TouchableOpacity,
   View,
   Text,
-  Button,
   Image,
   TouchableWithoutFeedback,
   Keyboard,
   KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
-import { EventData, UserData } from '../Interfaces/IUserData'
-import { t } from 'i18next'
-import { validateEmail } from '../Utils.tsx/EmailValidation'
 import {
   disabledButtonStyle,
   enabledButtonStyle,
@@ -25,11 +20,11 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import * as ImagePicker from 'expo-image-picker'
 import { ImageConfig } from '../config/imageConfig'
 import { useNotification } from './Notification/NotificationProvider'
-import Checkbox from 'expo-checkbox'
 import { useUser } from '../Context/AuthContext'
 import TermsAndConditions from './TermsAndConditions'
 import { ScrollView } from 'react-native-gesture-handler'
 import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
+import { useTranslation } from 'react-i18next'
 
 interface EditFormProps {
   latitude?: number
@@ -48,6 +43,7 @@ const EditForm: React.FC<EditFormProps> = ({
   const { loggedUser, refreshData } = useUser()
   const { showNotificationMessage } = useNotification()
   const [formData, setFormData] = useState({
+    otherRelevantInformation: '',
     eventName: '',
     eventDescription: '',
     eventImage: '',
@@ -61,12 +57,18 @@ const EditForm: React.FC<EditFormProps> = ({
   const [eventImg, setEventImg] = useState<any>()
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
+  const { t } = useTranslation()
 
   const [formComplete, setFormComplete] = useState<boolean>(false)
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false)
 
   useEffect(() => {
-    const { eventName, eventDescription, maxParticipants } = formData
+    const {
+      eventName,
+      eventDescription,
+      maxParticipants,
+      otherRelevantInformation,
+    } = formData
     const isComplete =
       eventName.trim() !== '' &&
       eventDescription.trim() !== '' &&
@@ -86,7 +88,6 @@ const EditForm: React.FC<EditFormProps> = ({
     const currentDate = selectedDate || date
     setShowDatePicker(false)
     setDate(currentDate)
-    console.log(date)
     setShowTimePicker(true)
   }
 
@@ -158,7 +159,6 @@ const EditForm: React.FC<EditFormProps> = ({
             },
           )
           refreshData()
-          console.log('Credit deducted successfully')
         } catch (error) {
           console.error('Error deducting credit:', error)
           showNotificationMessage('Error deducting credit', 'fail')
@@ -185,7 +185,7 @@ const EditForm: React.FC<EditFormProps> = ({
         <ScrollView contentContainerStyle={[styles.container, { flexGrow: 1 }]}>
           <View style={{ alignItems: 'center' }}>
             <Text style={{ fontSize: 22 }}>
-              Your credits: {loggedUser?.credit}.
+              {t('eventForm.yourCredits')}: {loggedUser?.credit}.
             </Text>
             <View
               style={{
@@ -198,27 +198,34 @@ const EditForm: React.FC<EditFormProps> = ({
                   textAlign: 'center',
                   fontSize: 16,
                 }}>
-                One credit will be deducted from your account when creating the
-                event.
+                {t('eventForm.minusCredit')}
               </Text>
             </View>
           </View>
 
           <TextInput
-            placeholder="Event Name"
+            placeholder={t('eventForm.eventName')}
             value={formData.eventName}
             onChangeText={(text) => handleChange('eventName', text)}
             style={styles.input}
           />
           <TextInput
-            placeholder="Event Description"
+            placeholder={t('eventForm.eventDescription')}
             value={formData.eventDescription}
             onChangeText={(text) => handleChange('eventDescription', text)}
             style={styles.input}
           />
+          <TextInput
+            placeholder={t('eventForm.otherRelevantInformation')}
+            value={formData.otherRelevantInformation}
+            onChangeText={(text) =>
+              handleChange('otherRelevantInformation', text)
+            }
+            style={styles.input}
+          />
 
           <TextInput
-            placeholder="Event Max Participants"
+            placeholder={t('eventForm.eventMaxParticipants')}
             value={formData.maxParticipants}
             onChangeText={(text) => handleChange('maxParticipants', text)}
             style={styles.input}
@@ -234,13 +241,16 @@ const EditForm: React.FC<EditFormProps> = ({
               <TouchableOpacity
                 onPress={showDatepicker}
                 style={styles.datePicker}>
-                <Text style={{ color: 'white' }}>Select Date & Time</Text>
+                <Text style={{ color: 'white' }}>
+                  {' '}
+                  {t('eventForm.selectDateAndTime')}
+                </Text>
               </TouchableOpacity>
               <View style={{}}>
                 {showDatePicker && (
                   <View style={[{ flexDirection: 'row' }]}>
                     <Text style={{ color: 'white', padding: 10, fontSize: 16 }}>
-                      Select a Date:
+                      {t('eventForm.selectDate')}
                     </Text>
                     <DateTimePicker
                       value={date}
@@ -257,7 +267,7 @@ const EditForm: React.FC<EditFormProps> = ({
                 {showTimePicker && (
                   <View style={[{ flexDirection: 'row' }]}>
                     <Text style={{ color: 'white', padding: 10, fontSize: 16 }}>
-                      Select a Time:
+                      {t('eventForm.selectTime')}
                     </Text>
                     <DateTimePicker
                       value={date}
@@ -275,7 +285,7 @@ const EditForm: React.FC<EditFormProps> = ({
           </View>
           {formData.eventTime ? (
             <Text>
-              Selected date and time:
+              {t('eventForm.selectedDate')}
               {formatDateAndTime(date)}
             </Text>
           ) : (
@@ -296,7 +306,7 @@ const EditForm: React.FC<EditFormProps> = ({
                 }}
                 source={require('../../assets/Icons/edit.png')}
               />
-              <Text>Upload</Text>
+              <Text>{t('buttons.upload')}</Text>
             </View>
           </TouchableOpacity>
           {eventImg && (
@@ -310,7 +320,6 @@ const EditForm: React.FC<EditFormProps> = ({
             accepted={termsAccepted}
             onToggle={() => {
               setTermsAccepted(!termsAccepted)
-              console.log(termsAccepted)
             }}></TermsAndConditions>
           <TouchableOpacity
             style={[
@@ -329,8 +338,8 @@ const EditForm: React.FC<EditFormProps> = ({
               {loggedUser?.credit === null ||
               loggedUser?.credit === undefined ||
               loggedUser?.credit === 0
-                ? 'Not enough credit'
-                : 'Save'}
+                ? t('eventForm.notEnoughCredit')
+                : t('buttons.save')}
             </Text>
           </TouchableOpacity>
         </ScrollView>

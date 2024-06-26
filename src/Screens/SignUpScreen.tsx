@@ -1,4 +1,3 @@
-import { t } from 'i18next'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -13,42 +12,61 @@ import {
   ScrollView,
 } from 'react-native'
 import SignUpForm from '../Components/SignUpFrom'
-import * as Notifications from 'expo-notifications'
+import { LinearGradient } from 'expo-linear-gradient'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const SignUpScreen: React.FC = () => {
   const { t } = useTranslation()
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={{ backgroundColor: 'rgba(255,255,255,0.95)', flex: 1 }}>
-          <Image
-            source={require('../../assets/authentication.png')}
-            style={styles.image}></Image>
-          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <View
-              style={{
-                justifyContent: 'center',
-                // marginTop: 20,
-              }}>
-              <Text
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={{ backgroundColor: 'black', flex: 1 }}>
+            <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+              <View
                 style={{
-                  marginLeft: 30,
-                  marginTop: 20,
-                  fontSize: 32,
-                  backgroundColor: 'rgba(255,255,255,0.95)',
+                  justifyContent: 'center',
                 }}>
-                {t('signUpScreen.signUp')}
-              </Text>
-              <SignUpForm />
+                <Text
+                  style={{
+                    marginLeft: 30,
+
+                    fontSize: 32,
+                    color: 'white',
+                  }}>
+                  {t('signUpScreen.signUp')}
+                </Text>
+                <SignUpForm />
+              </View>
+            </TouchableWithoutFeedback>
+            <View style={styles.container}>
+              <LinearGradient
+                colors={['rgba(0,0,0,0) ', 'rgba(255,255,255,0.51)']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.gradientRectangle}
+              />
+              <LinearGradient
+                colors={['rgba(0,0,0,0) ', 'rgba(255,255,255,0.51)']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.gradientRectangle}
+              />
+              <LinearGradient
+                colors={['rgba(0,0,0,0) ', 'rgba(255,255,255,0.51)']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.gradientRectangle}
+              />
             </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   )
 }
 const styles = StyleSheet.create({
@@ -57,6 +75,23 @@ const styles = StyleSheet.create({
     height: 410,
     bottom: 0,
     position: 'absolute',
+  },
+  container: {
+    position: 'absolute',
+    flexDirection: 'row', // Align children horizontally
+    justifyContent: 'center', // Center the diamonds horizontally
+    alignItems: 'center', // Center the diamonds vertically
+    width: '100%',
+    bottom: 25,
+  },
+
+  gradientRectangle: {
+    // position: 'absolute',
+
+    transform: [{ rotate: '46deg' }], // Rotate the rectangle
+    borderRadius: 5,
+    height: 102, // Assuming you want to fill from top to 70.71% of the container's height
+    width: 102, // Adjust width based on left and right values or set explicitly
   },
 })
 export default SignUpScreen

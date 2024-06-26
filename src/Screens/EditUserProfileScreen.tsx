@@ -1,30 +1,16 @@
 import { t } from 'i18next'
 import React, { useState } from 'react'
 
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Image,
-  TouchableOpacity,
-} from 'react-native'
+import { View, Text, StyleSheet, KeyboardAvoidingView } from 'react-native'
 
 import FooterNavbar from '../Components/FooterNavbar'
 import UserProfileForm from '../Components/UpdateUser'
 import { ScrollView } from 'react-native-gesture-handler'
 import ProfileSection from '../Components/SettingSections/ProfileSection'
-import { useUser } from '../Context/AuthContext'
-import { useNotification } from '../Components/Notification/NotificationProvider'
-import axios from 'axios'
-import { config } from '../config/urlConfig'
+
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 
 const EditUserProfileScreen: React.FC = () => {
-  const { loggedUser, refreshData } = useUser()
-  const { showNotificationMessage } = useNotification()
-  const [currentScreen, setCurrentScreen] = useState('editProfile')
   const { backgroundColor, textColor } = useThemeColor()
 
   const styles = StyleSheet.create({
@@ -45,15 +31,19 @@ const EditUserProfileScreen: React.FC = () => {
       behavior={'padding'}
       keyboardVerticalOffset={64}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <Text style={styles.text}>Edit User Profile</Text>
-        <ProfileSection showEditIcon={true}></ProfileSection>
+        <Text style={styles.text}>
+          {t('editUserProfileScreen.editUserProfile')}
+        </Text>
+        <ProfileSection
+          showEditIcon={true}
+          showTouchIcon={false}></ProfileSection>
 
         <View style={{ flex: 1 }}>
           <View
             style={{
               alignItems: 'center',
               justifyContent: 'center',
-              marginTop: 20,
+              marginTop: 10,
             }}></View>
 
           <UserProfileForm />

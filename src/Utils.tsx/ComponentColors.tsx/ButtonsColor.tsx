@@ -1,5 +1,5 @@
 export const enabledButtonStyle = {
-  backgroundColor: 'black',
+  backgroundColor: '#888BF4',
 }
 
 export const disabledButtonStyle = {

@@ -5,6 +5,7 @@ export type RootStackParamList = {
   LoginScreen: undefined
   SignUp: undefined
   AboutUs: undefined
+  MyAwardsScreen: undefined
   ProfileScreen: undefined
   MapScreen:
     | {
@@ -18,6 +19,7 @@ export type RootStackParamList = {
   NewConnectionScreen: undefined
   FriendRequestScreen: undefined
   PaymentScreen: undefined
+  EventsCreatedByMe: undefined
   EditUserProfileScreen: undefined
   AccountPreferenceScreen: undefined
   SupportScreen: undefined

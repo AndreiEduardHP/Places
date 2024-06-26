@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   TouchableOpacity,
   Animated,
@@ -10,6 +9,7 @@ import {
 import axios from 'axios'
 import { config } from '../config/urlConfig'
 import ParticipantsList from './ShowEventParticipants'
+import { useTranslation } from 'react-i18next'
 
 interface Participant {
   id: string
@@ -21,12 +21,14 @@ interface Participant {
 
 interface ParticipantsListContainerProps {
   eventId: number
+  textColor?: string
   shouldRefreshParticipants: boolean
   updateParticipantsCount: (count: number) => void
 }
 
 const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
   eventId,
+  textColor,
   shouldRefreshParticipants,
   updateParticipantsCount,
 }) => {
@@ -35,6 +37,7 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
   const [showParticipants, setShowParticipants] = useState<boolean>(false)
   const slideAnimation = useRef(new Animated.Value(0)).current
   const heightAnimation = useRef(new Animated.Value(0)).current
+  const { t } = useTranslation()
 
   useEffect(() => {
     fetchParticipants()
@@ -68,12 +71,12 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
 
     Animated.parallel([
       Animated.timing(slideAnimation, {
-        toValue: showParticipants ? 0 : 1, // 0: hidden, 1: visible
+        toValue: showParticipants ? 0 : 1,
         duration: 500,
         useNativeDriver: false,
       }),
       Animated.timing(heightAnimation, {
-        toValue: showParticipants ? 0 : 1, // Adjust the end height as needed
+        toValue: showParticipants ? 0 : 1,
         duration: 500,
         useNativeDriver: false,
       }),
@@ -84,19 +87,18 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
     opacity: slideAnimation,
     height: heightAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: ['0%', '45%'], // Adjust based on your content's height
+      outputRange: ['0%', '45%'],
     }),
   }
 
   return (
     <View>
       <TouchableOpacity onPress={toggleParticipants}>
-        <Text style={styles.participants}>
-          Total Participants: {totalParticipants}
+        <Text style={[styles.participants, { color: textColor }]}>
+          {t('eventParticipants.totalParticipants')}: {totalParticipants}
         </Text>
-        <Text style={{ padding: 5 }}>
-          Note:some participants might not show up in list based on their
-          preference!
+        <Text style={{ padding: 5, color: textColor }}>
+          {t('eventParticipants.note')}
         </Text>
       </TouchableOpacity>
       <Animated.View style={[styles.listContainer, animatedStyle]}>
@@ -110,7 +112,7 @@ const styles = StyleSheet.create({
   participants: {
     fontSize: 16,
     fontWeight: '400',
-    marginTop: 5,
+
     marginHorizontal: 20,
   },
   listContainer: {

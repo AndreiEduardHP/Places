@@ -10,15 +10,22 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   accepted: boolean
   onToggle: () => void
+  textColor?: string
 }
 
-const TermsAndConditions: React.FC<Props> = ({ accepted, onToggle }) => {
+const TermsAndConditions: React.FC<Props> = ({
+  accepted,
+  onToggle,
+  textColor,
+}) => {
   const [modalVisible, setModalVisible] = useState(false)
   const [checkBoxEnabled, setcheckBoxEnabled] = useState(true)
+  const { t } = useTranslation()
   return (
     <View style={styles.container}>
       <Checkbox
@@ -30,10 +37,14 @@ const TermsAndConditions: React.FC<Props> = ({ accepted, onToggle }) => {
       <TouchableOpacity onPress={() => setModalVisible(true)}>
         <View style={{ flexDirection: 'row' }}>
           <View>
-            <Text style={styles.textAgree}>I agree to the </Text>
+            <Text style={[styles.textAgree, { color: textColor }]}>
+              {t('termsAndConditions.iAgreeToThe')}{' '}
+            </Text>
           </View>
           <View>
-            <Text style={styles.textTerms}>Terms and Conditions</Text>
+            <Text style={styles.textTerms}>
+              {t('termsAndConditions.termsAndConditions')}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -55,7 +66,7 @@ const TermsAndConditions: React.FC<Props> = ({ accepted, onToggle }) => {
                   fontSize: 24,
                   width: '100%',
                 }}>
-                Terms and Conditions
+                {t('termsAndConditions.termsAndConditions')}
               </Text>
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
@@ -120,14 +131,16 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
   },
-  textAgree: {},
+  textAgree: { fontSize: 22 },
   textTerms: {
-    color: 'blue',
+    fontSize: 22,
+    color: 'rgba(120,120,200,1)',
   },
   checkbox: {
-    marginRight: 8,
+    marginRight: 7,
   },
   text: {},
   modalHeader: {
@@ -154,7 +167,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    //elevation: 5,
+    elevation: 5,
   },
   button: {
     borderRadius: 50,

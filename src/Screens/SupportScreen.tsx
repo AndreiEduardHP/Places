@@ -1,37 +1,22 @@
 import { t } from 'i18next'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-} from 'react-native'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
-import DarkMode from '../Components/SwitchDarkMode'
 
 import i18n from '../TranslationFiles/i18n'
-import { config } from '../config/urlConfig'
-import axios from 'axios'
+
 import { useNotification } from '../Components/Notification/NotificationProvider'
 import SupportTicket from '../Components/SupportTicket'
-import ChatComponent from './test200'
+
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
-import ProfileSection from '../Components/SettingSections/ProfileSection'
-import InformationSection from '../Components/SettingSections/Information'
-import AccountSection from '../Components/SettingSections/AccountSettings'
-import EventSection from '../Components/SettingSections/EventSection'
-import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 
 const SupportScreen: React.FC = () => {
   const { t } = useTranslation()
-  const { loggedUser, refreshData } = useUser()
+
   const { backgroundColor, textColor } = useThemeColor()
-  const { showNotificationMessage } = useNotification()
-  const handleNavigation = useHandleNavigation()
 
   const handleTicketSubmit = (ticket: {
     title: string
@@ -53,7 +38,6 @@ const SupportScreen: React.FC = () => {
     },
     content: {
       justifyContent: 'center',
-      //  alignItems: 'center',
       padding: 10,
     },
 
@@ -80,7 +64,7 @@ const SupportScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.container}>
-        <Text style={styles.text}>Support Section</Text>
+        <Text style={styles.text}>{t('supportScreen.supportSection')}</Text>
         <SupportTicket onSubmit={handleTicketSubmit} />
       </ScrollView>
       <FooterNavbar currentRoute={''}></FooterNavbar>

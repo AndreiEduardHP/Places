@@ -5,7 +5,7 @@ interface NotificationContextType {
   showNotificationMessage: (
     message: string,
     type: 'success' | 'fail' | 'neutral',
-  ) => void // Include type parameter
+  ) => void
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(

@@ -6,11 +6,8 @@ import {
   View,
   Image,
   Text,
-  Alert,
   Modal,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
@@ -29,7 +26,6 @@ import TermsAndConditions from './TermsAndConditions'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler'
 import Checkbox from 'expo-checkbox'
 import RNPickerSelect from 'react-native-picker-select'
-import Picker from 'react-native-picker-select'
 import * as Notifications from 'expo-notifications'
 
 const interests = [
@@ -66,7 +62,7 @@ const countryData: Record<
 }
 
 const SignUpForm: React.FC = () => {
-  const [imageUrl, setImageUrl] = useState<string>('')
+  const [imageUrl] = useState<string>('')
   const [firstName, setFirstName] = useState<string>('')
   const [lastName, setLastName] = useState<string>('')
   const [username, setUsername] = useState<string>('')
@@ -125,9 +121,6 @@ const SignUpForm: React.FC = () => {
       setPhonePrefix(countryInfo.prefix)
     }
   }
-  useEffect(() => {
-    console.log(foundCountry?.label) // This will log the found country object, or undefined if not found
-  }, [country])
 
   const submitUserProfile = async () => {
     let axiosConfig = {
@@ -151,7 +144,7 @@ const SignUpForm: React.FC = () => {
       languagePreference: 'en',
       notificationToken: (await Notifications.getExpoPushTokenAsync()).data,
     }
-    console.log(userData)
+
     try {
       const response = await axios.post(
         `${config.BASE_URL}/api/UserProfile?locationId=${1}`,
@@ -169,9 +162,10 @@ const SignUpForm: React.FC = () => {
   return (
     <View style={styles.container}>
       <View>
-        <Text style={styles.title}>{t('signUpScreen.lastName')}:</Text>
+        <Text style={styles.title}>{t('signUpScreen.firstName')}:</Text>
         <TextInput
           placeholder={t('signUpScreen.firstName')}
+          placeholderTextColor={'white'}
           value={firstName}
           onChangeText={(text) => setFirstName(text)}
           style={styles.input}
@@ -180,6 +174,7 @@ const SignUpForm: React.FC = () => {
         <Text style={styles.title}>{t('signUpScreen.lastName')}:</Text>
         <TextInput
           placeholder={t('signUpScreen.lastName')}
+          placeholderTextColor={'white'}
           value={lastName}
           onChangeText={(text) => setLastName(text)}
           style={styles.input}
@@ -188,6 +183,7 @@ const SignUpForm: React.FC = () => {
         <Text style={styles.title}>{t('signUpScreen.username')}:</Text>
         <TextInput
           placeholder={t('signUpScreen.username')}
+          placeholderTextColor={'white'}
           value={username}
           onChangeText={(text) => setUsername(text)}
           style={styles.input}
@@ -196,13 +192,14 @@ const SignUpForm: React.FC = () => {
         <Text style={styles.title}>{t('signUpScreen.email')}:</Text>
         <TextInput
           placeholder={t('signUpScreen.email')}
+          placeholderTextColor={'white'}
           value={email}
           onChangeText={(text) => {
             setEmail(text)
           }}
           style={[
             styles.input,
-            { borderColor: validateEmail(email) ? 'gray' : 'red' },
+            { borderColor: validateEmail(email) ? 'white' : 'red' },
           ]}
         />
 
@@ -225,29 +222,33 @@ const SignUpForm: React.FC = () => {
               flexDirection: 'row',
               width: 375,
               height: 40,
-              margin: 7,
-              borderRadius: 10,
-              borderColor: 'gray',
+              margin: 4,
+              borderRadius: 30,
+              borderColor: 'white',
               borderWidth: 1,
               alignItems: 'center',
-              paddingHorizontal: 5,
+              paddingHorizontal: 15,
             },
           ]}>
           <View style={{ flexDirection: 'row' }}>
             <Image
               source={flagSource}
               style={{ width: 40, height: 30 }}></Image>
-            <Text style={{ paddingTop: 6, paddingLeft: 5 }}>{phonePrefix}</Text>
+            <Text style={{ paddingTop: 6, paddingLeft: 5, color: 'white' }}>
+              {phonePrefix}
+            </Text>
           </View>
 
           <TextInput
             placeholder={t('signUpScreen.phoneNumber')}
+            placeholderTextColor={'white'}
             value={phoneNumber}
             keyboardType="phone-pad"
             onChangeText={(text) => setPhoneNumber(text)}
             style={[
               {
                 marginLeft: 10,
+                color: 'white',
                 borderColor:
                   validatePhoneNumber(phoneNumber) && phoneNumber
                     ? 'red'
@@ -260,6 +261,7 @@ const SignUpForm: React.FC = () => {
         <Text style={styles.title}>{t('signUpScreen.city')}:</Text>
         <TextInput
           placeholder={t('signUpScreen.city')}
+          placeholderTextColor={'white'}
           value={city}
           onChangeText={(text) => setCity(text)}
           style={styles.input}
@@ -274,7 +276,7 @@ const SignUpForm: React.FC = () => {
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
               <Text style={{ fontSize: 24, marginBottom: 20 }}>
-                Select minimum one interest
+                {t('signUpScreen.selectMinimumOneInterest')}
               </Text>
               <ScrollView>
                 {interests.map((interest, index) => (
@@ -302,7 +304,7 @@ const SignUpForm: React.FC = () => {
                     fontSize: 18,
                     padding: 5,
                   }}>
-                  Save
+                  {t('buttons.save')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -313,7 +315,7 @@ const SignUpForm: React.FC = () => {
           style={styles.inputInterest}
           onPress={() => setPickerVisible(true)}>
           <View>
-            <Text numberOfLines={2}>
+            <Text numberOfLines={2} style={{ color: 'white' }}>
               {'Selected interest: ' + (selectedInterests || 'Select Interest')}
             </Text>
           </View>
@@ -324,17 +326,23 @@ const SignUpForm: React.FC = () => {
               style={{
                 fontSize: 12,
                 fontWeight: '500',
-                marginTop: 10,
+                marginTop: 5,
+                color: 'white',
               }}>
-              Note: these selections will drive the entire Places experience and
-              is important to select only the relevant one's !
+              {t('signUpScreen.noteSelections')}
             </Text>
           ) : null}
         </View>
       </View>
 
-      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: 30,
+        }}>
         <TermsAndConditions
+          textColor="white"
           accepted={termsAccepted}
           onToggle={() => setTermsAccepted(!termsAccepted)}
         />
@@ -357,21 +365,23 @@ const pickerSelectStyles = StyleSheet.create({
     justifyContent: 'center',
     width: 375,
     height: 40,
-    margin: 5,
-    borderRadius: 10,
-    borderColor: 'gray',
+    margin: 4,
+    color: 'white',
+    borderRadius: 30,
+    borderColor: 'white',
     borderWidth: 1,
-    paddingHorizontal: 5,
+    paddingHorizontal: 15,
   },
   inputAndroid: {
     justifyContent: 'center',
     width: 375,
     height: 40,
-    margin: 5,
-    borderRadius: 10,
-    borderColor: 'gray',
+    color: 'white',
+    margin: 4,
+    borderRadius: 30,
+    borderColor: 'white',
     borderWidth: 1,
-    paddingHorizontal: 5,
+    paddingHorizontal: 15,
   },
   // Add other style keys as needed
 })
@@ -379,13 +389,12 @@ const pickerSelectStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   container: {
     //  width: '100%',
-    height: '90%',
+    //height: '90%',
     borderColor: 'black',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.9)',
 
     alignItems: 'center',
-    padding: 20,
+    padding: 7,
   },
 
   checkboxContainer: {
@@ -402,11 +411,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 375,
     height: 40,
-    margin: 5,
-    borderRadius: 10,
-    borderColor: 'gray',
+    margin: 4,
+    borderRadius: 30,
+    borderColor: 'white',
     borderWidth: 1,
-    paddingHorizontal: 5,
+    paddingHorizontal: 15,
   },
 
   centeredView: {
@@ -429,27 +438,28 @@ const styles = StyleSheet.create({
     height: 200,
   },
   input: {
+    color: 'white',
     width: 375,
-    height: 40,
-    margin: 7,
-    borderRadius: 10,
-    borderColor: 'gray',
+    height: 35,
+    margin: 4,
+    borderRadius: 30,
+    borderColor: 'white',
     borderWidth: 1,
-    paddingHorizontal: 5,
+    paddingHorizontal: 15,
   },
   touchable: {
-    borderRadius: 10,
-    backgroundColor: 'blue',
+    borderRadius: 30,
+    backgroundColor: 'white',
     paddingHorizontal: 20,
 
     paddingVertical: 7,
   },
   text: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 22,
   },
   title: {
-    color: 'black',
+    color: 'white',
     fontSize: 16,
     fontWeight: '400',
     marginTop: 2,
