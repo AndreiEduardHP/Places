@@ -22,6 +22,14 @@ interface UserProfile {
   lastName: string
   notificationToken: string
   profilePicture: string
+  friendRequestStatus: string
+  areFriends: boolean
+  username: string
+  phoneNumber: string
+  email: string
+  interest: string
+  city: string
+  currentLocationId: number
 }
 
 interface ChatProfile {
@@ -29,6 +37,8 @@ interface ChatProfile {
   currentUser: UserProfile
   secondUser: UserProfile
   messages: Message[]
+  friendRequestStatus: string
+  areFriends: boolean
 }
 
 interface Chat {
@@ -40,6 +50,17 @@ interface Chat {
   chatId: number
   notificationToken: string
   messages: Message[]
+  friendRequestStatus: string
+  areFriends: boolean
+  username: string
+  firstName: string
+  lastName: string
+  profilePicture: string // Add this line
+  phoneNumber: string
+  email: string
+  interest: string
+  city: string
+  currentLocationId: number
 }
 
 interface ChatRouteParams {
@@ -54,44 +75,57 @@ const Chat: React.FC = () => {
   const chatId = route.params?.chatId
 
   useEffect(() => {
-    async function fetchChats() {
-      try {
-        const response = await axios.get<ChatProfile[]>(
-          `${config.BASE_URL}/api/chats?userId=${loggedUser?.id}`,
-        )
-        const chatData: Chat[] = response.data.map((chatProfile) => {
-          const messages = chatProfile.messages.map((message) => ({
-            ...message,
-            timestamp: moment.utc(message.timestamp).local().format(),
-          }))
-
-          return {
-            id: chatProfile.chatId,
-            contact: `${chatProfile.secondUser.firstName} ${chatProfile.secondUser.lastName}`,
-            lastMessage:
-              messages.length > 0 ? messages[messages.length - 1].text : '',
-            imageUri: chatProfile.secondUser.profilePicture,
-            messages: messages,
-            notificationToken: chatProfile.secondUser.notificationToken,
-            receiverId: chatProfile.secondUser.id,
-            chatId: chatProfile.chatId,
-          }
-        })
-        setChats(chatData)
-
-        if (chatId) {
-          const selectedChatData = chatData.find(
-            (chat: any) => chat.id === Number(chatId),
-          )
-          setSelectedChat(selectedChatData || null)
-        }
-      } catch (error) {
-        console.error('Error fetching user profiles:', error)
-      }
-    }
-
     fetchChats()
-  }, [])
+  }, [loggedUser, chatId])
+
+  const fetchChats = async () => {
+    if (!loggedUser) return
+
+    try {
+      const response = await axios.get<ChatProfile[]>(
+        `${config.BASE_URL}/api/chats?userId=${loggedUser.id}`,
+      )
+      const chatData: Chat[] = response.data.map((chatProfile) => {
+        const messages = chatProfile.messages.map((message) => ({
+          ...message,
+          timestamp: moment.utc(message.timestamp).local().format(),
+        }))
+
+        return {
+          id: chatProfile.chatId,
+          contact: `${chatProfile.secondUser.firstName} ${chatProfile.secondUser.lastName}`,
+          lastMessage:
+            messages.length > 0 ? messages[messages.length - 1].text : '',
+          imageUri: chatProfile.secondUser.profilePicture,
+          messages: messages,
+          notificationToken: chatProfile.secondUser.notificationToken,
+          receiverId: chatProfile.secondUser.id,
+          chatId: chatProfile.chatId,
+          profilePicture: chatProfile.secondUser.profilePicture,
+          friendRequestStatus: chatProfile.friendRequestStatus,
+          areFriends: chatProfile.areFriends,
+          username: chatProfile.secondUser.username,
+          firstName: chatProfile.secondUser.firstName,
+          lastName: chatProfile.secondUser.lastName,
+          phoneNumber: chatProfile.secondUser.phoneNumber,
+          email: chatProfile.secondUser.email,
+          interest: chatProfile.secondUser.interest,
+          city: chatProfile.secondUser.city,
+          currentLocationId: chatProfile.secondUser.currentLocationId,
+        }
+      })
+      setChats(chatData)
+
+      if (chatId) {
+        const selectedChatData = chatData.find(
+          (chat: any) => chat.id === Number(chatId),
+        )
+        setSelectedChat(selectedChatData || null)
+      }
+    } catch (error) {
+      console.error('Error fetching user profiles:', error)
+    }
+  }
 
   const onPressChat = (chatId: number) => {
     const selectedChatData = chats.find((chat) => chat.id === chatId)
@@ -104,13 +138,17 @@ const Chat: React.FC = () => {
         <ChatRoom
           messages={selectedChat.messages}
           selectedRoom={selectedChat.chatId}
-          contact={selectedChat?.contact || ''}
-          imageUri={selectedChat?.imageUri || ''}
+          contact={selectedChat.contact}
+          imageUri={selectedChat.imageUri}
           receiverId={selectedChat.receiverId}
           notificationToken={selectedChat.notificationToken}
         />
       ) : (
-        <ChatList chats={chats} onPressChat={onPressChat} />
+        <ChatList
+          chats={chats}
+          onPressChat={onPressChat}
+          fetchChats={fetchChats}
+        />
       )}
     </View>
   )

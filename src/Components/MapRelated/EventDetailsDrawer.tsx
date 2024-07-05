@@ -232,14 +232,15 @@ const EventDetails: React.FC<EventDetailsProps> = ({
               </View>
             </View>
           </View>
-
-          {selectedMarker && (
-            <ParticipantsListContainer
-              eventId={Number(selectedMarker?.key)}
-              shouldRefreshParticipants={refreshParticipantsTrigger}
-              updateParticipantsCount={setParticipantsCount}
-            />
-          )}
+          <View style={{ padding: 10 }}>
+            {selectedMarker && (
+              <ParticipantsListContainer
+                eventId={Number(selectedMarker?.key)}
+                shouldRefreshParticipants={refreshParticipantsTrigger}
+                updateParticipantsCount={setParticipantsCount}
+              />
+            )}
+          </View>
         </View>
 
         <View style={{ flexDirection: 'row-reverse', margin: 5 }}>

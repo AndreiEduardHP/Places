@@ -32,9 +32,13 @@ const TermsAndConditions: React.FC<Props> = ({
         value={accepted}
         onValueChange={onToggle}
         style={styles.checkbox}
-        disabled={checkBoxEnabled}
+        //  disabled={checkBoxEnabled}
       />
-      <TouchableOpacity onPress={() => setModalVisible(true)}>
+      <TouchableOpacity
+        onPress={() => {
+          setModalVisible(true)
+          console.log('reddd')
+        }}>
         <View style={{ flexDirection: 'row' }}>
           <View>
             <Text style={[styles.textAgree, { color: textColor }]}>
@@ -132,15 +136,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
+    zIndex: 20,
+    marginHorizontal: 10,
+    marginBottom: 10,
   },
-  textAgree: { fontSize: 22 },
+  textAgree: { fontSize: 20 },
   textTerms: {
-    fontSize: 22,
-    color: 'rgba(120,120,200,1)',
+    fontSize: 20,
+    color: '#266EC3',
   },
   checkbox: {
     marginRight: 7,
+    marginTop: 1,
+    width: 25,
+    height: 25,
   },
   text: {},
   modalHeader: {

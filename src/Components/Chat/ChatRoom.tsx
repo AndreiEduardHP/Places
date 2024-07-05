@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
-  FlatList,
   TextInput,
   Button,
   StyleSheet,
@@ -16,7 +15,7 @@ import { useUser } from '../../Context/AuthContext'
 import * as signalR from '@microsoft/signalr'
 import { config } from '../../config/urlConfig'
 import * as Notifications from 'expo-notifications'
-import { TouchableOpacity } from 'react-native-gesture-handler'
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler'
 import { formatDateAndTime } from '../../Utils.tsx/Services/FormatDate'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
 import { Linking } from 'react-native'
@@ -26,6 +25,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Icon } from 'react-native-vector-icons/Icon'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import { ImageConfig } from '../../config/imageConfig'
 
 interface Message {
   id: number
@@ -33,6 +33,7 @@ interface Message {
   senderId: number
   chatId: number
   timestamp: string
+  dateSeparator?: boolean
 }
 
 interface Props {
@@ -97,13 +98,40 @@ const ChatRoom: React.FC<Props> = ({
   const { backgroundColor, textColor } = useThemeColor()
 
   useEffect(() => {
-    scrollToBottom()
+    setMessagesData(processMessagesWithSeparators(messages))
   }, [messages])
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
+    flatListRef.current?.scrollToEnd({ animated: true })
+  }, [])
+
+  useEffect(() => {
     setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true })
-    }, 100)
+      scrollToBottom()
+    }, 1500)
+  }, [])
+
+  const processMessagesWithSeparators = (messages: Message[]) => {
+    const processedMessages: Message[] = []
+    let lastDate = ''
+
+    messages.forEach((message) => {
+      const messageDate = new Date(message.timestamp).toDateString()
+      if (messageDate !== lastDate) {
+        lastDate = messageDate
+        processedMessages.push({
+          id: Date.now() + Math.random(), // unique id for the separator
+          text: messageDate,
+          chatId: selectedRoom,
+          dateSeparator: true,
+          senderId: message.senderId,
+          timestamp: message.timestamp,
+        })
+      }
+      processedMessages.push(message)
+    })
+
+    return processedMessages
   }
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
@@ -141,16 +169,62 @@ const ChatRoom: React.FC<Props> = ({
       .catch((err: any) => console.error('Send message error: ', err))
   }
 
+  type ItemProps = {
+    item: {
+      senderId: number
+      text: string
+      timestamp: string
+      dateSeparator?: boolean
+    }
+  }
+
+  const Item = ({ item }: ItemProps) => {
+    if (item.dateSeparator) {
+      return (
+        <View style={styles.dateSeparatorContainer}>
+          <Text style={styles.dateSeparatorText}>{item.text}</Text>
+        </View>
+      )
+    }
+    return (
+      <View
+        style={[
+          item.senderId === loggedUser?.id
+            ? styles.messageContainerSender
+            : styles.messageContainer,
+        ]}>
+        <Text
+          style={[
+            styles.messageText,
+            item.senderId === loggedUser?.id
+              ? { color: 'white' }
+              : { color: 'black' },
+          ]}>
+          {item.text}
+        </Text>
+        <Text>{selectedRoom}</Text>
+        <Text style={[styles.timestamp]}>
+          {formatDateAndTime(new Date(item.timestamp))}
+        </Text>
+        {item.senderId === loggedUser?.id ? (
+          <View style={styles.cornerSender} />
+        ) : (
+          <View style={styles.cornerReceiver} />
+        )}
+      </View>
+    )
+  }
+
   return (
     <KeyboardAvoidingView
-      behavior={'height'}
-      style={{ flex: 1, backgroundColor: backgroundColor }}
-      keyboardVerticalOffset={100}>
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.select({ ios: 75, android: 10 })}
+      style={{ flex: 1, backgroundColor: backgroundColor }}>
       <View style={styles.header}>
         <Image
           source={
             imageUri
-              ? { uri: imageUri }
+              ? { uri: ImageConfig.IMAGE_CONFIG + imageUri }
               : require('../../../assets/DefaultUserIcon.png')
           }
           style={styles.profileImage}
@@ -161,39 +235,11 @@ const ChatRoom: React.FC<Props> = ({
       </View>
       <View style={{ flex: 1 }}>
         <FlatList
-          keyExtractor={(item) =>
-            item.id
-              ? item.id.toString() + Date.now().toString()
-              : Date.now().toString()
-          }
           ref={flatListRef}
           data={messagesData}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                item.senderId === loggedUser?.id
-                  ? styles.messageContainerSender
-                  : styles.messageContainer,
-              ]}>
-              <Text
-                style={[
-                  styles.messageText,
-                  item.senderId === loggedUser?.id
-                    ? { color: 'white' }
-                    : { color: 'black' },
-                ]}>
-                {item.text}
-              </Text>
-              <Text style={[styles.timestamp]}>
-                {formatDateAndTime(new Date(item.timestamp))}
-              </Text>
-              {item.senderId === loggedUser?.id ? (
-                <View style={styles.cornerSender} />
-              ) : (
-                <View style={styles.cornerReceiver} />
-              )}
-            </View>
-          )}
+          renderItem={({ item }) => <Item item={item} />}
+          keyExtractor={(item) => item.id.toString()}
+          onLayout={scrollToBottom}
         />
         <SafeAreaView
           edges={['bottom']}
@@ -232,6 +278,17 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 10,
     alignItems: 'flex-start',
     alignSelf: 'flex-start',
+  },
+  dateSeparatorContainer: {
+    padding: 10,
+    backgroundColor: '#e0e0e0',
+    alignSelf: 'center',
+    borderRadius: 10,
+    marginVertical: 10,
+  },
+  dateSeparatorText: {
+    fontSize: 14,
+    color: '#333',
   },
   cornerSender: {
     position: 'absolute',
@@ -281,7 +338,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
     alignItems: 'flex-end',
     alignSelf: 'flex-end',
-    transform: [{ matrix: [-1, 0, 0, 0, 1, 0, 0, 0, 1] }],
+    // transform: [{ matrix: [-1, 0, 0, 0, 1, 0, 0, 0, 1] }],
   },
   profileImage: {
     width: 35,

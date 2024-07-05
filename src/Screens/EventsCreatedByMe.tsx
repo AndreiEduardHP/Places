@@ -8,10 +8,11 @@ import {
   FlatList,
   Modal,
   Image,
-  Button,
   Alert,
   ScrollView,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native'
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
@@ -36,6 +37,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { remoteImages } from '../AzureImages/Images'
 import ParticipantsListContainer from '../Components/EventParticipants'
+import { Button, Card, Overlay, SearchBar } from '@rneui/base'
 
 interface Event {
   id: number
@@ -43,7 +45,7 @@ interface Event {
   eventDescription: string
   eventTime: any
   otherRelevantInformation: string
-  imageUrl: string
+  eventImage: string
   maxParticipants: number
   eventLocation: {
     latitude: number
@@ -203,16 +205,33 @@ const EventsCreatedByMe: React.FC = () => {
   )
 
   const renderItem = ({ item }: { item: Event }) => (
-    <View style={styles.itemContainer}>
+    <Card containerStyle={styles.cardContainer}>
+      <Card.Title style={styles.cardTitle}>Event Name</Card.Title>
+      <Text
+        style={[
+          styles.itemText,
+          {
+            color: textColor,
+            textAlign: 'center',
+            fontSize: 20,
+            marginBottom: 10,
+            marginTop: -15,
+          },
+        ]}>
+        {item.eventName}
+      </Text>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <TouchableOpacity
           onPress={() => {
             handleOpenModal(item)
           }}
-          style={{ marginRight: 5, paddingTop: 1 }}>
-          <Text style={{ color: textColor, fontSize: 26, marginBottom: 4 }}>
-            Edit
-          </Text>
+          style={{ marginLeft: 5, paddingTop: 1 }}>
+          <Icon
+            name="edit"
+            size={26}
+            color={textColor}
+            style={{ marginBottom: 4 }}
+          />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
@@ -222,94 +241,58 @@ const EventsCreatedByMe: React.FC = () => {
           <Icon name="delete" size={28} color={textColor} />
         </TouchableOpacity>
       </View>
-
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexDirection: 'row',
-        }}>
-        <View style={{ width: '100%' }}>
-          <View>
-            <Text style={[styles.itemText, { color: textColor }]}>
-              {t('myEvents.eventName')}: {item.eventName}
-            </Text>
-            <Text style={[styles.itemText, { color: textColor }]}>
-              {t('myEvents.eventDescription')}: {item.eventDescription}
-            </Text>
-            <Text style={[styles.itemText, { color: textColor }]}>
-              {t('eventForm.otherRelevantInformation')}:{' '}
-              {item.otherRelevantInformation}
-            </Text>
-            <Text style={[styles.itemText, { color: textColor }]}>
-              {t('myEvents.eventTime')}:{' '}
-              {formatDateAndTime(new Date(item.eventTime))}
-            </Text>
-            <Text style={[styles.itemText, { color: textColor }]}>
-              {t('myEvents.eventLocation')}: {item.locationDetails}
-            </Text>
-          </View>
-
-          <View
-            style={{
-              alignItems: 'center',
-            }}>
-            <ParticipantsListContainer
-              eventId={Number(item.id)}
-              textColor={textColor}
-              shouldRefreshParticipants={true}
-              updateParticipantsCount={setParticipantsCount}
-            />
-            <Image
-              style={styles.eventImage}
-              source={
-                item.imageUrl
-                  ? {
-                      uri: ImageConfig.IMAGE_CONFIG + item.imageUrl,
-                    }
-                  : { uri: remoteImages.partyImage }
+      <Card.Divider />
+      <Card.Image
+        style={{ padding: 0, marginBottom: 10 }}
+        source={
+          item.eventImage
+            ? {
+                uri: item.eventImage,
               }
-            />
-            <TouchableOpacity
-              onPress={() =>
-                navigate('MapScreen', {
-                  latitude: item.eventLocation.latitude,
-                  longitude: item.eventLocation.longitude,
-                })
-              }
-              style={{
-                backgroundColor: 'rgba(205,10,30,1)',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 300,
-                marginTop: 10,
-                borderRadius: 10,
-                height: 30,
-              }}>
-              <Text style={{ color: 'white' }}>
-                {t('myEvents.seeLocationOnMap')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setModalVisible(true)
-                setSelectedEvent(item.id)
-              }}
-              style={{
-                backgroundColor: 'rgba(55,150,200,1)',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 300,
-                marginTop: 10,
-                borderRadius: 10,
-                height: 30,
-              }}>
-              <Text style={{ color: 'white' }}>Check User</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </View>
+            : { uri: remoteImages.partyImage }
+        }
+        // resizeMode="contain"
+      />
+
+      <ParticipantsListContainer
+        eventId={Number(item.id)}
+        textColor={textColor}
+        shouldRefreshParticipants={true}
+        updateParticipantsCount={setParticipantsCount}
+      />
+
+      <Text style={[styles.itemText, { color: textColor }]}>
+        {t('myEvents.eventDescription')}: {item.eventDescription}
+      </Text>
+      <Text style={[styles.itemText, { color: textColor }]}>
+        {t('eventForm.otherRelevantInformation')}:{' '}
+        {item.otherRelevantInformation}
+      </Text>
+      <Text style={[styles.itemText, { color: textColor }]}>
+        {t('myEvents.eventTime')}: {formatDateAndTime(new Date(item.eventTime))}
+      </Text>
+      <Text style={[styles.itemText, { color: textColor }]}>
+        {t('myEvents.eventLocation')}: {item.locationDetails}
+      </Text>
+      <Button
+        onPress={() =>
+          navigate('MapScreen', {
+            latitude: item.eventLocation.latitude,
+            longitude: item.eventLocation.longitude,
+          })
+        }
+        title={t('myEvents.seeLocationOnMap')}
+        buttonStyle={styles.mapButton}
+      />
+      <Button
+        onPress={() => {
+          setModalVisible(true)
+          setSelectedEvent(item.id)
+        }}
+        title="Check User"
+        buttonStyle={styles.checkUserButton}
+      />
+    </Card>
   )
 
   const styles = StyleSheet.create({
@@ -318,6 +301,35 @@ const EventsCreatedByMe: React.FC = () => {
       flex: 1,
 
       color: textColor,
+    },
+    cardContainer: {
+      borderRadius: 10,
+      backgroundColor:
+        textColor == 'white' ? 'rgba(48, 51, 55,1)' : 'rgba(222,222,222,1)',
+    },
+    cardTitle: {
+      color: textColor,
+      fontSize: 24,
+      margin: 0,
+    },
+    checkUserButton: {
+      backgroundColor: 'rgba(55,150,200,1)',
+    },
+    itemText: {
+      fontSize: 14,
+      marginBottom: 5,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: backgroundColor,
+    },
+    searchInputContainer: {
+      marginHorizontal: 5,
+      marginTop: 10,
+    },
+    mapButton: {
+      backgroundColor: 'rgba(205,10,30,1)',
+      marginVertical: 10,
     },
     containerScroll: {
       flexGrow: 1,
@@ -391,10 +403,10 @@ const EventsCreatedByMe: React.FC = () => {
       marginRight: 10,
     },
     eventImage: {
-      marginTop: 10,
-      width: '100%',
+      width: 'auto',
       height: 190,
       borderRadius: 25,
+      marginBottom: 10,
     },
 
     modalContainer: {
@@ -416,27 +428,7 @@ const EventsCreatedByMe: React.FC = () => {
       borderBottomWidth: 1,
       borderBottomColor: 'gray',
     },
-    itemText: {
-      fontSize: 18,
-    },
-    container: {
-      flex: 1,
-      backgroundColor: backgroundColor,
-    },
-    searchInputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: 10,
 
-      marginTop: 10,
-      paddingHorizontal: 15,
-      paddingVertical: 10,
-      borderRadius: 10,
-      borderColor: textColor,
-      borderWidth: 1,
-      color: textColor,
-      fontSize: 16,
-    },
     clearIcon: {
       marginLeft: 10,
     },
@@ -514,21 +506,26 @@ const EventsCreatedByMe: React.FC = () => {
   ) : (
     <View style={styles.container}>
       <Text style={styles.text}>Events Created By me</Text>
-      <View style={styles.searchInputContainer}>
-        <TextInput
-          style={styles.searchInput}
+      <View
+        style={{
+          marginHorizontal: 5,
+          //  marginVertical: 5,
+          marginTop: 10,
+        }}>
+        <SearchBar
           placeholder={t('myEvents.searchPlaceholder')}
-          placeholderTextColor="grey"
+          onChangeText={setSearchQuery}
           value={searchQuery}
-          onChangeText={(text) => setSearchQuery(text)}
+          lightTheme={textColor == 'white' ? false : true}
+          containerStyle={{
+            backgroundColor: backgroundColor,
+            borderTopWidth: 0,
+            borderBottomWidth: 0,
+          }}
+          // inputContainerStyle={{ backgroundColor: backgroundColor }}
+          inputStyle={{ color: textColor }}
         />
-        <TouchableOpacity
-          onPress={() => setSearchQuery('')}
-          style={styles.clearIcon}>
-          <Icon name="clear" size={24} color={textColor} />
-        </TouchableOpacity>
       </View>
-
       <FlatList
         data={filteredEvents}
         renderItem={renderItem}
@@ -546,20 +543,26 @@ const EventsCreatedByMe: React.FC = () => {
           />
           {scanned && (
             <Button
+              buttonStyle={{
+                backgroundColor: 'black',
+                borderRadius: 10,
+                padding: 10,
+                width: 200,
+              }}
               title={'Tap to Scan Again'}
               onPress={() => setScanned(false)}
             />
           )}
 
-          <TouchableOpacity
+          <Button
             onPress={async () => {
               setModalVisible(false)
             }}
-            style={{
+            buttonStyle={{
               marginTop: 20,
               backgroundColor: 'white',
               padding: 10,
-              width: 100,
+              width: 200,
               alignItems: 'center',
               borderRadius: 10,
             }}>
@@ -570,17 +573,18 @@ const EventsCreatedByMe: React.FC = () => {
               }}>
               {t('buttons.close')}
             </Text>
-          </TouchableOpacity>
+          </Button>
         </View>
       </Modal>
 
-      <Modal
+      <Overlay
         animationType="slide"
         transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => {
+        isVisible={isModalVisible}
+        onBackdropPress={async () => {
           setIsModalVisible(!isModalVisible)
-        }}>
+        }}
+        overlayStyle={{ backgroundColor: 'transparent' }}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <View style={styles.modalHeader}>
@@ -593,16 +597,19 @@ const EventsCreatedByMe: React.FC = () => {
                 }}>
                 {t('map.editEventDetails')}
               </Text>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonClose]}
-                onPress={() => {
+              <Button
+                buttonStyle={{
+                  borderRadius: 50,
+                  backgroundColor: backgroundColor,
+                }}
+                //  style={[styles.button, styles.buttonClose]}
+                onPress={async () => {
                   setIsModalVisible(!isModalVisible)
-                  console.log('text')
                 }}>
                 <Icon name="close" size={26} color="white" />
-              </TouchableOpacity>
+              </Button>
             </View>
-            <ScrollView
+            <View
               style={{
                 borderTopColor: 'black',
                 borderTopWidth: 1,
@@ -612,6 +619,7 @@ const EventsCreatedByMe: React.FC = () => {
                 refreshSelectedMarkerData={fetchEvents}
                 eventId={event?.id}
                 eventName={event?.eventName}
+                eventImage={event?.eventImage}
                 latitude={event?.eventLocation.latitude}
                 longitude={event?.eventLocation.longitude}
                 eventDescription={event?.eventDescription}
@@ -619,10 +627,10 @@ const EventsCreatedByMe: React.FC = () => {
                 otherRelevantInformation={
                   event?.otherRelevantInformation
                 }></EditEventForm>
-            </ScrollView>
+            </View>
           </View>
         </View>
-      </Modal>
+      </Overlay>
 
       <Modal
         animationType="slide"
@@ -643,13 +651,20 @@ const EventsCreatedByMe: React.FC = () => {
                 }}>
                 Are you sure you want to delete this event?
               </Text>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonClose]}
+              <Button
+                buttonStyle={{
+                  backgroundColor: 'black',
+                  borderRadius: 50,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: 10,
+                }}
+                //   style={[styles.button, styles.buttonClose]}
                 onPress={() => {
                   setIsDeleteModalVisible(!isDeleteModalVisible)
                 }}>
-                <Icon name="close" size={26} color="white" />
-              </TouchableOpacity>
+                <Icon name="close" size={24} color="white" />
+              </Button>
             </View>
             <ScrollView
               style={{
@@ -664,27 +679,27 @@ const EventsCreatedByMe: React.FC = () => {
                 <Text>Event Description:{event?.eventDescription}</Text>
                 <Text>Event Max Participants:{event?.maxParticipants}</Text>
               </View>
-              <TouchableOpacity
-                style={{
+              <Button
+                buttonStyle={{
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginHorizontal: 60,
+                  // marginHorizontal: 60,
                   backgroundColor: 'black',
                   borderRadius: 10,
-                  marginVertical: 10,
+                  marginTop: 20,
                 }}
                 onPress={() => {
                   deleteEvent(event?.id)
                 }}>
                 <Text
                   style={{
-                    marginVertical: 10,
+                    //  marginVertical: 10,
                     color: 'white',
                     fontSize: 24,
                   }}>
                   Delete
                 </Text>
-              </TouchableOpacity>
+              </Button>
             </ScrollView>
           </View>
         </View>

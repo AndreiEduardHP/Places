@@ -24,7 +24,7 @@ import SvgComponent2 from '../Components/SVG/Shapes/Wow'
 
 const DefaultScreen: React.FC = () => {
   const { t } = useTranslation()
-  const { handleLogin, updateNotificationToken } = useUser()
+  const { handleLogin, updateNotificationToken, refreshData } = useUser()
   const opacityMember = useRef(new Animated.Value(0)).current
   const opacityLine = useRef(new Animated.Value(0)).current
   const opacity = useRef(new Animated.Value(0)).current
@@ -89,6 +89,7 @@ const DefaultScreen: React.FC = () => {
           const token = (await Notifications.getExpoPushTokenAsync()).data
           updateNotificationToken(userProfile.id, token)
           handleLogin(userProfile.phoneNumber)
+          refreshData()
         }
       }
     } catch (error) {
@@ -526,7 +527,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 30,
     marginTop: 15,
-    width: 192, // button width
+
     height: 52,
     justifyContent: 'center',
   },

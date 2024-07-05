@@ -10,22 +10,60 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ImageBackground,
 } from 'react-native'
 import SignUpForm from '../Components/SignUpFrom'
 import { LinearGradient } from 'expo-linear-gradient'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import SvgComponent from '../Components/SVG/Logo'
 
 const SignUpScreen: React.FC = () => {
   const { t } = useTranslation()
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
+    <View style={{ backgroundColor: 'white', flex: 1 }}>
+      <View
+        style={{
+          width: '100%',
+          height: 210,
+          position: 'absolute',
+          zIndex: 3,
+          alignContent: 'center',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <SvgComponent width={300} height={200}></SvgComponent>
+      </View>
+
+      <Image
+        source={require('../../assets/Untitled.png')}
+        style={{
+          width: '100%',
+          height: 310,
+          position: 'absolute',
+          zIndex: 2,
+        }}
+        resizeMode="cover"></Image>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={{
+          zIndex: 20,
+          position: 'absolute',
+          top: 170,
+          left: 0,
+          right: 0,
+          flex: 1,
+        }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <View style={{ backgroundColor: 'black', flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            backgroundColor: 'white',
+            // flex: 1,
+            borderTopLeftRadius: 50,
+            borderTopRightRadius: 50,
+          }}>
+          <View style={{ paddingTop: 10 }}>
             <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
               <View
                 style={{
@@ -33,10 +71,10 @@ const SignUpScreen: React.FC = () => {
                 }}>
                 <Text
                   style={{
-                    marginLeft: 30,
-
+                    marginLeft: 20,
+                    marginTop: 15,
                     fontSize: 32,
-                    color: 'white',
+                    color: 'black',
                   }}>
                   {t('signUpScreen.signUp')}
                 </Text>
@@ -66,7 +104,7 @@ const SignUpScreen: React.FC = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 const styles = StyleSheet.create({
@@ -82,6 +120,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', // Center the diamonds horizontally
     alignItems: 'center', // Center the diamonds vertically
     width: '100%',
+    zIndex: -12,
     bottom: 25,
   },
 

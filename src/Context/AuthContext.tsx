@@ -20,6 +20,7 @@ import * as Location from 'expo-location'
 
 export interface Profile {
   id: number
+  profileVisibility: string
   username: string
   email: string
   city: string
@@ -253,7 +254,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           'tokenExpirationDate',
           expirationDate.toISOString(),
         )
-        handleNavigation('NewConnectionScreen')
+        handleNavigation('HomeScreen')
         if (profileResponse.data.languagePreference) {
           i18n.changeLanguage(profileResponse.data.languagePreference)
         } else {
@@ -316,7 +317,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setLoggedUser(response.data)
       await AsyncStorage.setItem('loggedUser', JSON.stringify(response.data))
     } catch (error) {
-      console.error('Error fetching user profile:', error)
+      // console.error('Error fetching user profile:', error)
     }
   }
 

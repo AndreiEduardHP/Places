@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   Animated,
+  Dimensions,
 } from 'react-native'
 import { StripeProvider, useStripe } from '@stripe/stripe-react-native'
 import FooterNavbar from '../Components/FooterNavbar'
@@ -20,6 +21,7 @@ import SvgComponent5 from '../Components/SVG/Shapes/5CreditCard'
 import { LinearGradient } from 'expo-linear-gradient'
 import SVGComponentOFFERS from '../Components/SVG/Shapes/UnlimitedOffers'
 import GradientText from '../Components/SVG/Gradient'
+import { Button, Card } from '@rneui/base'
 
 const PaymentScreen = () => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
@@ -59,6 +61,22 @@ const PaymentScreen = () => {
         <SvgComponent5
           name={`${loggedUser?.firstName ?? ''} ${loggedUser?.lastName ?? ''}`}
           type="Basic Pack"
+          aria-label={undefined}
+          aria-busy={undefined}
+          aria-checked={undefined}
+          aria-disabled={undefined}
+          aria-expanded={undefined}
+          aria-selected={undefined}
+          aria-valuemax={undefined}
+          aria-valuemin={undefined}
+          aria-valuenow={undefined}
+          aria-valuetext={undefined}
+          aria-hidden={undefined}
+          aria-modal={undefined}
+          role={undefined}
+          aria-labelledby={undefined}
+          aria-live={undefined}
+          tabIndex={undefined}
         />
       ),
       credits: 5,
@@ -71,6 +89,22 @@ const PaymentScreen = () => {
         <SvgComponent2
           name={`${loggedUser?.firstName ?? ''} ${loggedUser?.lastName ?? ''}`}
           type="Standard Pack"
+          aria-label={undefined}
+          aria-busy={undefined}
+          aria-checked={undefined}
+          aria-disabled={undefined}
+          aria-expanded={undefined}
+          aria-selected={undefined}
+          aria-valuemax={undefined}
+          aria-valuemin={undefined}
+          aria-valuenow={undefined}
+          aria-valuetext={undefined}
+          aria-hidden={undefined}
+          aria-modal={undefined}
+          role={undefined}
+          aria-labelledby={undefined}
+          aria-live={undefined}
+          tabIndex={undefined}
         />
       ),
       credits: 10,
@@ -82,6 +116,22 @@ const PaymentScreen = () => {
         <SvgComponent10
           name={`${loggedUser?.firstName ?? ''} ${loggedUser?.lastName ?? ''}`}
           type="Premium Pack"
+          aria-label={undefined}
+          aria-busy={undefined}
+          aria-checked={undefined}
+          aria-disabled={undefined}
+          aria-expanded={undefined}
+          aria-selected={undefined}
+          aria-valuemax={undefined}
+          aria-valuemin={undefined}
+          aria-valuenow={undefined}
+          aria-valuetext={undefined}
+          aria-hidden={undefined}
+          aria-modal={undefined}
+          role={undefined}
+          aria-labelledby={undefined}
+          aria-live={undefined}
+          tabIndex={undefined}
         />
       ),
       credits: 20,
@@ -182,7 +232,7 @@ const PaymentScreen = () => {
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
         <Text style={styles.title}> {t('paymentsScreen.selectAPack')}</Text>
-        <View style={{ flex: 1, paddingHorizontal: 15 }}>
+        <View style={{ paddingHorizontal: 15 }}>
           <Text style={styles.textStyle1}>
             {loggedUser?.firstName} {loggedUser?.lastName}
           </Text>
@@ -192,10 +242,10 @@ const PaymentScreen = () => {
           showsHorizontalScrollIndicator={false}
           style={{
             flex: 1,
-            marginTop: -270,
-            height: 10,
+            marginTop: -45,
+            //  height: 10,
             marginLeft: -20,
-            // backgroundColor: 'blue',
+            //  backgroundColor: 'blue',
           }}>
           {svgComponents.map((svg) => (
             <TouchableOpacity
@@ -212,48 +262,47 @@ const PaymentScreen = () => {
           ))}
         </ScrollView>
 
-        <View
-          style={{
-            flex: 1,
-            // marginBottom: 20,
-            marginTop: -65,
-
-            alignItems: 'center',
-          }}>
-          <SVGComponentOFFERS credits={loggedUser?.credit}></SVGComponentOFFERS>
-          {/*  <Text style={styles.textStyle}>YOUR CREDITS</Text> 
-
-          <Text
-            style={{
-              color: 'white',
-              fontSize: 37,
-              fontWeight: '300',
-              letterSpacing: 1,
-            }}>
-            {loggedUser?.credit}
-          </Text>*/}
-        </View>
+        <Card containerStyle={[styles.cardContainer, { flex: 1 }]}>
+          <View style={{ flexGrow: 1 }}>
+            <Text style={[styles.cardTitle, { marginLeft: 20, marginTop: 20 }]}>
+              YOUR CREDITS
+            </Text>
+            <GradientText
+              svgStyle={{ marginLeft: 20 }}
+              fontSize={24}
+              textLines={[loggedUser?.credit.toString() ?? '0']}
+              gradientStops={[
+                { color: '#F103AE', offset: '0%' },
+                { color: '#FF5447', offset: '50%' },
+                { color: '#FF7B21', offset: '80%' },
+                { color: '#F1F3FF', offset: '100%' },
+              ]}
+            />
+          </View>
+          <View style={[styles.cardContent, { marginTop: 100 }]}>
+            <Text style={styles.priceText}>Unlimited discounts. No fees.</Text>
+            <Text style={styles.creditsText}>
+              <GradientText
+                // svgStyle={{ marginTop: -2 }}
+                fontSize={22}
+                textLines={['Not even hidden ones.']}
+                gradientStops={[
+                  { color: '#00FF00', offset: '0%' },
+                  { color: '#006400', offset: '100%' },
+                ]}
+              />
+            </Text>
+          </View>
+        </Card>
 
         {selectedSvg && (
-          <View
-            style={{
-              backgroundColor: 'rgba(0,0,0,1)',
-              marginHorizontal: 20,
-              borderColor: 'white',
-              borderWidth: 0.5,
-              padding: 5,
-              marginTop: -1,
-              borderRadius: 10,
-            }}>
-            <Text
-              style={{
-                color: 'white',
-                fontWeight: '300',
-                fontSize: 22,
-              }}>
-              {t('paymentsScreen.youHaveSelected')}:{' '}
+          <Card containerStyle={styles.cardContainer}>
+            <View style={{ flexGrow: 1 }}>
+              <Text style={styles.cardTitle}>
+                {t('paymentsScreen.youHaveSelected')}:{' '}
+              </Text>
               <GradientText
-                svgStyle={{ marginTop: -3 }}
+                //  svgStyle={{ marginTop: -3 }}
                 fontSize={24}
                 textLines={[
                   packages.find((pack) => pack.id === selectedSvg)?.name || '',
@@ -265,15 +314,16 @@ const PaymentScreen = () => {
                   { color: '#F1F3FF', offset: '100%' },
                 ]}
               />
-            </Text>
-            <Text style={{ color: 'white', fontSize: 20, fontWeight: '300' }}>
-              Price:{' '}
-              {packages.find((pack) => pack.id === selectedSvg)?.price +
-                ' RON' ?? 'Default Price'}{' '}
-              <Text style={{ color: '#CADCFC', fontSize: 24 }}>
-                {' '}
+            </View>
+            <View style={[styles.cardContent]}>
+              <Text style={styles.priceText}>
+                {t('Price')}:{' '}
+                {packages.find((pack) => pack.id === selectedSvg)?.price +
+                  ' RON' ?? 'Default Price'}
+              </Text>
+              <Text style={styles.creditsText}>
                 <GradientText
-                  svgStyle={{ marginTop: -2 }}
+                  // svgStyle={{ marginTop: -2 }}
                   fontSize={22}
                   textLines={[
                     packages.find((pack) => pack.id === selectedSvg)?.credits +
@@ -282,10 +332,11 @@ const PaymentScreen = () => {
                   gradientStops={[
                     { color: '#F103AE', offset: '0%' },
                     { color: '#CADCFC', offset: '100%' },
-                  ]}></GradientText>
+                  ]}
+                />
               </Text>
-            </Text>
-          </View>
+            </View>
+          </Card>
         )}
         <View style={{ display: 'none' }}>
           <StripeProvider publishableKey="pk_test_51Op4EpBTlGDnVojpVzF4ZIMSKiYRbkgmTqIaTQWXjQ770OmFqdTYrSTquxwBOJyijVhwv8aRgHcudIJIpNasGiou001kLR8gLR">
@@ -293,9 +344,25 @@ const PaymentScreen = () => {
           </StripeProvider>
         </View>
 
-        <TouchableOpacity onPress={openPaymentSheet} style={styles.button}>
+        <Button
+          onPress={openPaymentSheet}
+          containerStyle={{
+            width: Dimensions.get('window').width,
+
+            alignContent: 'center',
+            justifyContent: 'center',
+            alignSelf: 'center',
+            paddingHorizontal: 15,
+            marginVertical: 10,
+          }}
+          buttonStyle={{
+            backgroundColor: 'black',
+            borderWidth: 1,
+            borderColor: 'white',
+            borderRadius: 10,
+          }}>
           <Text style={styles.buttonText}>Proceed to Pay</Text>
-        </TouchableOpacity>
+        </Button>
       </View>
       <View>
         <FooterNavbar currentRoute={''} />
@@ -305,6 +372,30 @@ const PaymentScreen = () => {
 }
 
 const styles = StyleSheet.create({
+  cardContainer: {
+    backgroundColor: 'rgba(0,0,0,1)',
+    borderColor: 'white',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+  },
+  cardTitle: {
+    color: 'white',
+    fontWeight: '300',
+    fontSize: 22,
+  },
+  cardContent: {
+    //  backgroundColor: 'red',
+  },
+  priceText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '300',
+  },
+  creditsText: {
+    color: '#CADCFC',
+    fontSize: 24,
+  },
   container: {
     flex: 1,
     // justifyContent: 'center',
@@ -377,16 +468,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#FFFFFF',
   },
-  priceText: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#888',
-  },
-  creditsText: {
-    fontSize: 14,
-    fontWeight: '300',
-    color: '#aaa',
-  },
+
   selectedText: {
     color: '#fff',
   },

@@ -174,7 +174,7 @@ const SVGComponentOFFERS = (
 ) => {
   const { credits } = props
   return (
-    <Svg width={402} height={312} viewBox="0 0 902 692" fill="none" {...props}>
+    <Svg width={385} height={312} viewBox="0 0 902 692" fill="none" {...props}>
       <Rect
         x={10}
         y={0}

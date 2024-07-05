@@ -7,13 +7,18 @@ import {
   StyleSheet,
   Image,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native'
-import { ImageConfig } from '../config/imageConfig'
 import { remoteImages } from '../AzureImages/Images'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
 import { MapMarkerDetail } from '../Interfaces/IUserData'
 import { useTranslation } from 'react-i18next'
+import { ScrollView } from 'react-native-gesture-handler'
+import * as ImagePicker from 'expo-image-picker'
 
 interface EditFormProps {
   eventId: any
@@ -49,6 +54,30 @@ const EditForm: React.FC<EditFormProps> = ({
   const [editedMaxParticipants, setEditedMaxParticipants] = useState(
     maxParticipants ? maxParticipants.toString() : '',
   )
+  const [editedEventImage, setEditedEventImage] = useState<any>(
+    eventImage || '',
+  )
+
+  const selectImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== 'granted') {
+      alert('Sorry, we need camera roll permissions to make this work!')
+      return
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+      base64: true,
+    })
+
+    if (!result.canceled && result.assets) {
+      const image = result.assets[0]
+      setEditedEventImage(`data:image/jpeg;base64,${image.base64}`)
+    } else {
+      Alert.alert('Error', 'Image picking was cancelled or failed')
+    }
+  }
 
   const saveEvent = async () => {
     try {
@@ -56,6 +85,7 @@ const EditForm: React.FC<EditFormProps> = ({
         `${config.BASE_URL}/api/event/updateEvent/${Number(eventId)}`,
         {
           eventName: editedEventName,
+          eventImage: editedEventImage,
           eventDescription: editedEventDescription,
           maxParticipants: Number(editedMaxParticipants),
           otherRelevantInformation: editedEventRelevantInfo,
@@ -86,83 +116,116 @@ const EditForm: React.FC<EditFormProps> = ({
     }
   }
   return (
-    <View style={{ alignItems: 'center', marginTop: 10 }}>
-      <View>
-        <Text style={styles.title}>{t('editEventForm.eventName')}:</Text>
-        <TextInput
-          defaultValue={editedEventName}
-          onChangeText={setEditedEventName}
-          placeholder="Event Name"
-          style={styles.input}
-        />
-      </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'height' : undefined}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{
+            alignItems: 'center',
+            marginTop: 10,
+          }}>
+          <View>
+            <Text style={styles.title}>{t('editEventForm.eventName')}:</Text>
+            <TextInput
+              defaultValue={editedEventName}
+              onChangeText={setEditedEventName}
+              placeholder="Event Name"
+              style={styles.input}
+            />
+          </View>
 
-      <View>
-        <Text style={styles.title}>{t('editEventForm.eventDescription')}:</Text>
-        <TextInput
-          defaultValue={editedEventDescription}
-          onChangeText={setEditedEventDescription}
-          placeholder="Event Description"
-          style={styles.input}
-        />
-      </View>
-      <View>
-        <Text style={styles.title}>
-          {t('eventForm.otherRelevantInformation')}:
-        </Text>
-        <TextInput
-          defaultValue={editedEventRelevantInfo}
-          onChangeText={setEditedEventRelevantInfo}
-          placeholder="Event Relevant Info"
-          style={styles.input}
-        />
-      </View>
+          <View>
+            <Text style={styles.title}>
+              {t('editEventForm.eventDescription')}:
+            </Text>
+            <TextInput
+              defaultValue={editedEventDescription}
+              onChangeText={setEditedEventDescription}
+              placeholder="Event Description"
+              style={styles.input}
+            />
+          </View>
+          <View>
+            <Text style={styles.title}>
+              {t('eventForm.otherRelevantInformation')}:
+            </Text>
+            <TextInput
+              defaultValue={editedEventRelevantInfo}
+              onChangeText={setEditedEventRelevantInfo}
+              placeholder="Event Relevant Info"
+              style={styles.input}
+            />
+          </View>
 
-      <View>
-        <Text style={styles.title}>
-          {t('editEventForm.eventMaxParticipants')}:
-        </Text>
-        <TextInput
-          defaultValue={editedMaxParticipants}
-          onChangeText={setEditedMaxParticipants}
-          placeholder="Max Participants"
-          keyboardType="numeric"
-          style={styles.input}
-        />
-      </View>
+          <View>
+            <Text style={styles.title}>
+              {t('editEventForm.eventMaxParticipants')}:
+            </Text>
+            <TextInput
+              defaultValue={editedMaxParticipants}
+              onChangeText={setEditedMaxParticipants}
+              placeholder="Max Participants"
+              keyboardType="numeric"
+              style={styles.input}
+            />
+          </View>
 
-      <Image
-        style={styles.eventImage}
-        source={
-          eventImage
-            ? {
-                uri: ImageConfig.IMAGE_CONFIG + eventImage,
-              }
-            : { uri: remoteImages.partyImage }
-        }
-      />
+          <Image
+            style={styles.eventImage}
+            source={
+              editedEventImage
+                ? {
+                    uri: editedEventImage,
+                  }
+                : { uri: remoteImages.partyImage }
+            }
+          />
 
-      <TouchableOpacity
-        style={{
-          backgroundColor: 'black',
-          borderRadius: 10,
-          width: 100,
-          alignItems: 'center',
-        }}
-        onPress={saveEvent}>
-        <Text
-          style={[
-            styles.title,
-            {
-              padding: 7,
-              color: 'white',
-              fontSize: 18,
-            },
-          ]}>
-          {t('buttons.save')}
-        </Text>
-      </TouchableOpacity>
-    </View>
+          <TouchableOpacity
+            style={{
+              backgroundColor: 'black',
+              borderRadius: 10,
+              //  width: 100,
+              alignItems: 'center',
+            }}
+            onPress={selectImage}>
+            <Text
+              style={[
+                // styles.title,
+                {
+                  padding: 7,
+                  color: 'white',
+                  fontSize: 18,
+                },
+              ]}>
+              Change event image
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{
+              backgroundColor: 'black',
+              borderRadius: 10,
+              width: 100,
+              alignItems: 'center',
+              marginTop: 10,
+            }}
+            onPress={saveEvent}>
+            <Text
+              style={[
+                styles.title,
+                {
+                  padding: 7,
+                  color: 'white',
+                  fontSize: 18,
+                },
+              ]}>
+              {t('buttons.save')}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   )
 }
 

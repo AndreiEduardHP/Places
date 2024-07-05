@@ -25,6 +25,7 @@ export type RootStackParamList = {
   SupportScreen: undefined
   SelectedPersonInfo: SelectedPersonInfoData
   JoinedEventsScreen: undefined
+  ProfileVisibilityScreen: undefined
   Chat: { chatId: number }
 }
 
@@ -34,6 +35,7 @@ export type SelectedPersonInfoData = {
     areFriends: boolean
     id: string
     firstName: string
+    receiverId: number
     lastName: string
     phoneNumber: string
     email: string

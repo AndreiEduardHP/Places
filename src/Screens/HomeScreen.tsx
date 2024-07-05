@@ -1,5 +1,5 @@
 import { t } from 'i18next'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   View,
@@ -10,9 +10,10 @@ import {
   ImageBackground,
 } from 'react-native'
 
-import { useUser } from '../Context/AuthContext'
+import { Profile, useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import * as Notifications from 'expo-notifications'
 import SvgComponent from '../Components/SVG/Logo'
 import { LinearGradient } from 'expo-linear-gradient'
 import SVGComponentPRO from '../Components/SVG/Shapes/ConnectPro'
@@ -23,14 +24,51 @@ import Svg, {
   Text as T,
   LinearGradient as L,
 } from 'react-native-svg'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useHandleNavigation } from '../Navigation/NavigationUtil'
 
 const HomeScreen: React.FC = () => {
   const { t } = useTranslation()
-  const { loggedUser } = useUser()
+  const {
+    loggedUser,
+    handleLogin,
+    updateNotificationToken,
+    refreshData,
+    handleLogout,
+  } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
-
+  const handleNavigation = useHandleNavigation()
+  const checkLoggedInStatus = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token')
+      console.log(token)
+      if (token) {
+        const userProfileString = await AsyncStorage.getItem('loggedUser')
+        console.log(userProfileString)
+        if (userProfileString) {
+          const userProfile: Profile = JSON.parse(userProfileString)
+          const token = (await Notifications.getExpoPushTokenAsync()).data
+          updateNotificationToken(userProfile.id, token)
+          console.log(userProfile.phoneNumber)
+          handleLogin(userProfile.phoneNumber)
+          refreshData()
+        } else {
+          handleLogout()
+          handleNavigation('DefaultScreen')
+        }
+      } else {
+        handleLogout()
+        handleNavigation('DefaultScreen')
+      }
+    } catch (error) {
+      console.error('Error checking logged in status:', error)
+    }
+  }
+  useEffect(() => {
+    checkLoggedInStatus()
+  }, [])
   const styles = StyleSheet.create({
-    container: { backgroundColor: backgroundColor, flex: 1 },
+    container: { backgroundColor: '#319DFC', flex: 1 },
     headerContainer: {
       marginTop: -30,
     },
@@ -72,7 +110,7 @@ const HomeScreen: React.FC = () => {
       borderTopRightRadius: 150,
     },
     title: {
-      fontFamily: 'Cochin',
+      //  fontFamily: 'Cochin',
       fontSize: 38,
       textAlign: 'center',
       fontWeight: '400',
@@ -88,7 +126,7 @@ const HomeScreen: React.FC = () => {
     featuresTitle: {
       fontSize: 28,
       color: 'white',
-      fontFamily: 'Cochin',
+      // fontFamily: 'Cochin',
       fontWeight: '400',
       marginBottom: 10,
     },

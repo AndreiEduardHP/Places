@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, FlatList } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Modal,
+} from 'react-native'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
 import { ImageConfig } from '../config/imageConfig'
@@ -13,8 +20,10 @@ import { Card, Title, Paragraph } from 'react-native-paper'
 import { SearchBar, Button, ButtonGroup } from '@rneui/base'
 import { Picker } from '@react-native-picker/picker'
 import { useUser } from '../Context/AuthContext'
+import { CheckBox as C } from '@rneui/base'
 
 import LineComponent from './LineComponent'
+import { Checkbox } from 'native-base'
 
 type Event = {
   id: number
@@ -24,6 +33,7 @@ type Event = {
   eventTime: string
   locationLatitude: number
   locationLongitude: number
+  interest: string
 }
 
 const Item: React.FC<Event> = ({
@@ -32,6 +42,7 @@ const Item: React.FC<Event> = ({
   eventImage,
   eventTime,
   locationLatitude,
+  interest,
   locationLongitude,
 }) => {
   const [locationAddress, setLocationAddress] = useState<string>('')
@@ -247,10 +258,28 @@ const EventsAroundYou: React.FC = () => {
   const { textColor } = useThemeColor()
   const { loggedUser } = useUser()
   const [selectedIndex, setSelectedIndex] = useState(0)
-
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+  const [isInterestModalVisible, setIsInterestModalVisible] = useState(false)
+  const interests = [
+    'Movies and Television',
+    'Art and Culture',
+    'Sports',
+    'Music',
+    'Technology',
+    'Food and Drink',
+  ]
   useEffect(() => {
     fetchEvents()
   }, [distance]) // Fetch events when the distance changes
+
+  const toggleInterest = (interest: string) => {
+    if (selectedInterests.includes(interest)) {
+      setSelectedInterests(selectedInterests.filter((i) => i !== interest))
+    } else {
+      setSelectedInterests([...selectedInterests, interest])
+    }
+  }
 
   const fetchEvents = async () => {
     setIsLoading(true)
@@ -290,6 +319,7 @@ const EventsAroundYou: React.FC = () => {
       eventDescription={item.eventDescription}
       eventImage={item.eventImage}
       id={item.id}
+      interest={item.interest}
       eventTime={item.eventTime}
       locationLatitude={item.locationLatitude}
       locationLongitude={item.locationLongitude}
@@ -307,6 +337,23 @@ const EventsAroundYou: React.FC = () => {
       color: textColor,
       letterSpacing: -0.6,
       fontWeight: '300',
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+      width: 300,
+      padding: 20,
+      backgroundColor: 'white',
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    modalOption: {
+      fontSize: 18,
+      marginVertical: 10,
     },
     searchInput: {
       marginTop: 10,
@@ -355,9 +402,20 @@ const EventsAroundYou: React.FC = () => {
   })
 
   // Filter data based on search query
-  const filteredData = eventData.filter((event) =>
-    event.eventName.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  // const filteredData = eventData.filter((event) =>
+  //   event.eventName.toLowerCase().includes(searchQuery.toLowerCase()),
+  //  )
+  const filteredData = eventData.filter((event) => {
+    const matchesSearchQuery = event.eventName
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+    const matchesInterests =
+      selectedInterests.length === 0 ||
+      selectedInterests.some((interest) =>
+        event.interest.split(',').includes(interest),
+      )
+    return matchesSearchQuery && matchesInterests
+  })
   if (isLoading) {
     return (
       <View style={{ flex: 1 }}>
@@ -391,28 +449,74 @@ const EventsAroundYou: React.FC = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <Text style={styles.title}>
-            {t('eventsAroundYou.eventsAroundYou')}
-          </Text>
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={styles.title}>
+              {t('eventsAroundYou.eventsAroundYou')}
+            </Text>
+            <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+              <MaterialIcons
+                name="filter-list"
+                size={26}
+                color={textColor}
+                style={{
+                  marginRight: 20,
+                  marginTop: 14,
+                }}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-        <ButtonGroup
-          selectedButtonStyle={{ backgroundColor: 'black' }}
-          buttons={['10Km', '50Km', 'All']}
-          selectedIndex={selectedIndex}
-          onPress={(value) => {
-            setSelectedIndex(value)
-            setDistance(
-              value == 0
-                ? 10
-                : value == 1
-                  ? 50
-                  : value == 2
-                    ? 100000000000
-                    : 999999,
-            )
-          }}
-          containerStyle={{ marginBottom: 20 }}
-        />
+        <Modal
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={() => setIsModalVisible(false)}
+          animationType="slide">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text>
+                Select the radius within which events should be displayed.
+              </Text>
+              <ButtonGroup
+                selectedButtonStyle={{ backgroundColor: 'black' }}
+                buttons={['10Km', '50Km', 'All']}
+                selectedIndex={selectedIndex}
+                onPress={(value) => {
+                  setSelectedIndex(value)
+                  setDistance(
+                    value == 0
+                      ? 10
+                      : value == 1
+                        ? 50
+                        : value == 2
+                          ? 100000000000
+                          : 999999,
+                  )
+                  setIsModalVisible(false)
+                }}
+                containerStyle={{ marginBottom: 20 }}
+              />
+              <Text>Select interests:</Text>
+              {interests.map((interest) => (
+                <C
+                  key={interest}
+                  title={interest}
+                  checked={selectedInterests.includes(interest)}
+                  onPress={() => toggleInterest(interest)}
+                  containerStyle={{
+                    justifyContent: 'space-between',
+
+                    width: 250,
+                  }}
+                />
+              ))}
+
+              <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+                <Text style={styles.modalOption}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
 
       <FlatList

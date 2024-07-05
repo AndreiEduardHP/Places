@@ -54,6 +54,7 @@ const NewConnectionScreen: React.FC = () => {
   })
 
   useEffect(() => {
+    console.log('aici sunt in new' + loggedUser?.phoneNumber)
     refreshData()
   }, [])
 

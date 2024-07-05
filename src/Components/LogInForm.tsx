@@ -7,12 +7,10 @@ import {
   Image,
   Text,
   ImageBackground,
-  Alert,
   TouchableWithoutFeedback,
   Keyboard,
   Platform,
 } from 'react-native'
-import { config } from '../config/urlConfig'
 import axios from 'axios'
 import { t } from 'i18next'
 import { validatePhoneNumber } from '../Utils.tsx/EmailValidation'
@@ -20,41 +18,59 @@ import {
   disabledButtonStyle,
   enabledButtonStyle,
 } from '../Utils.tsx/ComponentColors.tsx/ButtonsColor'
-
 import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-//import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
+import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
 import { initializeApp } from 'firebase/app'
 import { getAuth, signInWithCredential, PhoneAuthProvider } from 'firebase/auth'
 import LoadingComponent from './Loading/Loading'
 import { useNotification } from './Notification/NotificationProvider'
 import { LinearGradient } from 'expo-linear-gradient'
-import SvgComponent from './SVG/Logo'
+import { config } from '../config/urlConfig'
+import SegmentedCodeInput from './SegmentedInput'
+import { Box, Menu, Pressable } from 'native-base'
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyDK6l7L56LB6nkpTnqE_GK_-FqPE55QVUE',
+  authDomain: 'places-a28da.firebaseapp.com',
+  projectId: 'places-a28da',
+  storageBucket: 'places-a28da.appspot.com',
+  messagingSenderId: '471105680442',
+  appId: '1:471105680442:web:844ff5c1f250a6e9e4b103',
+  measurementId: 'G-98XG6SNW8N',
+}
+
+const countries = [
+  { label: 'United States', value: 'usa' },
+  { label: 'Romania', value: 'ro' },
+]
+
+type CountryCode = 'usa' | 'ro' // Add more country codes as needed
+
+const countryData: Record<
+  CountryCode,
+  { flag: ReturnType<typeof require>; prefix: string }
+> = {
+  usa: { flag: require('../../assets/flags/usa.png'), prefix: '+1' },
+  ro: { flag: require('../../assets/flags/ro.jpg'), prefix: '+40' },
+  // Add other countries with their flags and prefixes here
+}
 
 const LogInForm: React.FC = () => {
-  const [phoneNumber, setPhoneNumber] = useState<string>('')
-  const isFormComplete = validatePhoneNumber(phoneNumber)
-  const { handleLogin, loggedUser, token } = useUser()
+  const { handleLogin } = useUser()
   const [code, setCode] = useState('')
-  const recaptchaVerifier = useRef<any>()
-  const [verificationId, setVerificationId] = useState<any>()
+  const recaptchaVerifier = useRef<any>(null)
+  const [verificationId, setVerificationId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const handleNavigation = useHandleNavigation()
-  const firebaseConfig = {
-    apiKey: 'AIzaSyDK6l7L56LB6nkpTnqE_GK_-FqPE55QVUE',
-    authDomain: 'places-a28da.firebaseapp.com',
-    projectId: 'places-a28da',
-    storageBucket: 'places-a28da.appspot.com',
-    messagingSenderId: '471105680442',
-    appId: '1:471105680442:web:844ff5c1f250a6e9e4b103',
-    measurementId: 'G-98XG6SNW8N',
-  }
   const app = initializeApp(firebaseConfig)
-  // const auth = getAuth(app)
-  ////const auth = firebaseAuth.initializeAuth(app, {
-  //  persistence: reactNativePersistence(ReactNativeAsyncStorage),
-  //})
-  const phonePrefix = '+4'
+  const auth = getAuth(app)
+  const [country, setCountry] = useState<string>('ro')
+  const [flagSource, setFlagSource] = useState(countryData.ro.flag) // Default flag
+  const [phonePrefix, setPhonePrefix] = useState(countryData.ro.prefix)
+  const [phoneNumber, setPhoneNumber] = useState<string>('')
+  const isFormComplete = validatePhoneNumber(phoneNumber)
+  // const phonePrefix = '+4'
 
   const { showNotificationMessage } = useNotification()
 
@@ -75,11 +91,11 @@ const LogInForm: React.FC = () => {
 
       if (response.status == 200) {
         try {
-          //   const phoneProvider = new PhoneAuthProvider(auth)
-          //   const verificationId = await phoneProvider.verifyPhoneNumber(
-          //    phonePrefix + phoneNumber,
-          //    recaptchaVerifier.current,
-          //   )
+          const phoneProvider = new PhoneAuthProvider(auth)
+          const verificationId = await phoneProvider.verifyPhoneNumber(
+            phonePrefix + phoneNumber,
+            recaptchaVerifier.current,
+          )
           setVerificationId(verificationId)
           return verificationId
         } catch (error) {
@@ -87,10 +103,10 @@ const LogInForm: React.FC = () => {
           throw new Error('Failed to send verification code')
         }
       } else if (response.status === 204) {
-        showNotificationMessage('phone not found', 'neutral')
+        showNotificationMessage('Phone number not found', 'neutral')
       }
     } catch (error) {
-      showNotificationMessage('error', 'fail')
+      showNotificationMessage('Error', 'fail')
     }
   }
 
@@ -103,7 +119,7 @@ const LogInForm: React.FC = () => {
     try {
       setIsLoading(true)
       const credential = PhoneAuthProvider.credential(verificationId, code)
-      // await signInWithCredential(auth, credential)
+      await signInWithCredential(auth, credential)
 
       onLoginPress(phoneNumber)
     } catch (error) {
@@ -112,16 +128,34 @@ const LogInForm: React.FC = () => {
       return false
     }
   }
+  const formatPhoneNumber = (phoneNumber: string | any[]) => {
+    // Ultimele trei cifre ale numărului de telefon
+    const lastThreeDigits = phoneNumber.slice(-3)
+    // Prefixul format din 7 asteriscuri
+    const maskedPart = '*******'
+    // Concatenarea părților pentru a obține numărul de telefon formatat
+    return `${maskedPart}${lastThreeDigits}`
+  }
 
+  const handleCodeFilled = (filledCode: string) => {
+    setCode(filledCode)
+    // Handle the filled code here (e.g., verify the code)
+  }
+  const handleCountryChange = (value: CountryCode) => {
+    const countryInfo = countryData[value]
+    if (countryInfo) {
+      setCountry(value)
+      setFlagSource(countryInfo.flag)
+      setPhonePrefix(countryInfo.prefix)
+      console.log(countryInfo.prefix)
+    }
+  }
   if (isLoading) {
     return <LoadingComponent />
   }
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        {/* <ImageBackground
-        source={require('../../assets/LoginImage.png')}
-  style={styles.backgroundImage}> */}
         <ImageBackground
           source={require('../../assets/Untitled.png')}
           style={{
@@ -134,13 +168,11 @@ const LogInForm: React.FC = () => {
           colors={[
             'rgba(255,255,255,1)',
             'rgba(212,220,222,0.75)',
-
             'rgba(0,0,0,0.1)',
-
             'rgba(0,0,0,1)',
-          ]} // Start and end colors
-          start={{ x: 0, y: 0 }} // Optional gradient direction start point
-          end={{ x: 0, y: 1 }} // Optional gradient direction end point
+          ]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
           style={{
             position: 'absolute',
             top: '35%',
@@ -152,29 +184,89 @@ const LogInForm: React.FC = () => {
             width: '100%',
             zIndex: 1,
           }}>
-          <Text //FirebaseRecaptchaVerifierModal
-          //   ref={recaptchaVerifier}
-          //   firebaseConfig={firebaseConfig}
+          <FirebaseRecaptchaVerifierModal
+            ref={recaptchaVerifier}
+            firebaseConfig={firebaseConfig}
           />
           {!verificationId && (
             <View>
-              <TextInput
-                placeholder={t('logInScreen.phoneNumber')}
-                value={phoneNumber}
-                keyboardType="phone-pad"
-                onChangeText={(text) => setPhoneNumber(text)}
-                style={[
-                  styles.input,
-                  {
-                    borderColor:
-                      validatePhoneNumber(phoneNumber) && phoneNumber
-                        ? 'red'
-                        : 'gray',
-                  },
-                ]}
-              />
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: 'rgba(102,102,101,1)',
+                  marginBottom: 2,
+                }}>
+                Your Mobile Number (*)
+              </Text>
+              <View style={[styles.input, { flexDirection: 'row' }]}>
+                <Menu
+                  trigger={(triggerProps) => {
+                    return (
+                      <Pressable
+                        {...triggerProps}
+                        style={styles.dropdownButton}>
+                        <Image
+                          source={flagSource}
+                          style={styles.dropdownImage}
+                        />
+                      </Pressable>
+                    )
+                  }}>
+                  {countries.map((country, index) => (
+                    <Menu.Item
+                      key={index}
+                      onPress={() =>
+                        handleCountryChange(country.value as CountryCode)
+                      }>
+                      <View style={styles.dropdownRow}>
+                        <Image
+                          source={
+                            countryData[country.value as CountryCode].flag
+                          }
+                          style={styles.dropdownImage}
+                        />
+                        <Text style={[styles.dropdownText]}>
+                          {country.label}
+                        </Text>
+                        <Text>
+                          {' '}
+                          {countryData[country.value as CountryCode].prefix}
+                        </Text>
+                      </View>
+                    </Menu.Item>
+                  ))}
+                </Menu>
+                <Text
+                  style={{
+                    textAlignVertical: 'center',
+                    lineHeight: Platform.OS === 'ios' ? 26 : 20,
+                  }}>
+                  {phonePrefix}
+                </Text>
+                <TextInput
+                  placeholder={
+                    //  { phonePrefix }.phonePrefix + t('logInScreen.phoneNumber')
+                    '721221122'
+                  }
+                  value={phoneNumber}
+                  keyboardType="phone-pad"
+                  onChangeText={(text) => setPhoneNumber(text)}
+                  style={[
+                    //  styles.input,
+                    {
+                      borderColor:
+                        validatePhoneNumber(phoneNumber) && phoneNumber
+                          ? 'red'
+                          : 'gray',
+                    },
+                    { width: '100%', marginLeft: 5 },
+                  ]}
+                />
+              </View>
+
               <TouchableOpacity
-                onPress={() => onLoginPress(phoneNumber)}
+                onPress={sendVerification}
+                //   onPress={() => handleLogin(phoneNumber)}
                 disabled={isFormComplete}>
                 <LinearGradient
                   colors={['#5151C6', '#888BF4']}
@@ -192,30 +284,28 @@ const LogInForm: React.FC = () => {
               <View style={{ alignItems: 'center', marginVertical: 10 }}>
                 <Text style={styles.orLogIn}>OR LOG IN BY</Text>
               </View>
+
               <View
                 style={{
                   flexDirection: 'row',
-                  gap: 20,
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  width: 280,
+                  justifyContent: 'space-between',
                 }}>
                 <LinearGradient
                   colors={[
                     'rgba(136, 139, 244, 0.3)',
                     'rgba(81, 81, 198, 0.3)',
-                  ]} // Start and end colors of the gradient
+                  ]}
                   style={{
                     borderRadius: 50,
                     marginTop: 10,
-
                     alignItems: 'center',
-
                     width: 70,
                     height: 70,
-
                     justifyContent: 'center',
                   }}
-                  start={{ x: 0, y: 0 }} // Horizontal gradient
+                  start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}>
                   <TouchableOpacity>
                     <Image
@@ -231,19 +321,16 @@ const LogInForm: React.FC = () => {
                   colors={[
                     'rgba(136, 139, 244, 0.3)',
                     'rgba(81, 81, 198, 0.3)',
-                  ]} // Start and end colors of the gradient
+                  ]}
                   style={{
                     borderRadius: 50,
                     marginTop: 10,
-
                     alignItems: 'center',
-
                     width: 70,
                     height: 70,
-
                     justifyContent: 'center',
                   }}
-                  start={{ x: 0, y: 0 }} // Horizontal gradient
+                  start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}>
                   <TouchableOpacity>
                     <Image
@@ -259,19 +346,16 @@ const LogInForm: React.FC = () => {
                   colors={[
                     'rgba(136, 139, 244, 0.3)',
                     'rgba(81, 81, 198, 0.3)',
-                  ]} // Start and end colors of the gradient
+                  ]}
                   style={{
                     borderRadius: 50,
                     marginTop: 10,
-
                     alignItems: 'center',
-
                     width: 70,
                     height: 70,
-
                     justifyContent: 'center',
                   }}
-                  start={{ x: 0, y: 0 }} // Horizontal gradient
+                  start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}>
                   <TouchableOpacity>
                     <Image
@@ -293,35 +377,40 @@ const LogInForm: React.FC = () => {
                   justifyContent: 'center',
                 }}>
                 <Text style={styles.bodyText}>Don't have account?</Text>
-
                 <Text style={styles.signUpText}>SIGN UP</Text>
               </TouchableOpacity>
             </View>
           )}
           {verificationId && (
-            <View>
-              <TextInput
-                placeholder={t('logInScreen.enterCode')}
-                value={code}
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                style={styles.input}
-                editable={!!verificationId} // Make it editable only if verificationId is set
+            <View style={{ alignItems: 'center', paddingHorizontal: 20 }}>
+              <Text style={styles.heading}>{t('SMS verification')}</Text>
+              <Text style={styles.subHeading}>
+                {t(
+                  'A text message with a six-digit verification code has been sent to your phone number ending in ',
+                )}
+                <Text>{formatPhoneNumber(phoneNumber)}</Text>
+              </Text>
+
+              <SegmentedCodeInput
+                length={6}
+                onCodeFilled={handleCodeFilled}
+                editable={!!verificationId}
               />
+
               <TouchableOpacity
                 style={[
                   styles.touchable,
-                  code.length === 6 ? enabledButtonStyle : disabledButtonStyle,
-                  // Assuming OTP code is 6 digits
+                  code.length === 6
+                    ? styles.enabledButton
+                    : styles.disabledButton,
                 ]}
-                onPress={confirmCode} // Trigger the code confirmation logic
+                onPress={confirmCode}
                 disabled={code.length !== 6}>
-                <Text style={{ color: 'white' }}>{t('buttons.confirm')}</Text>
+                <Text style={{ color: 'white' }}>{t('buttons.logIn')}</Text>
               </TouchableOpacity>
             </View>
           )}
         </LinearGradient>
-        {/*</ImageBackground>*/}
       </View>
     </TouchableWithoutFeedback>
   )
@@ -330,9 +419,57 @@ const LogInForm: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'black',
-    //alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'orange',
+  },
+  dropdown: {
+    width: '80%',
+    height: 'auto',
+  },
+  dropdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  dropdownImage: {
+    width: 30,
+    height: 20,
+    marginRight: 10,
+  },
+  dropdownText: {
+    fontSize: 16,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    // alignItems: 'center',
+    width: 50,
+    height: 40,
+    margin: 3,
+
+    //borderWidth: 1,
+    // paddingHorizontal: 15,
+  },
+  dropdownButtonText: {
+    color: 'black',
+    marginLeft: 10,
+  },
+  subHeading: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: 'gray',
+  },
+  enabledButton: {
+    backgroundColor: 'orange',
+  },
+  disabledButton: {
+    backgroundColor: 'lightgray',
   },
   disabledButtonStyle: {
     opacity: 0.55,
@@ -341,53 +478,42 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   bodyText: {
-    // width: 208, // Numeric value, px is assumed
-    height: 28, // Numeric value, px is assumed
-    //  fontFamily: 'Circular Std', // Make sure the font is available in your project
+    height: 28,
     fontSize: 26,
-    lineHeight: 28, // Calculated as 150% of 16px
-    // textAlign: 'center',
-    letterSpacing: -0.2, // Negative letter spacing, make sure it looks good on your device
-    color: 'white', // Text color
-    // The following flex properties may be omitted if not necessary for layout
+    lineHeight: 28,
+    letterSpacing: -0.2,
+    color: 'white',
   },
   signUpText: {
-    height: 26, // Numeric value, px is assumed
-    fontFamily: 'Circular Std', // Make sure the font is available in your project
+    height: 26,
     fontSize: 26,
-    lineHeight: 28, // Calculated as 150% of 16px
+    lineHeight: 28,
     textAlign: 'center',
     marginLeft: 10,
-    letterSpacing: -0.2, // Negative letter spacing, make sure it looks good on your device
-    color: '#888BF4', // Text color
+    letterSpacing: -0.2,
+    color: '#888BF4',
     ...Platform.select({
       ios: {
-        shadowColor: '#fff', // White shadow color
-        shadowOffset: { width: 1, height: 2 }, // Shadow direction and distance
-        shadowOpacity: 0.2, // Full color intensity
-        shadowRadius: 2, // Blur radius
+        shadowColor: '#fff',
+        shadowOffset: { width: 1, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
       },
       android: {
-        // Android doesn't support colored shadows natively
-        // You might need a workaround like an image or custom drawing
-        elevation: 5, // Adds a default black shadow
+        elevation: 5,
       },
     }),
   },
   orLogIn: {
-    fontFamily: 'Circular Std', // Make sure this font is imported if custom
-    fontStyle: 'normal', // Default, usually doesn't need to be set
-    fontWeight: '400', // React Native supports 'normal', 'bold', or specific numbers
-    fontSize: 25, // Assuming pixels, just the numeric value
-
-    textAlign: 'center', // Supported as-is
-    letterSpacing: 2, // Pixels value, but React Native uses density-independent pixels
-
-    color: '#606060', // Hex color, supported as-is
+    fontStyle: 'normal',
+    fontWeight: '400',
+    fontSize: 25,
+    textAlign: 'center',
+    letterSpacing: 2,
+    color: '#606060',
   },
   backgroundImage: {
     flex: 1,
-
     alignItems: 'center',
     justifyContent: 'center',
     width: 500,
@@ -400,20 +526,19 @@ const styles = StyleSheet.create({
     width: 375,
     height: 50,
     backgroundColor: '#F3F5F7',
-    borderRadius: 30,
-    // borderWidth: 1,
+    borderRadius: 10,
     borderColor: 'gray',
   },
   touchable: {
-    alignItems: 'center', // Centers content along the cross-axis (default is column)
-    justifyContent: 'center', // Centers content along the main-axis
-    marginTop: 10, // Margin top
-    backgroundColor: 'blue', // Background color (solid color, not gradient)
-    borderRadius: 30, // Completely round edges
-    paddingHorizontal: 24, // Horizontal padding
-    paddingVertical: 14, // Vertical padding
-    width: 375, // Fixed width
-    height: 50, // Final height as stated
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    backgroundColor: 'orange',
+    borderRadius: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    width: 375,
+    height: 50,
   },
   text: {
     color: 'white',

@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     padding: 10,
+
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
   },

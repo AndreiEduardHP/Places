@@ -12,6 +12,7 @@ const LoginScreen: React.FC = () => {
         backgroundColor="transparent"
         barStyle="light-content"
       />
+
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <LogInForm />
       </TouchableWithoutFeedback>

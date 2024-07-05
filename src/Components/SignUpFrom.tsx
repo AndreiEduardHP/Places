@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
   Image,
@@ -25,8 +24,10 @@ import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import TermsAndConditions from './TermsAndConditions'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler'
 import Checkbox from 'expo-checkbox'
-import RNPickerSelect from 'react-native-picker-select'
 import * as Notifications from 'expo-notifications'
+import { Box, Button, Menu, Pressable } from 'native-base'
+import { PaperProvider, TextInput, DefaultTheme } from 'react-native-paper'
+import { background } from 'native-base/lib/typescript/theme/styled-system'
 
 const interests = [
   'Travel and Adventure',
@@ -46,10 +47,12 @@ const interests = [
   'Health and Wellness',
   'Business and Entrepreneurship',
 ]
+
 const countries = [
   { label: 'United States', value: 'usa' },
   { label: 'Romania', value: 'ro' },
 ]
+
 type CountryCode = 'usa' | 'ro' // Add more country codes as needed
 
 const countryData: Record<
@@ -61,13 +64,30 @@ const countryData: Record<
   // Add other countries with their flags and prefixes here
 }
 
+const theme = {
+  ...DefaultTheme,
+  roundness: 16,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: 'black',
+    placeholder: 'gray',
+    primaryContainer: 'black',
+    secondary: 'black',
+    background: 'white',
+    onSurfaceVariant: 'black',
+    card: 'black',
+    text: 'black',
+    notification: 'black',
+  },
+}
+
 const SignUpForm: React.FC = () => {
   const [imageUrl] = useState<string>('')
   const [firstName, setFirstName] = useState<string>('')
   const [lastName, setLastName] = useState<string>('')
   const [username, setUsername] = useState<string>('')
   const [email, setEmail] = useState<string>('')
-  const [country, setCountry] = useState<string>('')
+  const [country, setCountry] = useState<string>('ro')
   const [phoneNumber, setPhoneNumber] = useState<string>('')
   const [city, setCity] = useState<string>('')
   const [interest, setInterest] = useState<string>('')
@@ -103,6 +123,7 @@ const SignUpForm: React.FC = () => {
       }
     } catch (error) {}
   }
+
   const handleSelectInterest = (interest: any) => {
     if (selectedInterests.includes(interest)) {
       setSelectedInterests(
@@ -112,11 +133,11 @@ const SignUpForm: React.FC = () => {
       setSelectedInterests([...selectedInterests, interest])
     }
   }
+
   const handleCountryChange = (value: CountryCode) => {
     const countryInfo = countryData[value]
     if (countryInfo) {
       setCountry(value)
-
       setFlagSource(countryInfo.flag)
       setPhonePrefix(countryInfo.prefix)
     }
@@ -160,62 +181,169 @@ const SignUpForm: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View>
-        <Text style={styles.title}>{t('signUpScreen.firstName')}:</Text>
-        <TextInput
-          placeholder={t('signUpScreen.firstName')}
-          placeholderTextColor={'white'}
-          value={firstName}
-          onChangeText={(text) => setFirstName(text)}
-          style={styles.input}
-        />
+    <PaperProvider theme={theme}>
+      <View style={styles.container}>
+        <View>
+          {/* <Text style={styles.title}>{t('signUpScreen.firstName')}:</Text>*/}
+          <TextInput
+            mode="outlined"
+            label={t('signUpScreen.firstName')}
+            placeholder={t('signUpScreen.firstName')}
+            value={firstName}
+            onChangeText={(text) => setFirstName(text)}
+            style={styles.input}
+            placeholderTextColor={theme.colors.text}
+            textColor={theme.colors.text}
+            cursorColor={theme.colors.text}
+            outlineColor={theme.colors.text}
+            selectionColor={theme.colors.text}
+          />
 
-        <Text style={styles.title}>{t('signUpScreen.lastName')}:</Text>
-        <TextInput
-          placeholder={t('signUpScreen.lastName')}
-          placeholderTextColor={'white'}
-          value={lastName}
-          onChangeText={(text) => setLastName(text)}
-          style={styles.input}
-        />
+          {/* <Text style={styles.title}>{t('signUpScreen.lastName')}:</Text>*/}
+          <TextInput
+            mode="outlined"
+            label={t('signUpScreen.lastName')}
+            placeholder={t('signUpScreen.lastName')}
+            value={lastName}
+            onChangeText={(text) => setLastName(text)}
+            style={styles.input}
+            placeholderTextColor={theme.colors.text}
+            textColor={theme.colors.text}
+            cursorColor={theme.colors.text}
+            outlineColor={theme.colors.text}
+            selectionColor={theme.colors.text}
+          />
 
-        <Text style={styles.title}>{t('signUpScreen.username')}:</Text>
-        <TextInput
-          placeholder={t('signUpScreen.username')}
-          placeholderTextColor={'white'}
-          value={username}
-          onChangeText={(text) => setUsername(text)}
-          style={styles.input}
-        />
+          {/*   <Text style={styles.title}>{t('signUpScreen.username')}:</Text>*/}
+          <TextInput
+            mode="outlined"
+            label={t('signUpScreen.username')}
+            placeholder={t('signUpScreen.username')}
+            value={username}
+            onChangeText={(text) => setUsername(text)}
+            style={styles.input}
+            placeholderTextColor={theme.colors.text}
+            textColor={theme.colors.text}
+            cursorColor={theme.colors.text}
+            outlineColor={theme.colors.text}
+            selectionColor={theme.colors.text}
+          />
 
-        <Text style={styles.title}>{t('signUpScreen.email')}:</Text>
-        <TextInput
-          placeholder={t('signUpScreen.email')}
-          placeholderTextColor={'white'}
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text)
-          }}
-          style={[
-            styles.input,
-            { borderColor: validateEmail(email) ? 'white' : 'red' },
-          ]}
-        />
+          {/*  <Text style={styles.title}>{t('signUpScreen.email')}:</Text> */}
+          <TextInput
+            mode="outlined"
+            label={t('signUpScreen.email')}
+            placeholder={t('signUpScreen.email')}
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text)
+            }}
+            style={[
+              styles.input,
+              {
+                borderColor: validateEmail(email) ? theme.colors.text : 'red',
+              },
+            ]}
+            placeholderTextColor={theme.colors.text}
+            textColor={theme.colors.text}
+            cursorColor={theme.colors.text}
+            outlineColor={theme.colors.text}
+            selectionColor={theme.colors.text}
+          />
 
-        <Text style={styles.title}>{t('signUpScreen.country')}:</Text>
-        <RNPickerSelect
-          onValueChange={(value) => handleCountryChange(value as CountryCode)}
-          items={countries}
-          style={pickerSelectStyles}
-          placeholder={{
-            label: 'Select a country...',
-            value: null,
-          }}
-          value={country}
-        />
+          {/* <Text style={styles.title}>{t('signUpScreen.country')}:</Text> */}
 
-        <Text style={styles.title}>{t('signUpScreen.phoneNumber')}:</Text>
+          {/*  <Text style={styles.title}>{t('signUpScreen.phoneNumber')}:</Text> */}
+
+          {/* <Text style={styles.title}>{t('signUpScreen.city')}:</Text> */}
+          <TextInput
+            mode="outlined"
+            label={t('signUpScreen.city')}
+            placeholder={t('signUpScreen.city')}
+            value={city}
+            onChangeText={(text) => setCity(text)}
+            style={styles.input}
+            placeholderTextColor={theme.colors.text}
+            textColor={theme.colors.text}
+            cursorColor={theme.colors.text}
+            outlineColor={theme.colors.text}
+            selectionColor={theme.colors.text}
+          />
+
+          {/*  <Text style={styles.title}>{t('signUpScreen.interest')}:</Text> */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isPickerVisible}
+            onRequestClose={() => setPickerVisible(false)}>
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <Text style={{ fontSize: 24, marginBottom: 20 }}>
+                  {t('signUpScreen.selectMinimumOneInterest')}
+                </Text>
+                <ScrollView>
+                  {interests.map((interest, index) => (
+                    <View key={index} style={styles.checkboxContainer}>
+                      <Checkbox
+                        value={selectedInterests.includes(interest)}
+                        onValueChange={() => handleSelectInterest(interest)}
+                        style={styles.checkbox}
+                      />
+                      <Text style={styles.label}>{interest}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: 'black',
+                    borderRadius: 10,
+                    width: 80,
+                    alignItems: 'center',
+                  }}
+                  onPress={() => setPickerVisible(false)}>
+                  <Text
+                    style={{
+                      color: 'white',
+                      fontSize: 18,
+                      padding: 5,
+                    }}>
+                    {t('buttons.save')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </View>
+        <Box w="100%" alignItems="center" style={{ marginTop: 15 }}>
+          <Menu
+            trigger={(triggerProps) => {
+              return (
+                <Pressable {...triggerProps} style={styles.dropdownButton}>
+                  <Image source={flagSource} style={styles.dropdownImage} />
+                  <Text style={styles.dropdownButtonText}>
+                    {countries.find((c) => c.value === country)?.label ||
+                      'Select a country...'}
+                  </Text>
+                </Pressable>
+              )
+            }}>
+            {countries.map((country, index) => (
+              <Menu.Item
+                key={index}
+                onPress={() =>
+                  handleCountryChange(country.value as CountryCode)
+                }>
+                <View style={styles.dropdownRow}>
+                  <Image
+                    source={countryData[country.value as CountryCode].flag}
+                    style={styles.dropdownImage}
+                  />
+                  <Text style={styles.dropdownText}>{country.label}</Text>
+                </View>
+              </Menu.Item>
+            ))}
+          </Menu>
+        </Box>
         <View
           style={[
             {
@@ -223,8 +351,8 @@ const SignUpForm: React.FC = () => {
               width: 375,
               height: 40,
               margin: 4,
-              borderRadius: 30,
-              borderColor: 'white',
+              borderRadius: 10,
+              borderColor: 'black',
               borderWidth: 1,
               alignItems: 'center',
               paddingHorizontal: 15,
@@ -234,89 +362,51 @@ const SignUpForm: React.FC = () => {
             <Image
               source={flagSource}
               style={{ width: 40, height: 30 }}></Image>
-            <Text style={{ paddingTop: 6, paddingLeft: 5, color: 'white' }}>
+            <Text style={{ paddingTop: 6, paddingLeft: 5, color: 'black' }}>
               {phonePrefix}
             </Text>
           </View>
 
           <TextInput
+            // mode="flat"
+            //    label={t('signUpScreen.phoneNumber')}
             placeholder={t('signUpScreen.phoneNumber')}
-            placeholderTextColor={'white'}
+            contentStyle={{ fontSize: 14, width: 300 }}
             value={phoneNumber}
             keyboardType="phone-pad"
             onChangeText={(text) => setPhoneNumber(text)}
             style={[
               {
                 marginLeft: 10,
-                color: 'white',
+                backgroundColor: 'transparent',
+
+                //    color: theme.colors.text,
                 borderColor:
                   validatePhoneNumber(phoneNumber) && phoneNumber
                     ? 'red'
                     : 'grey',
               },
             ]}
+            activeUnderlineColor="transparent"
+            underlineColor="transparent"
+            //  contentStyle={{ backgroundColor: 'transparent' }}
+            //  placeholderTextColor={theme.colors.text}
+            //  textColor={theme.colors.text}
+            //  cursorColor={theme.colors.text}
+            //  outlineColor={theme.colors.text}
+            //  selectionColor={theme.colors.text}
           />
         </View>
-
-        <Text style={styles.title}>{t('signUpScreen.city')}:</Text>
-        <TextInput
-          placeholder={t('signUpScreen.city')}
-          placeholderTextColor={'white'}
-          value={city}
-          onChangeText={(text) => setCity(text)}
-          style={styles.input}
-        />
-
-        <Text style={styles.title}>{t('signUpScreen.interest')}:</Text>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isPickerVisible}
-          onRequestClose={() => setPickerVisible(false)}>
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text style={{ fontSize: 24, marginBottom: 20 }}>
-                {t('signUpScreen.selectMinimumOneInterest')}
-              </Text>
-              <ScrollView>
-                {interests.map((interest, index) => (
-                  <View key={index} style={styles.checkboxContainer}>
-                    <Checkbox
-                      value={selectedInterests.includes(interest)}
-                      onValueChange={() => handleSelectInterest(interest)}
-                      style={styles.checkbox}
-                    />
-                    <Text style={styles.label}>{interest}</Text>
-                  </View>
-                ))}
-              </ScrollView>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: 'black',
-                  borderRadius: 10,
-                  width: 80,
-                  alignItems: 'center',
-                }}
-                onPress={() => setPickerVisible(false)}>
-                <Text
-                  style={{
-                    color: 'white',
-                    fontSize: 18,
-                    padding: 5,
-                  }}>
-                  {t('buttons.save')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
 
         <TouchableWithoutFeedback
           style={styles.inputInterest}
           onPress={() => setPickerVisible(true)}>
           <View>
-            <Text numberOfLines={2} style={{ color: 'white' }}>
-              {'Selected interest: ' + (selectedInterests || 'Select Interest')}
+            <Text numberOfLines={2} style={{ color: '#266EC3' }}>
+              Selected interest:
+              <Text style={{ color: 'black' }}>
+                {selectedInterests || ' Select Interest'}
+              </Text>
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -327,64 +417,40 @@ const SignUpForm: React.FC = () => {
                 fontSize: 12,
                 fontWeight: '500',
                 marginTop: 5,
-                color: 'white',
+                color: 'black',
               }}>
               {t('signUpScreen.noteSelections')}
             </Text>
           ) : null}
         </View>
-      </View>
+        <View
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 30,
+          }}>
+          <TermsAndConditions
+            textColor="black"
+            accepted={termsAccepted}
+            onToggle={() => setTermsAccepted(!termsAccepted)}
+          />
 
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: 30,
-        }}>
-        <TermsAndConditions
-          textColor="white"
-          accepted={termsAccepted}
-          onToggle={() => setTermsAccepted(!termsAccepted)}
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.touchable,
-            isFormComplete ? disabledButtonStyle : enabledButtonStyle,
-          ]}
-          onPress={() => checkIfPhoneExists()}
-          disabled={isFormComplete}>
-          <Text style={styles.text}>{t('buttons.signUp')}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.touchable,
+              isFormComplete
+                ? disabledButtonStyle
+                : { backgroundColor: '#266EC3' },
+            ]}
+            onPress={() => checkIfPhoneExists()}
+            disabled={isFormComplete}>
+            <Text style={styles.text}>{t('buttons.signUp')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </PaperProvider>
   )
 }
-const pickerSelectStyles = StyleSheet.create({
-  inputIOS: {
-    justifyContent: 'center',
-    width: 375,
-    height: 40,
-    margin: 4,
-    color: 'white',
-    borderRadius: 30,
-    borderColor: 'white',
-    borderWidth: 1,
-    paddingHorizontal: 15,
-  },
-  inputAndroid: {
-    justifyContent: 'center',
-    width: 375,
-    height: 40,
-    color: 'white',
-    margin: 4,
-    borderRadius: 30,
-    borderColor: 'white',
-    borderWidth: 1,
-    paddingHorizontal: 15,
-  },
-  // Add other style keys as needed
-})
 
 const styles = StyleSheet.create({
   container: {
@@ -392,11 +458,9 @@ const styles = StyleSheet.create({
     //height: '90%',
     borderColor: 'black',
     justifyContent: 'space-between',
-
     alignItems: 'center',
-    padding: 7,
+    //padding: 2,
   },
-
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -406,18 +470,16 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   label: {},
-
   inputInterest: {
     justifyContent: 'center',
     width: 375,
     height: 40,
     margin: 4,
-    borderRadius: 30,
-    borderColor: 'white',
+    borderRadius: 10,
+    borderColor: 'black',
     borderWidth: 1,
     paddingHorizontal: 15,
   },
-
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -438,31 +500,62 @@ const styles = StyleSheet.create({
     height: 200,
   },
   input: {
-    color: 'white',
+    //  color: 'black',
     width: 375,
-    height: 35,
-    margin: 4,
-    borderRadius: 30,
-    borderColor: 'white',
-    borderWidth: 1,
-    paddingHorizontal: 15,
+    //height: 35,
+    marginTop: 5,
+    //  borderRadius: 10,
+    //  borderColor: 'black',
+    //  borderWidth: 1,
+    // paddingHorizontal: 15,
   },
   touchable: {
-    borderRadius: 30,
+    borderRadius: 10,
     backgroundColor: 'white',
     paddingHorizontal: 20,
-
-    paddingVertical: 7,
+    paddingVertical: 5,
   },
   text: {
     color: 'white',
     fontSize: 22,
   },
   title: {
-    color: 'white',
+    color: 'black',
     fontSize: 16,
     fontWeight: '400',
     marginTop: 2,
+  },
+  dropdown: {
+    width: '80%',
+    height: 'auto',
+  },
+  dropdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  dropdownImage: {
+    width: 40,
+    height: 30,
+    marginRight: 0,
+  },
+  dropdownText: {
+    fontSize: 16,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 375,
+    height: 40,
+    margin: 4,
+    borderRadius: 10,
+    borderColor: 'black',
+    borderWidth: 1,
+    paddingHorizontal: 15,
+  },
+  dropdownButtonText: {
+    color: 'black',
+    marginLeft: 10,
   },
 })
 

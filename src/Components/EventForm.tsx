@@ -9,6 +9,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
+  Modal,
 } from 'react-native'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
@@ -25,6 +27,7 @@ import TermsAndConditions from './TermsAndConditions'
 import { ScrollView } from 'react-native-gesture-handler'
 import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
 import { useTranslation } from 'react-i18next'
+import Checkbox from 'expo-checkbox'
 
 interface EditFormProps {
   latitude?: number
@@ -32,7 +35,24 @@ interface EditFormProps {
   onEventAdded?: () => void
   setAddNewEvent: React.Dispatch<React.SetStateAction<boolean>>
 }
-
+const interests = [
+  'Travel and Adventure',
+  'Music',
+  'Food and Cooking',
+  'Sports and Fitness',
+  'Technology and Gadgets',
+  'Reading and Literature',
+  'Gaming and eSports',
+  'Movies and Television',
+  'Art and Culture',
+  'Nature and Environment',
+  'Science and Space',
+  'Fashion and Beauty',
+  'Photography and Videography',
+  'Social Media and Blogging',
+  'Health and Wellness',
+  'Business and Entrepreneurship',
+]
 const EditForm: React.FC<EditFormProps> = ({
   latitude,
   longitude,
@@ -47,6 +67,8 @@ const EditForm: React.FC<EditFormProps> = ({
     eventName: '',
     eventDescription: '',
     eventImage: '',
+    interest: '',
+    checkFunctionality: false,
     eventTime: new Date(),
     locationLatitude: latitude ? latitude.toString() : '',
     locationLongitude: longitude ? longitude.toString() : '',
@@ -61,6 +83,8 @@ const EditForm: React.FC<EditFormProps> = ({
 
   const [formComplete, setFormComplete] = useState<boolean>(false)
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false)
+  const [isPickerVisible, setPickerVisible] = useState(false)
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
 
   useEffect(() => {
     const {
@@ -134,7 +158,8 @@ const EditForm: React.FC<EditFormProps> = ({
 
   const createEvent = async () => {
     formData.eventTime = date
-
+    formData.interest = selectedInterests.join(',')
+    console.log(formData.interest)
     try {
       const response = await axios.post(
         `${config.BASE_URL}/api/Event`,
@@ -176,13 +201,20 @@ const EditForm: React.FC<EditFormProps> = ({
     }
   }
 
+  const handleSelectInterest = (interest: any) => {
+    if (selectedInterests.includes(interest)) {
+      setSelectedInterests(
+        selectedInterests.filter((item) => item !== interest),
+      )
+    } else {
+      setSelectedInterests([...selectedInterests, interest])
+    }
+  }
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={'padding'}
-      keyboardVerticalOffset={64}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={undefined}>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <ScrollView contentContainerStyle={[styles.container, { flexGrow: 1 }]}>
+        <View style={[styles.container, {}]}>
           <View style={{ alignItems: 'center' }}>
             <Text style={{ fontSize: 22 }}>
               {t('eventForm.yourCredits')}: {loggedUser?.credit}.
@@ -191,7 +223,7 @@ const EditForm: React.FC<EditFormProps> = ({
               style={{
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginTop: 5,
+                //    marginTop: 5,
               }}>
               <Text
                 style={{
@@ -264,6 +296,8 @@ const EditForm: React.FC<EditFormProps> = ({
                     />
                   </View>
                 )}
+              </View>
+              <View>
                 {showTimePicker && (
                   <View style={[{ flexDirection: 'row' }]}>
                     <Text style={{ color: 'white', padding: 10, fontSize: 16 }}>
@@ -291,11 +325,79 @@ const EditForm: React.FC<EditFormProps> = ({
           ) : (
             <Text> {date.toLocaleString()} </Text>
           )}
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isPickerVisible}
+            onRequestClose={() => setPickerVisible(false)}>
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <Text style={{ fontSize: 24, marginBottom: 20 }}>
+                  {t('signUpScreen.selectMinimumOneInterest')}
+                </Text>
+                <ScrollView>
+                  {interests.map((interest, index) => (
+                    <View key={index} style={styles.checkboxContainer}>
+                      <Checkbox
+                        value={selectedInterests.includes(interest)}
+                        onValueChange={() => handleSelectInterest(interest)}
+                        style={styles.checkbox}
+                      />
+                      <Text style={styles.label}>{interest}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: 'black',
+                    borderRadius: 10,
+                    width: 80,
+                    alignItems: 'center',
+                  }}
+                  onPress={() => setPickerVisible(false)}>
+                  <Text
+                    style={{
+                      color: 'white',
+                      fontSize: 18,
+                      padding: 5,
+                    }}>
+                    {t('buttons.save')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
+          <TouchableWithoutFeedback
+            style={[styles.inputInterest, { marginTop: 10 }]}
+            onPress={() => setPickerVisible(true)}>
+            <View>
+              <Text numberOfLines={4} style={{ color: 'black', fontSize: 22 }}>
+                {'Selected interest: ' +
+                  (selectedInterests || 'Select Interest')}
+              </Text>
+            </View>
+          </TouchableWithoutFeedback>
+          <View style={{ alignItems: 'center' }}>
+            {selectedInterests.length > 0 ? (
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '500',
+                  marginTop: 5,
+                  color: 'black',
+                }}>
+                {t('signUpScreen.noteSelections')}
+              </Text>
+            ) : null}
+          </View>
+
           <TouchableOpacity
             onPress={() => {
               selectImage()
             }}>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{ flexDirection: 'row', marginTop: 20 }}>
               <Image
                 style={{
                   width: 24,
@@ -325,7 +427,7 @@ const EditForm: React.FC<EditFormProps> = ({
             style={[
               styles.touchable,
               !formComplete ? disabledButtonStyle : enabledButtonStyle,
-              { width: 125 },
+              { width: 165 },
             ]}
             onPress={createEvent}
             disabled={
@@ -342,7 +444,7 @@ const EditForm: React.FC<EditFormProps> = ({
                 : t('buttons.save')}
             </Text>
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   )
@@ -352,8 +454,47 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     margin: 10,
-    height: 700,
+    flex: 1,
   },
+  inputInterest: {
+    justifyContent: 'center',
+    width: 375,
+    height: 40,
+    margin: 4,
+    borderRadius: 30,
+    borderColor: 'black',
+    borderWidth: 1,
+    paddingHorizontal: 15,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  checkbox: {
+    marginRight: 8,
+  },
+  label: {},
+  modalView: {
+    margin: 10,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    // elevation: 5,
+  },
+  picker: {
+    width: 300,
+    height: 200,
+  },
+
   input: {
     width: 250,
     margin: 5,

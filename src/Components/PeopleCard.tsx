@@ -1,4 +1,3 @@
-import axios from 'axios'
 import React, { useEffect, useRef, useState } from 'react'
 import {
   View,
@@ -7,7 +6,7 @@ import {
   StyleSheet,
   FlatList,
   Platform,
-  TextInput,
+  Modal,
 } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { ImageConfig } from '../config/imageConfig'
@@ -19,8 +18,13 @@ import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import * as Notifications from 'expo-notifications'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, SearchBar } from '@rneui/base'
+import { Button, ButtonGroup, SearchBar, CheckBox } from '@rneui/base'
 import LoadingComponent from './Loading/Loading'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import axios from 'axios'
+import { Card, Paragraph, Title } from 'react-native-paper'
+import LineComponent from './LineComponent'
+import { remoteImages } from '../AzureImages/Images'
 
 type Person = {
   friendRequestStatus: string
@@ -109,15 +113,58 @@ const Item: React.FC<ItemProps> = ({
         },
       }),
     },
-
+    title: {
+      marginLeft: 10,
+      marginTop: 10,
+      fontSize: 32,
+      paddingLeft: 10,
+      color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
+    },
+    searchInput: {
+      marginTop: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 1,
+      borderRadius: 10,
+      borderColor: textColor,
+      borderWidth: 1,
+      marginRight: 15,
+      color: textColor,
+      fontSize: 15,
+    },
+    card: {
+      backgroundColor:
+        textColor == 'white' ? 'rgba(48, 51, 55,1)' : 'rgba(122,212,112,1)',
+      margin: 10,
+    },
+    infoContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 5,
+    },
+    icon: {
+      marginRight: 5,
+    },
+    dateAndTime: {
+      fontSize: 16,
+      color: textColor,
+      marginTop: 5,
+    },
+    locationAddress: {
+      fontSize: 16,
+      color: textColor,
+      textAlign: 'left',
+      paddingRight: 15,
+    },
     profileContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
     },
     profileImage: {
-      width: 70,
-      height: 70,
+      width: 120,
+      height: 120,
       borderRadius: 10,
       marginRight: 15,
       marginBottom: 15,
@@ -158,8 +205,8 @@ const Item: React.FC<ItemProps> = ({
     },
   })
 
-  return (
-    <Card containerStyle={{ backgroundColor: backgroundColor }}>
+  {
+    /*   <Card containerStyle={{ backgroundColor: backgroundColor }}>
       <View style={styles.profileContainer}>
         <TouchableOpacity
           onPress={() =>
@@ -210,7 +257,7 @@ const Item: React.FC<ItemProps> = ({
           }>
           <Card.Title style={styles.userName}>
             {' '}
-            {firstName} {lastName}
+            {firstName} {lastName} {id} {}
           </Card.Title>
           <Text style={[styles.userName, { textAlign: 'right' }]}>
             {username}
@@ -236,8 +283,110 @@ const Item: React.FC<ItemProps> = ({
         }>
         {/* <Text style={styles.connectButtonText}>
          
-        </Text>*/}
+        </Text>
       </Button>
+    </Card>*/
+  }
+  return (
+    <Card style={styles.card}>
+      <Card.Content style={{ alignItems: 'center' }}>
+        <TouchableOpacity
+          onPress={() =>
+            navigate('SelectedPersonInfo', {
+              personData: {
+                friendRequestStatus,
+                areFriends,
+                id,
+                username,
+                firstName,
+                lastName,
+                phoneNumber,
+                email,
+                interest,
+                profilePicture,
+                city,
+                currentLocationId,
+              },
+            })
+          }>
+          <Image
+            style={styles.profileImage}
+            source={
+              profilePicture
+                ? { uri: ImageConfig.IMAGE_CONFIG + profilePicture }
+                : require('../../assets/DefaultUserIcon.png')
+            }
+          />
+        </TouchableOpacity>
+      </Card.Content>
+      <Card.Content>
+        <TouchableOpacity
+          style={{ marginTop: 10 }}
+          onPress={() =>
+            navigate('SelectedPersonInfo', {
+              personData: {
+                friendRequestStatus,
+                areFriends,
+                id,
+                username,
+                firstName,
+                lastName,
+                phoneNumber,
+                email,
+                interest,
+                profilePicture,
+                city,
+                currentLocationId,
+              },
+            })
+          }>
+          <Title style={{ color: textColor }}>
+            {firstName} {lastName}
+          </Title>
+
+          <Title style={{ color: textColor, marginBottom: 10 }}>
+            Username: {username}
+          </Title>
+        </TouchableOpacity>
+        <LineComponent />
+        <View style={styles.infoContainer}>
+          <MaterialIcons
+            name="description"
+            size={26}
+            color={textColor}
+            style={styles.icon}
+          />
+          <Text style={styles.dateAndTime}>Description: not yet</Text>
+        </View>
+        <View style={styles.infoContainer}>
+          <MaterialIcons
+            name="star"
+            size={26}
+            color={textColor}
+            style={styles.icon}
+          />
+          <Text style={styles.locationAddress}>Interests: {interest}</Text>
+        </View>
+      </Card.Content>
+      <Card.Actions>
+        <Button
+          buttonStyle={{
+            backgroundColor: 'rgba(10,10,10,1)',
+          }}
+          titleStyle={{ fontWeight: '400', fontSize: 18 }}
+          containerStyle={{
+            marginVertical: 5,
+
+            width: 210,
+          }}
+          onPress={() => onConnect}>
+          {friendRequestStatus === 'Accepted'
+            ? t('peopleCard.message')
+            : friendRequestStatus === 'Pending'
+              ? t('peopleCard.pending')
+              : t('peopleCard.connect')}
+        </Button>
+      </Card.Actions>
     </Card>
   )
 }
@@ -253,9 +402,26 @@ const PeopleCard: React.FC = () => {
   const notificationListener = useRef<any>()
   const [expoPushToken, setExpoPushToken] = useState<any>('')
   const responseListener = useRef<any>()
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [isInterestModalVisible, setIsInterestModalVisible] = useState(false)
 
   // State for search query
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [distance, setDistance] = useState(5)
+  const [filterFriendRequestStatus, setFilterFriendRequestStatus] =
+    useState(false)
+
+  const interests = [
+    'Movies and Television',
+    'Art and Culture',
+    'Sports',
+    'Music',
+    'Technology',
+    'Food and Drink',
+    'Idk',
+  ]
 
   useEffect(() => {
     fetchData()
@@ -339,16 +505,35 @@ const PeopleCard: React.FC = () => {
     })
   }
 
-  const handleConnectPress = (
+  const handleConnectPress = async (
     friendRequestStatus: string,
     personId: number,
   ) => {
     if (friendRequestStatus === 'Pending') {
       showNotificationMessage('Friend request is already pending.', 'neutral')
     } else if (friendRequestStatus === 'Accepted') {
-      handleNavigation('Chat', { chatId: personId })
+      const chatId = await retrieveChatId(personId)
+
+      handleNavigation('Chat', { chatId: chatId })
     } else {
       handleConnect(personId)
+    }
+  }
+  const retrieveChatId = async (userId2: number): Promise<number> => {
+    try {
+      const response = await axios.get(
+        `${config.BASE_URL}/api/Chats/GetChatRoom`,
+        {
+          params: {
+            user1: loggedUser?.id,
+            user2: userId2,
+          },
+        },
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error retrieving chat ID:', error)
+      throw new Error('Could not retrieve chat ID')
     }
   }
 
@@ -366,6 +551,14 @@ const PeopleCard: React.FC = () => {
       setRefreshTrigger((prev) => !prev)
     } catch (error) {
       console.error('Error sending friend request:', error)
+    }
+  }
+
+  const toggleInterest = (interest: string) => {
+    if (selectedInterests.includes(interest)) {
+      setSelectedInterests(selectedInterests.filter((i) => i !== interest))
+    } else {
+      setSelectedInterests([...selectedInterests, interest])
     }
   }
 
@@ -399,13 +592,30 @@ const PeopleCard: React.FC = () => {
       />
     )
   }
+  const toggleFriendRequestStatusFilter = () => {
+    setFilterFriendRequestStatus(!filterFriendRequestStatus)
+  }
 
-  // Filter data based on search query
-  const filteredData = data.filter(
-    (person) =>
+  // Filter data based on search query and selected interests
+  const filteredData = data.filter((person) => {
+    const matchesSearchQuery =
       person.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      person.lastName.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+      person.lastName.toLowerCase().includes(searchQuery.toLowerCase())
+
+    const personInterests = person.interest
+      .split(',')
+      .map((i) => i.trim().toLowerCase())
+    const matchesInterests =
+      selectedInterests.length === 0 ||
+      selectedInterests.every((interest) =>
+        personInterests.includes(interest.toLowerCase()),
+      )
+
+    const matchesFriendRequestStatus =
+      !filterFriendRequestStatus || person.friendRequestStatus === 'Accepted'
+
+    return matchesSearchQuery && matchesInterests && matchesFriendRequestStatus
+  })
 
   const { textColor } = useThemeColor()
   const { t } = useTranslation()
@@ -439,7 +649,70 @@ const PeopleCard: React.FC = () => {
       color: textColor,
       fontSize: 15,
     },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+      width: 300,
+      padding: 20,
+      backgroundColor: 'white',
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    modalOption: {
+      fontSize: 18,
+      marginVertical: 10,
+    },
+    card: {
+      margin: 10,
+      borderRadius: 10,
+      overflow: 'hidden',
+    },
+    infoContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 5,
+    },
+    icon: {
+      marginRight: 5,
+    },
+    dateAndTime: {
+      fontSize: 16,
+      color: textColor,
+      marginTop: 5,
+    },
+    locationAddress: {
+      fontSize: 16,
+      color: textColor,
+    },
+    pickerContainer: {
+      marginHorizontal: 15,
+      marginTop: 10,
+      borderColor: textColor,
+      borderWidth: 1,
+      borderRadius: 10,
+    },
+    picker: {
+      height: 50,
+      width: '100%',
+    },
     searchBarContainer: { backgroundColor: 'transparent' },
+    checkboxContainer: {
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+    },
+    checkboxWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 5,
+    },
+    checkbox: {
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+    },
   })
 
   if (isLoading) {
@@ -456,6 +729,17 @@ const PeopleCard: React.FC = () => {
         />
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <Text style={styles.title}>{t('peopleCard.peopleAroundYou')}</Text>
+          <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+            <MaterialIcons
+              name="filter-list"
+              size={26}
+              color={textColor}
+              style={{
+                marginRight: 20,
+                marginTop: 14,
+              }}
+            />
+          </TouchableOpacity>
         </View>
       </View>
     )
@@ -475,8 +759,104 @@ const PeopleCard: React.FC = () => {
       />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={styles.title}>{t('peopleCard.peopleAroundYou')}</Text>
+        {/* <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+          <MaterialIcons
+            name="filter-list"
+            size={26}
+            color={textColor}
+            style={{
+              marginRight: 20,
+              marginTop: 14,
+            }}
+          />
+        </TouchableOpacity>*/}
+        <TouchableOpacity onPress={() => setIsInterestModalVisible(true)}>
+          <MaterialIcons
+            name="filter-list"
+            size={26}
+            color={textColor}
+            style={{
+              marginRight: 20,
+              marginTop: 14,
+            }}
+          />
+        </TouchableOpacity>
       </View>
-
+      <Modal
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
+        animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>
+              Select the radius within which events should be displayed.
+            </Text>
+            <ButtonGroup
+              selectedButtonStyle={{ backgroundColor: 'black' }}
+              buttons={['10Km', '50Km', 'All']}
+              selectedIndex={selectedIndex}
+              onPress={(value) => {
+                setSelectedIndex(value)
+                setDistance(
+                  value == 0
+                    ? 10
+                    : value == 1
+                      ? 50
+                      : value == 2
+                        ? 100000000000
+                        : 999999,
+                )
+                setIsModalVisible(false)
+              }}
+              containerStyle={{ marginBottom: 20 }}
+            />
+            <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+              <Text style={styles.modalOption}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        transparent={true}
+        visible={isInterestModalVisible}
+        onRequestClose={() => setIsInterestModalVisible(false)}
+        animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>Select interests:</Text>
+            <View style={styles.checkboxContainer}>
+              {interests.map((interest) => (
+                <View key={interest} style={styles.checkboxWrapper}>
+                  <CheckBox
+                    title={interest}
+                    checked={selectedInterests.includes(interest)}
+                    onPress={() => toggleInterest(interest)}
+                    containerStyle={styles.checkbox}
+                  />
+                </View>
+              ))}
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginVertical: 10,
+              }}>
+              <CheckBox
+                title="Show only accepted friends"
+                checked={filterFriendRequestStatus}
+                onPress={toggleFriendRequestStatusFilter}
+                containerStyle={styles.checkbox}
+              />
+            </View>
+            <TouchableOpacity onPress={() => setIsInterestModalVisible(false)}>
+              <Text style={styles.modalOption}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <FlatList
         data={filteredData}
         renderItem={renderItem}

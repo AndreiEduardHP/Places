@@ -392,7 +392,7 @@ const CustomeMap: React.FC = () => {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <>
       <MapView
         ref={mapRef}
         style={{ flex: 1 }}
@@ -487,6 +487,8 @@ const CustomeMap: React.FC = () => {
         <GooglePlacesInput
           onLocationSelected={handleNewLocationSelected}
           onInputChange={handleInputChange}
+          userCurrentLatitude={currentLocation?.latitude ?? 0}
+          userCurrentLongitude={currentLocation?.longitude ?? 0}
         />
       </View>
       {optionVisible && isInputEmpty && (
@@ -597,7 +599,7 @@ const CustomeMap: React.FC = () => {
           onEventAdded={fetchEvents}
           setAddNewEvent={setAddNewEvent}></EventForm>
       </BottomDrawer>
-    </View>
+    </>
   )
 }
 const styles = StyleSheet.create({

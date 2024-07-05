@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native'
 import MapScreen from './src/Screens/MapScreen'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useUser } from './src/Context/AuthContext'
+import { NativeBaseProvider, Box } from 'native-base'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -78,8 +79,10 @@ export default function App() {
   }, [])
 
   return (
-    <SafeAreaProvider>
-      <StackNavigator />
-    </SafeAreaProvider>
+    <NativeBaseProvider>
+      <SafeAreaProvider>
+        <StackNavigator />
+      </SafeAreaProvider>
+    </NativeBaseProvider>
   )
 }

@@ -7,9 +7,12 @@ import {
   Animated,
   Platform,
   PanResponder,
+  KeyboardAvoidingView,
 } from 'react-native'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
+import { ScrollView } from 'react-native-gesture-handler'
+import { Container } from 'native-base'
 
 interface BottomDrawerProps {
   children: React.ReactNode

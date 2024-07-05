@@ -9,6 +9,7 @@ import {
   StyleSheet,
   ScrollView,
   Linking,
+  ImageBackground,
 } from 'react-native'
 
 import FooterNavbar from '../Components/FooterNavbar'
@@ -21,6 +22,12 @@ import { useNotification } from '../Components/Notification/NotificationProvider
 import ProfileDetails from '../Components/SettingSections/ProfileDetails'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import LineComponent from '../Components/LineComponent'
+import axios from 'axios'
+import { config } from '../config/urlConfig'
+import { useUser } from '../Context/AuthContext'
+import { useHandleNavigation } from '../Navigation/NavigationUtil'
+import Icon from 'react-native-vector-icons/MaterialIcons'
+import { Button } from '@rneui/base'
 
 const SelectedPersonInfo: React.FC = () => {
   const { t } = useTranslation()
@@ -28,7 +35,10 @@ const SelectedPersonInfo: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'HomeScreen'>>()
   const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
   const { showNotificationMessage } = useNotification()
-  const personData = route.params?.personData
+  // const personData = route.params?.personData
+  const [personData, setPersonData] = useState(route.params?.personData)
+  const { loggedUser } = useUser()
+  const handleNavigation = useHandleNavigation()
   const userProfileData: {
     icon: string
     label: string
@@ -68,6 +78,33 @@ const SelectedPersonInfo: React.FC = () => {
       })
       .catch((err) => console.error('An error occurred', err))
   }
+  const retrieveChatId = async (userId2: any) => {
+    try {
+      const response = await axios.get(
+        `${config.BASE_URL}/api/Chats/GetChatRoom`,
+        {
+          params: {
+            user1: loggedUser?.id,
+            user2: personData?.receiverId ? personData?.receiverId : userId2,
+          },
+        },
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error retrieving chat ID:', error)
+      throw new Error('Could not retrieve chat ID')
+    }
+  }
+  const handleSendMessage = async () => {
+    try {
+      const chatId = await retrieveChatId(Number(personData?.id))
+      handleNavigation('Chat', { chatId: chatId })
+    } catch (error) {
+      console.error('Error navigating to chat:', error)
+      showNotificationMessage('Failed to navigate to chat', 'fail')
+    }
+  }
+
   const handleSMS = () => {
     const phoneNumber = personData?.phoneNumber
     const smsUrl = `sms:${phoneNumber}`
@@ -81,6 +118,59 @@ const SelectedPersonInfo: React.FC = () => {
         }
       })
       .catch((err) => showNotificationMessage('An error occurred', 'fail'))
+  }
+
+  const deleteFriend = async (userId1: any, userId2: any) => {
+    try {
+      const response = await axios.delete(
+        `${config.BASE_URL}/api/friend/${userId1}/${userId2}`,
+      )
+      if (response.status === 204) {
+        alert('Friend removed successfully')
+        setPersonData((prevData) => {
+          if (
+            prevData &&
+            (prevData.receiverId === userId1 || prevData.receiverId === userId2)
+          ) {
+            return {
+              ...prevData,
+              friendRequestStatus: 'Send friend request',
+              areFriends: false,
+            }
+          }
+          return prevData
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting friend:', error)
+      alert('Failed to remove friend')
+    }
+  }
+
+  const handleConnect = async (personId: number) => {
+    try {
+      const requestBody = {
+        SenderId: loggedUser?.id,
+        ReceiverId: personId,
+      }
+
+      await axios.post(
+        `${config.BASE_URL}/api/Friend/sendFriendRequest`,
+        requestBody,
+      )
+      setPersonData((prevData) => {
+        if (prevData) {
+          return {
+            ...prevData,
+            friendRequestStatus: 'Pending',
+            areFriends: false,
+          }
+        }
+        return prevData
+      })
+    } catch (error) {
+      console.error('Error sending friend request:', error)
+    }
   }
 
   const styles = StyleSheet.create({
@@ -101,18 +191,19 @@ const SelectedPersonInfo: React.FC = () => {
       flex: 1,
     },
     avatar: {
-      width: 70,
-      height: 70,
+      width: 100,
+      height: 100,
       borderRadius: 50,
     },
     infoTextContainer: {
       flex: 1,
-      marginTop: 15,
+      marginTop: 5,
     },
     username: {
       fontSize: 26,
       fontWeight: '400',
       marginLeft: 10,
+      marginTop: 20,
       color: textColor,
     },
     name: {
@@ -145,15 +236,25 @@ const SelectedPersonInfo: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.text}>
+        {/*  <Text style={styles.text}>
           {t('selectedPersonInfo.userInformation')}
-        </Text>
+        </Text>*/}
+        <ImageBackground
+          source={require('../../assets/Untitled.png')}
+          style={{
+            width: '100%',
+            position: 'absolute',
+            height: 370,
+            flex: 1,
+            opacity: 0.7,
+          }}
+          resizeMode="cover"></ImageBackground>
         {personData ? (
           <View style={styles.personInfoContainer}>
             <View
               style={{
                 alignItems: 'center',
-                flexDirection: 'row',
+                //  flexDirection: 'row',
                 marginLeft: 10,
                 marginTop: 20,
               }}>
@@ -169,17 +270,102 @@ const SelectedPersonInfo: React.FC = () => {
                 style={styles.avatar}
               />
               <Text style={styles.username}>
-                {t('selectedPersonInfo.userName')}: {personData.username}
+                {personData.firstName} {personData.lastName}
               </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Icon
+                  size={20}
+                  name="location-on"
+                  color={'white'}
+                  style={{ paddingTop: 5 }}
+                />
+                <Text style={{ color: 'white', marginTop: 5 }}>
+                  {personData.city} {personData.receiverId}
+                </Text>
+              </View>
             </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <Button
+                title={
+                  personData.friendRequestStatus === 'Accepted'
+                    ? 'Unfriend'
+                    : personData.friendRequestStatus === 'Pending'
+                      ? 'Pending'
+                      : 'Send friend request'
+                }
+                containerStyle={{
+                  width: 200,
+                  marginHorizontal: 5,
+                  marginVertical: 10,
+                }}
+                icon={{
+                  name: 'user',
+                  type: 'font-awesome',
+                  size: 15,
+                  color: 'white',
+                }}
+                onPress={() => {
+                  if (personData.friendRequestStatus === 'Accepted') {
+                    deleteFriend(personData.receiverId, loggedUser?.id) // Assuming currentUserId is defined
+                  } else {
+                    handleConnect(personData.receiverId)
+                  }
+                }}
+              />
+
+              <Button
+                onPress={handleSendMessage}
+                title={'Message'}
+                containerStyle={{
+                  width: 200,
+                  marginHorizontal: 5,
+                  marginVertical: 10,
+                }}
+                icon={{
+                  name: 'envelope',
+                  type: 'font-awesome',
+                  size: 15,
+                  color: 'white',
+                }}
+                disabled={personData.friendRequestStatus != 'Accepted'}
+                buttonStyle={{ backgroundColor: 'rgba(199, 43, 98, 1)' }}
+                color={'black'}
+              />
+            </View>
+
             <View style={styles.infoTextContainer}>
               <ProfileDetails data={userProfileData}></ProfileDetails>
+              <View
+                style={{
+                  marginHorizontal: 5,
+                  backgroundColor: backgroundColorGrey,
+                  borderRadius: 10,
+                  marginTop: 20,
+                }}>
+                {/*   <Text style={[styles.contactButtonsText, { color: 'white' }]}>
+                  Friend Status:
+                  {personData.friendRequestStatus === 'Accepted'
+                    ? 'friends'
+                    : personData.friendRequestStatus === 'Pending'
+                      ? 'pending'
+                      : 'Not friends'}
+                </Text>*/}
+              </View>
               <View
                 style={{
                   marginHorizontal: 10,
                   backgroundColor: backgroundColorGrey,
                   borderRadius: 10,
-                  marginTop: 20,
                 }}>
                 <TouchableOpacity
                   onPress={handleEmail}
@@ -205,12 +391,6 @@ const SelectedPersonInfo: React.FC = () => {
                   </Text>
                 </TouchableOpacity>
                 <LineComponent />
-
-                <TouchableOpacity style={styles.contactButtons}>
-                  <Text style={styles.contactButtonsText}>
-                    {t('selectedPersonInfo.sendPrivateMessage')}
-                  </Text>
-                </TouchableOpacity>
               </View>
             </View>
           </View>

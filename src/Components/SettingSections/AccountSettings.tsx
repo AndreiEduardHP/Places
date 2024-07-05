@@ -55,7 +55,9 @@ const AccountSection: React.FC = () => {
         </TouchableOpacity>
         <LineComponent />
 
-        <TouchableOpacity style={styles.row}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => handleNavigation('ProfileVisibilityScreen')}>
           <Icon name="privacy-tip" size={30} color={textColor}></Icon>
           <Text style={styles.text}>{t('accountSettings.privacy')}</Text>
         </TouchableOpacity>

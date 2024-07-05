@@ -27,6 +27,7 @@ import JoinedEventsScreen from '../Screens/MyEvents'
 import EventsCreatedByMe from '../Screens/EventsCreatedByMe'
 import MyAwardsScreen from '../Screens/MyAwardsScreen'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import ProfileVisibilityScreen from '../Screens/ProfileVisibility'
 
 const Stack = createStackNavigator<RootStackParamList>()
 
@@ -53,6 +54,11 @@ const StackNavigator: React.FC = () => {
               <Stack.Screen
                 name="JoinedEventsScreen"
                 component={JoinedEventsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="ProfileVisibilityScreen"
+                component={ProfileVisibilityScreen}
                 options={{ headerShown: false }}
               />
               <Stack.Screen

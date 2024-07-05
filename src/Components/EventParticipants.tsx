@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  LayoutAnimation,
 } from 'react-native'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
@@ -36,7 +37,6 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
   const [totalParticipants, setTotalParticipants] = useState<number>(0)
   const [showParticipants, setShowParticipants] = useState<boolean>(false)
   const slideAnimation = useRef(new Animated.Value(0)).current
-  const heightAnimation = useRef(new Animated.Value(0)).current
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -68,26 +68,19 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
 
   const toggleParticipants = () => {
     setShowParticipants(!showParticipants)
-
-    Animated.parallel([
-      Animated.timing(slideAnimation, {
-        toValue: showParticipants ? 0 : 1,
-        duration: 500,
-        useNativeDriver: false,
-      }),
-      Animated.timing(heightAnimation, {
-        toValue: showParticipants ? 0 : 1,
-        duration: 500,
-        useNativeDriver: false,
-      }),
-    ]).start()
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    Animated.timing(slideAnimation, {
+      toValue: showParticipants ? 0 : 1,
+      duration: 500,
+      useNativeDriver: false,
+    }).start()
   }
 
   const animatedStyle = {
     opacity: slideAnimation,
-    height: heightAnimation.interpolate({
+    height: slideAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: ['0%', '45%'],
+      outputRange: [0, 150],
     }),
   }
 
@@ -97,13 +90,15 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
         <Text style={[styles.participants, { color: textColor }]}>
           {t('eventParticipants.totalParticipants')}: {totalParticipants}
         </Text>
-        <Text style={{ padding: 5, color: textColor }}>
+        <Text style={{ color: textColor, marginBottom: 10 }}>
           {t('eventParticipants.note')}
         </Text>
       </TouchableOpacity>
-      <Animated.View style={[styles.listContainer, animatedStyle]}>
-        <ParticipantsList eventId={eventId} participants={participants} />
-      </Animated.View>
+      {showParticipants && (
+        <Animated.View style={[styles.listContainer, animatedStyle]}>
+          <ParticipantsList eventId={eventId} participants={participants} />
+        </Animated.View>
+      )}
     </View>
   )
 }
@@ -112,12 +107,12 @@ const styles = StyleSheet.create({
   participants: {
     fontSize: 16,
     fontWeight: '400',
-
-    marginHorizontal: 20,
   },
   listContainer: {
     backgroundColor: 'white',
     borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 10,
   },
 })
 
