@@ -31,9 +31,9 @@ const NewConnectionScreen: React.FC = () => {
     titleDear: {
       marginTop: 5,
       marginLeft: 20,
-      fontSize: 34,
-      letterSpacing: -0.51,
-      fontWeight: '400',
+      fontSize: 28,
+      letterSpacing: 1.21,
+      fontWeight: '300',
       fontFamily: '',
       color: textColor,
     },
@@ -67,8 +67,8 @@ const NewConnectionScreen: React.FC = () => {
               backgroundColor: backgroundColor,
             }}>
             <Text style={styles.titleDear}>
-              {t('newConnectionScreen.dear')} {loggedUser.firstName}{' '}
-              {loggedUser.currentLatitude} {loggedUser.currentLongitude}
+              {t('newConnectionScreen.dear')} {loggedUser.lastName}{' '}
+              {loggedUser.firstName}
             </Text>
           </View>
           <Tab value={index} onChange={setIndex}>

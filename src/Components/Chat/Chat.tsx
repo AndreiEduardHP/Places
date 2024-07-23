@@ -44,12 +44,12 @@ interface ChatProfile {
 interface Chat {
   id: number
   contact: string
-  lastMessage: string
+  // lastMessage: string
   imageUri: string
   receiverId: number
   chatId: number
   notificationToken: string
-  messages: Message[]
+  // messages: Message[]
   friendRequestStatus: string
   areFriends: boolean
   username: string
@@ -64,6 +64,7 @@ interface Chat {
 }
 
 interface ChatRouteParams {
+  data?: number
   chatId?: number
 }
 
@@ -71,9 +72,10 @@ const Chat: React.FC = () => {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [chats, setChats] = useState<Chat[]>([])
   const { loggedUser } = useUser()
+  const numberOfMessages = 20
   const route = useRoute<RouteProp<{ params: ChatRouteParams }, 'params'>>()
-  const chatId = route.params?.chatId
-
+  const chatId = route.params?.data ? route.params?.data : route.params?.chatId
+  console.log('chatid' + route.params)
   useEffect(() => {
     fetchChats()
   }, [loggedUser, chatId])
@@ -83,21 +85,21 @@ const Chat: React.FC = () => {
 
     try {
       const response = await axios.get<ChatProfile[]>(
-        `${config.BASE_URL}/api/chats?userId=${loggedUser.id}`,
+        `${config.BASE_URL}/api/chats?userId=${loggedUser.id}&numberOfMessages=${numberOfMessages}`,
       )
       const chatData: Chat[] = response.data.map((chatProfile) => {
-        const messages = chatProfile.messages.map((message) => ({
-          ...message,
-          timestamp: moment.utc(message.timestamp).local().format(),
-        }))
+        //     const messages = chatProfile.messages.map((message) => ({
+        //      ...message,
+        //      timestamp: moment.utc(message.timestamp).local().format(),
+        //     }))
 
         return {
           id: chatProfile.chatId,
           contact: `${chatProfile.secondUser.firstName} ${chatProfile.secondUser.lastName}`,
-          lastMessage:
-            messages.length > 0 ? messages[messages.length - 1].text : '',
+          //   lastMessage:
+          //      messages.length > 0 ? messages[messages.length - 1].text : '',
           imageUri: chatProfile.secondUser.profilePicture,
-          messages: messages,
+          //    messages: messages,
           notificationToken: chatProfile.secondUser.notificationToken,
           receiverId: chatProfile.secondUser.id,
           chatId: chatProfile.chatId,
@@ -136,7 +138,7 @@ const Chat: React.FC = () => {
     <View style={{ flex: 1 }}>
       {selectedChat ? (
         <ChatRoom
-          messages={selectedChat.messages}
+          //   messages={selectedChat.messages}
           selectedRoom={selectedChat.chatId}
           contact={selectedChat.contact}
           imageUri={selectedChat.imageUri}

@@ -11,10 +11,12 @@ interface ProfileDetailsProps {
 }
 
 const ProfileDetails: React.FC<ProfileDetailsProps> = ({ data, showIcon }) => {
-  const { textColor, backgroundColorGrey } = useThemeColor()
+  const { textColor, backgroundColorGrey, backgroundColor } = useThemeColor()
   const styles = StyleSheet.create({
     container: {
       flexDirection: 'row',
+      // borderWidth: 1,
+      //  borderColor: textColor,
       backgroundColor: backgroundColorGrey,
       borderRadius: 10,
       marginHorizontal: 10,
@@ -50,7 +52,7 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({ data, showIcon }) => {
                   <MaterialIcons
                     name="arrow-forward-ios"
                     size={22}
-                    color="#FFFFFF"
+                    color={textColor}
                   />
                 </View>
               )}

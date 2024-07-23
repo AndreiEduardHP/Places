@@ -15,6 +15,7 @@ import { ScrollView } from 'react-native-gesture-handler'
 import ProfileSection from '../Components/SettingSections/ProfileSection'
 
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import BackAction from '../Components/Back'
 
 const EditUserProfileScreen: React.FC = () => {
   const { backgroundColor, textColor } = useThemeColor()
@@ -26,8 +27,8 @@ const EditUserProfileScreen: React.FC = () => {
     },
     text: {
       fontSize: 27,
-      marginTop: 5,
-      marginLeft: 10,
+      //   marginTop: 5,
+      //  marginLeft: 10,
       color: textColor,
     },
   })
@@ -37,9 +38,17 @@ const EditUserProfileScreen: React.FC = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={25}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <Text style={styles.text}>
-          {t('editUserProfileScreen.editUserProfile')}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <BackAction
+            style={{
+              backgroundColor: 'white',
+              width: 26,
+              height: 26,
+            }}></BackAction>
+          <Text style={styles.text}>
+            {t('editUserProfileScreen.editUserProfile')}
+          </Text>
+        </View>
         <ProfileSection
           showEditIcon={true}
           showTouchIcon={false}></ProfileSection>

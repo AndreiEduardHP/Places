@@ -32,7 +32,6 @@ import ProfileVisibilityScreen from '../Screens/ProfileVisibility'
 const Stack = createStackNavigator<RootStackParamList>()
 
 const StackNavigator: React.FC = () => {
-  const { backgroundColor, textColor } = useThemeColor()
   //console.log(backgroundColor)
   return (
     <NavigationContainer>

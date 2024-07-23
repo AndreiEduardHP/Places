@@ -12,6 +12,7 @@ import SupportTicket from '../Components/SupportTicket'
 
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
+import BackAction from '../Components/Back'
 
 const SupportScreen: React.FC = () => {
   const { t } = useTranslation()
@@ -33,7 +34,7 @@ const SupportScreen: React.FC = () => {
     text: {
       fontSize: 32,
       fontWeight: '300',
-      marginHorizontal: 20,
+      //  marginHorizontal: 20,
       color: textColor,
     },
     content: {
@@ -63,8 +64,16 @@ const SupportScreen: React.FC = () => {
   })
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.container}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <BackAction
+          style={{
+            backgroundColor: 'white',
+            width: 26,
+            height: 26,
+          }}></BackAction>
         <Text style={styles.text}>{t('supportScreen.supportSection')}</Text>
+      </View>
+      <ScrollView style={styles.container}>
         <SupportTicket onSubmit={handleTicketSubmit} />
       </ScrollView>
       <FooterNavbar currentRoute={''}></FooterNavbar>

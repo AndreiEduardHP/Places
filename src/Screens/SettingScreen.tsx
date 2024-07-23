@@ -14,6 +14,9 @@ import EventSection from '../Components/SettingSections/EventSection'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import { Appbar } from 'react-native-paper'
+import { useNavigation } from '@react-navigation/native'
+import BackAction from '../Components/Back'
 
 const SettingScreen: React.FC = () => {
   const { t } = useTranslation()
@@ -31,7 +34,7 @@ const SettingScreen: React.FC = () => {
     text: {
       fontSize: 32,
       fontWeight: '300',
-      marginHorizontal: 20,
+      //  marginHorizontal: 20,
       color: textColor,
     },
     content: {
@@ -63,7 +66,18 @@ const SettingScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.container}>
-        <Text style={styles.text}>{t('settingsScreen.settings')}</Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            // justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <BackAction
+            style={{ backgroundColor: 'white', width: 26, height: 26 }}
+          />
+          <Text style={styles.text}>{t('settingsScreen.settings')}</Text>
+        </View>
+
         <TouchableOpacity onPress={() => handleNavigation('ProfileScreen')}>
           <ProfileSection
             showEditIcon={false}

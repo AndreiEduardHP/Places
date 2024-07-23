@@ -22,12 +22,15 @@ import { LinearGradient } from 'expo-linear-gradient'
 import SVGComponentOFFERS from '../Components/SVG/Shapes/UnlimitedOffers'
 import GradientText from '../Components/SVG/Gradient'
 import { Button, Card } from '@rneui/base'
+import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import BackAction from '../Components/Back'
 
 const PaymentScreen = () => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
   const [loading, setLoading] = useState(false)
   const [selectedPackage, setSelectedPackage] = useState(null)
   const { loggedUser, refreshData } = useUser()
+  const { backgroundColor, textColor } = useThemeColor()
   const [selectedSvg, setSelectedSvg] = useState<any>(null)
   const scrollX = useRef(new Animated.Value(0)).current
   const { t } = useTranslation()
@@ -229,9 +232,14 @@ const PaymentScreen = () => {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: backgroundColor }}>
       <View style={styles.container}>
-        <Text style={styles.title}> {t('paymentsScreen.selectAPack')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <BackAction
+            style={{ backgroundColor: 'white', width: 26, height: 30 }}
+          />
+          <Text style={styles.title}> {t('paymentsScreen.selectAPack')}</Text>
+        </View>
         <View style={{ paddingHorizontal: 15 }}>
           <Text style={styles.textStyle1}>
             {loggedUser?.firstName} {loggedUser?.lastName}
@@ -242,10 +250,10 @@ const PaymentScreen = () => {
           showsHorizontalScrollIndicator={false}
           style={{
             flex: 1,
-            marginTop: -45,
-            //  height: 10,
+            //marginTop: -45,
+            // height: 30,
             marginLeft: -20,
-            //  backgroundColor: 'blue',
+            // backgroundColor: 'blue',
           }}>
           {svgComponents.map((svg) => (
             <TouchableOpacity
@@ -261,52 +269,16 @@ const PaymentScreen = () => {
             </TouchableOpacity>
           ))}
         </ScrollView>
-
-        <Card containerStyle={[styles.cardContainer, { flex: 1 }]}>
-          <View style={{ flexGrow: 1 }}>
-            <Text style={[styles.cardTitle, { marginLeft: 20, marginTop: 20 }]}>
-              YOUR CREDITS
-            </Text>
-            <GradientText
-              svgStyle={{ marginLeft: 20 }}
-              fontSize={24}
-              textLines={[loggedUser?.credit.toString() ?? '0']}
-              gradientStops={[
-                { color: '#F103AE', offset: '0%' },
-                { color: '#FF5447', offset: '50%' },
-                { color: '#FF7B21', offset: '80%' },
-                { color: '#F1F3FF', offset: '100%' },
-              ]}
-            />
-          </View>
-          <View style={[styles.cardContent, { marginTop: 100 }]}>
-            <Text style={styles.priceText}>Unlimited discounts. No fees.</Text>
-            <Text style={styles.creditsText}>
-              <GradientText
-                // svgStyle={{ marginTop: -2 }}
-                fontSize={22}
-                textLines={['Not even hidden ones.']}
-                gradientStops={[
-                  { color: '#00FF00', offset: '0%' },
-                  { color: '#006400', offset: '100%' },
-                ]}
-              />
-            </Text>
-          </View>
-        </Card>
-
-        {selectedSvg && (
-          <Card containerStyle={styles.cardContainer}>
-            <View style={{ flexGrow: 1 }}>
-              <Text style={styles.cardTitle}>
-                {t('paymentsScreen.youHaveSelected')}:{' '}
+        <View style={{ flex: 1, marginTop: -200 }}>
+          <Card containerStyle={[styles.cardContainer, { flex: 1 }]}>
+            <View style={{}}>
+              <Text style={[styles.cardTitle, { marginLeft: 0, marginTop: 0 }]}>
+                YOUR CREDITS
               </Text>
               <GradientText
-                //  svgStyle={{ marginTop: -3 }}
+                svgStyle={{ marginLeft: 0 }}
                 fontSize={24}
-                textLines={[
-                  packages.find((pack) => pack.id === selectedSvg)?.name || '',
-                ]}
+                textLines={[loggedUser?.credit.toString() ?? '0']}
                 gradientStops={[
                   { color: '#F103AE', offset: '0%' },
                   { color: '#FF5447', offset: '50%' },
@@ -316,53 +288,93 @@ const PaymentScreen = () => {
               />
             </View>
             <View style={[styles.cardContent]}>
-              <Text style={styles.priceText}>
-                {t('Price')}:{' '}
-                {packages.find((pack) => pack.id === selectedSvg)?.price +
-                  ' RON' ?? 'Default Price'}
+              <Text style={[styles.priceText, { marginTop: 25 }]}>
+                Unlimited discounts. No fees.
               </Text>
               <Text style={styles.creditsText}>
                 <GradientText
                   // svgStyle={{ marginTop: -2 }}
                   fontSize={22}
-                  textLines={[
-                    packages.find((pack) => pack.id === selectedSvg)?.credits +
-                      ' CREDITS RECEIVED' ?? 'CREDITS',
-                  ]}
+                  textLines={['Not even hidden ones.']}
                   gradientStops={[
-                    { color: '#F103AE', offset: '0%' },
-                    { color: '#CADCFC', offset: '100%' },
+                    { color: '#00FF00', offset: '0%' },
+                    { color: '#006400', offset: '100%' },
                   ]}
                 />
               </Text>
             </View>
           </Card>
-        )}
-        <View style={{ display: 'none' }}>
-          <StripeProvider publishableKey="pk_test_51Op4EpBTlGDnVojpVzF4ZIMSKiYRbkgmTqIaTQWXjQ770OmFqdTYrSTquxwBOJyijVhwv8aRgHcudIJIpNasGiou001kLR8gLR">
-            <Text> {t('paymentsScreen.payments')}</Text>
-          </StripeProvider>
+
+          {selectedSvg && (
+            <Card containerStyle={styles.cardContainer}>
+              <View style={{}}>
+                <Text style={styles.cardTitle}>
+                  {t('paymentsScreen.youHaveSelected')}:{' '}
+                </Text>
+                <GradientText
+                  //  svgStyle={{ marginTop: -3 }}
+                  fontSize={24}
+                  textLines={[
+                    packages.find((pack) => pack.id === selectedSvg)?.name ||
+                      '',
+                  ]}
+                  gradientStops={[
+                    { color: '#F103AE', offset: '0%' },
+                    { color: '#FF5447', offset: '50%' },
+                    { color: '#FF7B21', offset: '80%' },
+                    { color: '#F1F3FF', offset: '100%' },
+                  ]}
+                />
+              </View>
+              <View style={[styles.cardContent]}>
+                <Text style={styles.priceText}>
+                  {t('Price')}:{' '}
+                  {packages.find((pack) => pack.id === selectedSvg)?.price +
+                    ' RON' ?? 'Default Price'}
+                </Text>
+                <Text style={styles.creditsText}>
+                  <GradientText
+                    // svgStyle={{ marginTop: -2 }}
+                    fontSize={22}
+                    textLines={[
+                      packages.find((pack) => pack.id === selectedSvg)
+                        ?.credits + ' CREDITS RECEIVED' ?? 'CREDITS',
+                    ]}
+                    gradientStops={[
+                      { color: '#F103AE', offset: '0%' },
+                      { color: '#CADCFC', offset: '100%' },
+                    ]}
+                  />
+                </Text>
+              </View>
+            </Card>
+          )}
+          <View style={{ display: 'none' }}>
+            <StripeProvider publishableKey="pk_test_51Op4EpBTlGDnVojpVzF4ZIMSKiYRbkgmTqIaTQWXjQ770OmFqdTYrSTquxwBOJyijVhwv8aRgHcudIJIpNasGiou001kLR8gLR">
+              <Text> {t('paymentsScreen.payments')}</Text>
+            </StripeProvider>
+          </View>
+
+          <Button
+            onPress={openPaymentSheet}
+            containerStyle={{
+              width: Dimensions.get('window').width,
+              flex: 1,
+              alignContent: 'center',
+              justifyContent: 'center',
+              alignSelf: 'center',
+              paddingHorizontal: 15,
+              // marginVertical: 10,
+            }}
+            buttonStyle={{
+              backgroundColor: 'black',
+              borderWidth: 1,
+              borderColor: 'white',
+              borderRadius: 10,
+            }}>
+            <Text style={styles.buttonText}>Proceed to Pay</Text>
+          </Button>
         </View>
-
-        <Button
-          onPress={openPaymentSheet}
-          containerStyle={{
-            width: Dimensions.get('window').width,
-
-            alignContent: 'center',
-            justifyContent: 'center',
-            alignSelf: 'center',
-            paddingHorizontal: 15,
-            marginVertical: 10,
-          }}
-          buttonStyle={{
-            backgroundColor: 'black',
-            borderWidth: 1,
-            borderColor: 'white',
-            borderRadius: 10,
-          }}>
-          <Text style={styles.buttonText}>Proceed to Pay</Text>
-        </Button>
       </View>
       <View>
         <FooterNavbar currentRoute={''} />
@@ -378,6 +390,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,
+    paddingTop: 10,
+    marginTop: 30,
+    marginVertical: 10,
+    //  flex: 1,
   },
   cardTitle: {
     color: 'white',
@@ -434,9 +450,9 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 30,
     color: 'white',
-    marginTop: 20,
-    marginBottom: 5,
-    marginHorizontal: 10,
+    //  marginTop: 20,
+    // marginBottom: 5,
+    //  marginHorizontal: 10,
     textTransform: 'uppercase',
   },
   button: {

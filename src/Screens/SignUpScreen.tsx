@@ -3,134 +3,99 @@ import { useTranslation } from 'react-i18next'
 import {
   View,
   Text,
-  TouchableWithoutFeedback,
-  Keyboard,
   Image,
   StyleSheet,
   KeyboardAvoidingView,
+  TouchableWithoutFeedback,
   Platform,
-  ScrollView,
-  ImageBackground,
+  Keyboard,
 } from 'react-native'
-import SignUpForm from '../Components/SignUpFrom'
-import { LinearGradient } from 'expo-linear-gradient'
+
 import { SafeAreaView } from 'react-native-safe-area-context'
 import SvgComponent from '../Components/SVG/Logo'
+import SignUpForm from '../Components/SignUpFrom'
 
 const SignUpScreen: React.FC = () => {
   const { t } = useTranslation()
 
   return (
-    <View style={{ backgroundColor: 'white', flex: 1 }}>
-      <View
-        style={{
-          width: '100%',
-          height: 210,
-          position: 'absolute',
-          zIndex: 3,
-          alignContent: 'center',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-        <SvgComponent width={300} height={200}></SvgComponent>
-      </View>
-
-      <Image
-        source={require('../../assets/Untitled.png')}
-        style={{
-          width: '100%',
-          height: 310,
-          position: 'absolute',
-          zIndex: 2,
-        }}
-        resizeMode="cover"></Image>
-      <KeyboardAvoidingView
-        style={{
-          zIndex: 20,
-          position: 'absolute',
-          top: 170,
-          left: 0,
-          right: 0,
-          flex: 1,
-        }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
-        <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            backgroundColor: 'white',
-            // flex: 1,
-            borderTopLeftRadius: 50,
-            borderTopRightRadius: 50,
-          }}>
-          <View style={{ paddingTop: 10 }}>
-            <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-              <View
-                style={{
-                  justifyContent: 'center',
-                }}>
-                <Text
-                  style={{
-                    marginLeft: 20,
-                    marginTop: 15,
-                    fontSize: 32,
-                    color: 'black',
-                  }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <View style={styles.logoContainer}>
+            <SvgComponent width={300} height={200} />
+          </View>
+          <Image
+            source={require('../../assets/Untitled.png')}
+            style={styles.backgroundImage}
+            resizeMode="cover"
+          />
+          <View style={styles.formContainer}>
+            <View style={styles.formBackground}>
+              <View style={styles.scrollViewContent}>
+                <Text style={styles.signUpText}>
                   {t('signUpScreen.signUp')}
                 </Text>
                 <SignUpForm />
               </View>
-            </TouchableWithoutFeedback>
-            <View style={styles.container}>
-              <LinearGradient
-                colors={['rgba(0,0,0,0) ', 'rgba(255,255,255,0.51)']}
-                start={{ x: 0, y: 1 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradientRectangle}
-              />
-              <LinearGradient
-                colors={['rgba(0,0,0,0) ', 'rgba(255,255,255,0.51)']}
-                start={{ x: 0, y: 1 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradientRectangle}
-              />
-              <LinearGradient
-                colors={['rgba(0,0,0,0) ', 'rgba(255,255,255,0.51)']}
-                start={{ x: 0, y: 1 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradientRectangle}
-              />
             </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   )
 }
+
 const styles = StyleSheet.create({
-  image: {
-    width: 460,
-    height: 410,
-    bottom: 0,
-    position: 'absolute',
+  safeAreaView: {
+    flex: 1,
   },
   container: {
-    position: 'absolute',
-    flexDirection: 'row', // Align children horizontally
-    justifyContent: 'center', // Center the diamonds horizontally
-    alignItems: 'center', // Center the diamonds vertically
-    width: '100%',
-    zIndex: -12,
-    bottom: 25,
+    flex: 1,
+    //  position: 'relative',
+    backgroundColor: 'white',
   },
-
-  gradientRectangle: {
+  logoContainer: {
+    width: '100%',
+    height: 210,
     // position: 'absolute',
-
-    transform: [{ rotate: '46deg' }], // Rotate the rectangle
-    borderRadius: 5,
-    height: 102, // Assuming you want to fill from top to 70.71% of the container's height
-    width: 102, // Adjust width based on left and right values or set explicitly
+    zIndex: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backgroundImage: {
+    width: '100%',
+    height: 310,
+    position: 'absolute',
+    zIndex: 2,
+  },
+  formContainer: {
+    //  position: 'absolute',
+    // top: 170,
+    left: 0,
+    right: 0,
+    flex: 1,
+    zIndex: 20,
+  },
+  formBackground: {
+    flexGrow: 1,
+    backgroundColor: 'white',
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingTop: 10,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  signUpText: {
+    marginLeft: 20,
+    marginTop: 15,
+    fontSize: 32,
+    color: 'black',
   },
 })
+
 export default SignUpScreen

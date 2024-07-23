@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 const SvgComponent = (props: any) => {
   const { loggedUser } = useUser()
 
-  const color = loggedUser?.themeColor === 'light' ? 'black' : 'white'
+  const color = loggedUser?.themeColor === 'light' ? 'white' : 'white'
   return (
     <Svg
       width={125}

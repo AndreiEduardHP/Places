@@ -40,14 +40,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       backgroundColor: backgroundColorGrey,
       borderRadius: 10,
       marginHorizontal: 10,
-      marginTop: 5,
+      // marginTop: 0,
     },
     text: {
       color: textColor,
     },
     content: {
       paddingHorizontal: 20,
-      paddingVertical: 10,
+      paddingVertical: 5,
     },
     textContent: {
       justifyContent: 'center',
@@ -147,7 +147,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
             justifyContent: 'center',
             paddingRight: 10,
           }}>
-          <MaterialIcons name="arrow-forward-ios" size={22} color="#FFFFFF" />
+          <MaterialIcons name="arrow-forward-ios" size={22} color={textColor} />
         </View>
       )}
     </View>

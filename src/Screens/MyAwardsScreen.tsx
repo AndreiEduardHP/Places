@@ -6,6 +6,7 @@ import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import { useUser } from '../Context/AuthContext'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
+import BackAction from '../Components/Back'
 
 interface AwardProps {
   icon: any
@@ -75,7 +76,7 @@ const MyAwardsScreen: React.FC = () => {
     text: {
       fontSize: 32,
       fontWeight: '300',
-      marginHorizontal: 20,
+      //  marginHorizontal: 20,
       color: textColor,
     },
     textSecondary: {
@@ -127,7 +128,15 @@ const MyAwardsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.containerScroll}>
-        <Text style={styles.text}>My awards</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <BackAction
+            style={{
+              backgroundColor: 'white',
+              width: 26,
+              height: 26,
+            }}></BackAction>
+          <Text style={styles.text}>My awards</Text>
+        </View>
         <Text style={styles.textSecondary}>
           Awards you're close to earning or ones you already achived.
         </Text>

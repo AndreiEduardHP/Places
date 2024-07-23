@@ -41,15 +41,12 @@ const HomeScreen: React.FC = () => {
   const checkLoggedInStatus = async () => {
     try {
       const token = await AsyncStorage.getItem('token')
-      console.log(token)
       if (token) {
         const userProfileString = await AsyncStorage.getItem('loggedUser')
-        console.log(userProfileString)
         if (userProfileString) {
           const userProfile: Profile = JSON.parse(userProfileString)
           const token = (await Notifications.getExpoPushTokenAsync()).data
           updateNotificationToken(userProfile.id, token)
-          console.log(userProfile.phoneNumber)
           handleLogin(userProfile.phoneNumber)
           refreshData()
         } else {
@@ -68,7 +65,7 @@ const HomeScreen: React.FC = () => {
     checkLoggedInStatus()
   }, [])
   const styles = StyleSheet.create({
-    container: { backgroundColor: '#319DFC', flex: 1 },
+    container: { backgroundColor: backgroundColor, flex: 1 },
     headerContainer: {
       marginTop: -30,
     },
@@ -144,7 +141,7 @@ const HomeScreen: React.FC = () => {
     },
   })
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: backgroundColor }}>
       <ScrollView contentContainerStyle={styles.container}>
         <Image
           source={require('../../assets/aboutUsImage.jpg')}

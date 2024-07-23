@@ -8,7 +8,7 @@ export const useThemeColor = () => {
     backgroundColor: loggedUser?.themeColor === 'dark' ? 'black' : 'white',
     textColor: loggedUser?.themeColor === 'dark' ? 'white' : 'black',
     backgroundColorGrey:
-      loggedUser?.themeColor === 'dark' ? '#1C1C1E' : 'rgba(10,10,10,0.1)',
+      loggedUser?.themeColor === 'dark' ? '#1C1C1E' : 'rgba(210,210,210,1)',
   }
   return themeColors
 }

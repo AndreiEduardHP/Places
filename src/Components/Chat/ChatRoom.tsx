@@ -26,6 +26,8 @@ import { Icon } from 'react-native-vector-icons/Icon'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import { ImageConfig } from '../../config/imageConfig'
+import BackAction from '../Back'
+import axios from 'axios'
 
 interface Message {
   id: number
@@ -37,7 +39,7 @@ interface Message {
 }
 
 interface Props {
-  messages: Message[]
+  //messages: Message[]
   selectedRoom: number
   contact: string
   imageUri: string
@@ -78,7 +80,7 @@ async function sendPushNotification(
 }
 
 const ChatRoom: React.FC<Props> = ({
-  messages,
+  //messages,
   selectedRoom,
   contact,
   imageUri,
@@ -87,7 +89,7 @@ const ChatRoom: React.FC<Props> = ({
 }) => {
   const [messageInput, setMessageInput] = useState('')
   const [chatHubConnection, setChatHubConnection] = useState<any>()
-  const [messagesData, setMessagesData] = useState<Message[]>(messages)
+  const [messagesData, setMessagesData] = useState<Message[]>([])
   const [expoPushToken, setExpoPushToken] = useState<any>('')
   const [notification, setNotification] = useState<any>(false)
   const notificationListener = useRef<any>()
@@ -97,9 +99,16 @@ const ChatRoom: React.FC<Props> = ({
   const flatListRef = useRef<FlatList<Message>>(null)
   const { backgroundColor, textColor } = useThemeColor()
 
+  const [initialMessages, setInitialMessages] = useState<number>(40)
+
   useEffect(() => {
-    setMessagesData(processMessagesWithSeparators(messages))
-  }, [messages])
+    const fetchData = async () => {
+      const messages = await processMessagesWithSeparators(selectedRoom)
+      setMessagesData(messages)
+    }
+
+    fetchData()
+  }, [selectedRoom, initialMessages])
 
   const scrollToBottom = useCallback(() => {
     flatListRef.current?.scrollToEnd({ animated: true })
@@ -110,28 +119,50 @@ const ChatRoom: React.FC<Props> = ({
       scrollToBottom()
     }, 1500)
   }, [])
-
-  const processMessagesWithSeparators = (messages: Message[]) => {
+  const handleScroll = (event: {
+    nativeEvent: { contentOffset: { y: any } }
+  }) => {
+    const offsetY = event.nativeEvent.contentOffset.y
+    if (offsetY === 0) {
+      loadMoreMessages()
+    }
+  }
+  const processMessagesWithSeparators = async (
+    selectedRoom: number,
+  ): Promise<Message[]> => {
     const processedMessages: Message[] = []
     let lastDate = ''
 
-    messages.forEach((message) => {
-      const messageDate = new Date(message.timestamp).toDateString()
-      if (messageDate !== lastDate) {
-        lastDate = messageDate
-        processedMessages.push({
-          id: Date.now() + Math.random(), // unique id for the separator
-          text: messageDate,
-          chatId: selectedRoom,
-          dateSeparator: true,
-          senderId: message.senderId,
-          timestamp: message.timestamp,
-        })
-      }
-      processedMessages.push(message)
-    })
+    try {
+      const response = await axios.get(
+        `${config.BASE_URL}/api/chats/getChatMessages?chatId=${selectedRoom}&numberOfMessages=${initialMessages}`,
+      )
+      const messages: Message[] = response.data // presupunând că API-ul returnează un array de mesaje de tip Message
 
-    return processedMessages
+      messages.forEach((message) => {
+        const messageDate = new Date(message.timestamp).toDateString()
+        if (messageDate !== lastDate) {
+          lastDate = messageDate
+          processedMessages.push({
+            id: Date.now() + Math.random(), // unique id for the separator
+            text: messageDate,
+            chatId: selectedRoom,
+            dateSeparator: true,
+            senderId: message.senderId,
+            timestamp: message.timestamp,
+          })
+        }
+        processedMessages.push(message)
+      })
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+      // Poți trata eroarea aici în funcție de necesități (afișare unui mesaj de eroare, gestionarea erorilor etc.)
+    }
+
+    return processedMessages.sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    )
   }
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
@@ -168,6 +199,10 @@ const ChatRoom: React.FC<Props> = ({
       .then(() => setMessageInput(''))
       .catch((err: any) => console.error('Send message error: ', err))
   }
+  const loadMoreMessages = async () => {
+    console.log('scroll')
+    setInitialMessages(initialMessages + 10)
+  }
 
   type ItemProps = {
     item: {
@@ -202,7 +237,7 @@ const ChatRoom: React.FC<Props> = ({
           ]}>
           {item.text}
         </Text>
-        <Text>{selectedRoom}</Text>
+
         <Text style={[styles.timestamp]}>
           {formatDateAndTime(new Date(item.timestamp))}
         </Text>
@@ -221,17 +256,31 @@ const ChatRoom: React.FC<Props> = ({
       keyboardVerticalOffset={Platform.select({ ios: 75, android: 10 })}
       style={{ flex: 1, backgroundColor: backgroundColor }}>
       <View style={styles.header}>
-        <Image
-          source={
-            imageUri
-              ? { uri: ImageConfig.IMAGE_CONFIG + imageUri }
-              : require('../../../assets/DefaultUserIcon.png')
-          }
-          style={styles.profileImage}
-        />
-        <Text style={[styles.contactName, { color: textColor }]}>
-          {contact}
-        </Text>
+        <BackAction
+          style={{
+            backgroundColor: 'white',
+            width: 26,
+            height: 26,
+          }}></BackAction>
+        <View
+          style={{
+            flexDirection: 'row-reverse',
+            marginHorizontal: 5,
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+          }}>
+          <Image
+            source={
+              imageUri
+                ? { uri: ImageConfig.IMAGE_CONFIG + imageUri }
+                : require('../../../assets/DefaultUserIcon.png')
+            }
+            style={styles.profileImage}
+          />
+          <Text style={[styles.contactName, { color: textColor }]}>
+            {contact}
+          </Text>
+        </View>
       </View>
       <View style={{ flex: 1 }}>
         <FlatList
@@ -240,6 +289,8 @@ const ChatRoom: React.FC<Props> = ({
           renderItem={({ item }) => <Item item={item} />}
           keyExtractor={(item) => item.id.toString()}
           onLayout={scrollToBottom}
+          onScroll={handleScroll}
+          scrollEventThrottle={20} // Adjust as needed
         />
         <SafeAreaView
           edges={['bottom']}
@@ -322,7 +373,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-
+    justifyContent: 'space-between',
     alignItems: 'center',
 
     padding: 10,
@@ -341,14 +392,14 @@ const styles = StyleSheet.create({
     // transform: [{ matrix: [-1, 0, 0, 0, 1, 0, 0, 0, 1] }],
   },
   profileImage: {
-    width: 35,
-    height: 35,
+    width: 45,
+    height: 45,
     borderRadius: 20,
-    marginRight: 10,
+    marginHorizontal: 10,
   },
   contactName: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '400',
     color: 'white',
   },
 

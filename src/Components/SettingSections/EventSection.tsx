@@ -19,7 +19,7 @@ const EventSection: React.FC = () => {
       backgroundColor: backgroundColorGrey,
       borderRadius: 10,
       marginHorizontal: 10,
-      marginTop: 15,
+      marginTop: 10,
     },
     text: {
       color: textColor,
@@ -54,7 +54,7 @@ const EventSection: React.FC = () => {
         <TouchableOpacity
           style={styles.row}
           onPress={() => handleNavigation('EventsCreatedByMe')}>
-          <Icon name="event-available" size={30} color={textColor}></Icon>
+          <Icon name="event-note" size={30} color={textColor}></Icon>
           <Text style={styles.text}>{t('eventSection.myEvents')}</Text>
         </TouchableOpacity>
       </View>

@@ -11,6 +11,8 @@ import {
 import { config } from '../config/urlConfig'
 import { useNotification } from './Notification/NotificationProvider'
 import { useTranslation } from 'react-i18next'
+import { Overlay } from '@rneui/base'
+import { Button } from 'native-base'
 
 type Props = {
   onSubmit: (ticket: {
@@ -60,21 +62,20 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
 
   return (
     <View style={styles.centeredView}>
-      <TouchableOpacity
-        onPress={() => setModalVisible(true)}
-        style={styles.ticket}>
+      <Button onPress={() => setModalVisible(true)} style={styles.ticket}>
         <Text style={styles.ticketText}>
           {t('supportTicket.openTicketForm')}
         </Text>
-      </TouchableOpacity>
+      </Button>
 
-      <Modal
+      <Overlay
         animationType="slide"
         transparent={true}
-        visible={modalVisible}
+        isVisible={modalVisible}
         onRequestClose={() => {
           setModalVisible(!modalVisible)
-        }}>
+        }}
+        overlayStyle={{ backgroundColor: 'transparent' }}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.label}>{t('supportTicket.title')}</Text>
@@ -111,24 +112,24 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
 
             <View
               style={{
-                flexDirection: 'row',
+                //flexDirection: 'row',
                 justifyContent: 'space-evenly',
                 marginTop: 20,
               }}>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonClose]}
-                onPress={() => setModalVisible(!modalVisible)}>
-                <Text style={styles.textStyle}>{t('buttons.close')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonClose]}
+              <Button
+                style={[styles.buttonClose]}
                 onPress={() => handleSubmit()}>
                 <Text style={styles.textStyle}>{t('buttons.submit')}</Text>
-              </TouchableOpacity>
+              </Button>
+              <Button
+                style={[styles.buttonClose, { marginTop: 10 }]}
+                onPress={() => setModalVisible(!modalVisible)}>
+                <Text style={styles.textStyle}>{t('buttons.close')}</Text>
+              </Button>
             </View>
           </View>
         </View>
-      </Modal>
+      </Overlay>
     </View>
   )
 }
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: 'rgba(255,255,255,0.5)',
     borderWidth: 1,
-    borderRadius: 20,
+    //borderRadius: 20,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -165,10 +166,11 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   modalView: {
-    margin: '30%',
+    // margin: '30%',
     backgroundColor: 'white',
-    borderRadius: 20,
+    borderRadius: 10,
     padding: 35,
+
     // alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -197,8 +199,8 @@ const styles = StyleSheet.create({
   },
   label: {
     marginVertical: 8,
-    fontSize: 16,
-    fontWeight: '400',
+    fontSize: 26,
+    fontWeight: '300',
   },
   input: {
     borderWidth: 1,
@@ -207,7 +209,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 7,
 
-    width: 250,
+    width: 300,
   },
 })
 

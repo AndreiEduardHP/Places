@@ -17,6 +17,9 @@ import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants'
 import { MapMarker } from 'react-native-maps'
 import * as Location from 'expo-location'
+import { Platform } from 'react-native'
+
+import * as Device from 'expo-device'
 
 export interface Profile {
   id: number
@@ -92,6 +95,47 @@ export interface FriendRequest {
   requestId: number
   senderName: string
   requestDate: string
+}
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+})
+
+async function registerForPushNotificationsAsync() {
+  let token
+
+  if (Platform.OS === 'android') {
+    Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    })
+  }
+
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync()
+    let finalStatus = existingStatus
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync()
+      finalStatus = status
+    }
+    if (finalStatus !== 'granted') {
+      alert('Failed to get push token for push notification!')
+      return
+    }
+    token = await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas.projectId,
+    })
+    //console.log(token)
+  } else {
+    alert('Must use physical device for Push Notifications')
+  }
+
+  return token?.data
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
@@ -296,7 +340,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   }
 
   const handleLogout = () => {
-    updateUserNotificationToken(loggedUser?.id, 'disconnected')
+    if (loggedUser) {
+      updateUserNotificationToken(loggedUser?.id, 'disconnected')
+    }
+
     setLoggedUser(null)
     setToken(null)
     AsyncStorage.removeItem('loggedUser')
@@ -352,6 +399,28 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       fetchFriendRequests()
     }
   }, [loggedUser, token])
+  useEffect(() => {
+    // Înregistrează pentru notificări
+    registerForPushNotificationsAsync()
+
+    // Handle notification responses
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const data = response.notification.request.content.data
+        console.log(data)
+        handleNavigation('Chat', data)
+      },
+    )
+
+    // Verifică dacă există notificări inițiale
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response && response.notification.request.content.data) {
+        const data = response.notification.request.content.data
+      }
+    })
+
+    return () => subscription.remove()
+  }, [])
 
   return (
     <UserContext.Provider

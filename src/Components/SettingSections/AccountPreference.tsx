@@ -14,6 +14,7 @@ import axios from 'axios'
 import RNPickerSelect from 'react-native-picker-select'
 import i18n from '../../TranslationFiles/i18n'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
+import BackAction from '../Back'
 
 const AccountPreference: React.FC = () => {
   const { t } = useTranslation()
@@ -95,6 +96,7 @@ const AccountPreference: React.FC = () => {
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <View style={styles.row}>
             <Icon name="nights-stay" size={30} color={textColor}></Icon>
+
             <Text style={styles.text}>{t('accountPreference.darkMode')}</Text>
           </View>
 

@@ -38,6 +38,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { remoteImages } from '../AzureImages/Images'
 import ParticipantsListContainer from '../Components/EventParticipants'
 import { Button, Card, Overlay, SearchBar } from '@rneui/base'
+import BackAction from '../Components/Back'
 
 interface Event {
   id: number
@@ -138,7 +139,7 @@ const EventsCreatedByMe: React.FC = () => {
     //console.log(parsedData.userid)
     // console.log(selectedEvent)
     try {
-      const apiUrl = `${config.BASE_URL}/api/userprofileevent/checkIfUserJoined?eventId=${selectedEvent}&userId=${parsedData.userid}`
+      const apiUrl = `${config.BASE_URL}/api/userprofileevent/scanQr?eventId=${selectedEvent}&userId=${parsedData.userid}`
       const response = await axios.get(apiUrl)
 
       if (response.data) {
@@ -348,7 +349,7 @@ const EventsCreatedByMe: React.FC = () => {
     modalView: {
       margin: 10,
       backgroundColor: 'white',
-      borderRadius: 20,
+      borderRadius: 10,
       padding: 20,
       alignItems: 'center',
       shadowColor: '#000',
@@ -435,7 +436,7 @@ const EventsCreatedByMe: React.FC = () => {
     text: {
       fontSize: 32,
       fontWeight: '300',
-      marginHorizontal: 10,
+      // marginHorizontal: 10,
       color: textColor,
     },
     content: {
@@ -472,7 +473,7 @@ const EventsCreatedByMe: React.FC = () => {
     },
   })
   return isLoading ? (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: backgroundColor }}>
       <View style={{ flex: 1 }}>
         <LoadingComponent />
       </View>
@@ -505,7 +506,13 @@ const EventsCreatedByMe: React.FC = () => {
     </View>
   ) : (
     <View style={styles.container}>
-      <Text style={styles.text}>Events Created By me</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <BackAction
+          style={{ backgroundColor: 'white', width: 26, height: 26 }}
+        />
+        <Text style={styles.text}>Events Created By me</Text>
+      </View>
+
       <View
         style={{
           marginHorizontal: 5,
@@ -606,7 +613,7 @@ const EventsCreatedByMe: React.FC = () => {
                 onPress={async () => {
                   setIsModalVisible(!isModalVisible)
                 }}>
-                <Icon name="close" size={26} color="white" />
+                <Icon name="close" size={22} color="white" />
               </Button>
             </View>
             <View
@@ -632,13 +639,14 @@ const EventsCreatedByMe: React.FC = () => {
         </View>
       </Overlay>
 
-      <Modal
+      <Overlay
         animationType="slide"
         transparent={true}
-        visible={isDeleteModalVisible}
+        isVisible={isDeleteModalVisible}
         onRequestClose={() => {
           setIsDeleteModalVisible(!isDeleteModalVisible)
-        }}>
+        }}
+        overlayStyle={{ backgroundColor: 'transparent' }}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <View style={styles.modalHeader}>
@@ -673,11 +681,32 @@ const EventsCreatedByMe: React.FC = () => {
                 width: '100%',
               }}>
               <View>
-                <Text>Event details</Text>
-                <Text>Event id:{event?.id}</Text>
-                <Text>Event Name:{event?.eventName}</Text>
-                <Text>Event Description:{event?.eventDescription}</Text>
-                <Text>Event Max Participants:{event?.maxParticipants}</Text>
+                <Text style={[styles.title, { fontSize: 26 }]}>
+                  Event details
+                </Text>
+                <Text style={[styles.title, { marginTop: 10 }]}>
+                  Event id:{event?.id}
+                </Text>
+                <Text style={styles.title}>Event Name:{event?.eventName}</Text>
+                <Text style={styles.title}>
+                  Event Description:{event?.eventDescription}
+                </Text>
+                <Text style={styles.title}>
+                  Event Max Participants:{event?.maxParticipants}
+                </Text>
+                <Text style={styles.title}>
+                  Event Location: {event?.locationDetails}
+                </Text>
+                <Image
+                  style={[styles.eventImage, { marginTop: 20 }]}
+                  source={
+                    event?.eventImage
+                      ? {
+                          uri: event?.eventImage,
+                        }
+                      : { uri: remoteImages.partyImage }
+                  }
+                />
               </View>
               <Button
                 buttonStyle={{
@@ -703,7 +732,7 @@ const EventsCreatedByMe: React.FC = () => {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </Overlay>
       <FooterNavbar currentRoute={''} />
     </View>
   )

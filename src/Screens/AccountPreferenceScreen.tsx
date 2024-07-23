@@ -11,6 +11,7 @@ import { useNotification } from '../Components/Notification/NotificationProvider
 
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import AccountPreference from '../Components/SettingSections/AccountPreference'
+import BackAction from '../Components/Back'
 
 const AccountPreferenceScreen: React.FC = () => {
   const { t } = useTranslation()
@@ -27,7 +28,7 @@ const AccountPreferenceScreen: React.FC = () => {
     text: {
       fontSize: 32,
       fontWeight: '300',
-      marginHorizontal: 20,
+      // marginHorizontal: 20,
       color: textColor,
     },
     content: {
@@ -65,11 +66,15 @@ const AccountPreferenceScreen: React.FC = () => {
   })
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.container}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <BackAction
+          style={{ backgroundColor: 'white', width: 26, height: 26 }}
+        />
         <Text style={styles.text}>
           {t('accountPreferenceScreen.accountPreference')}
         </Text>
-
+      </View>
+      <ScrollView style={styles.container}>
         <AccountPreference></AccountPreference>
       </ScrollView>
       <FooterNavbar currentRoute={''}></FooterNavbar>

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   StyleSheet,
   TextInput,
@@ -29,16 +29,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { config } from '../config/urlConfig'
 import SegmentedCodeInput from './SegmentedInput'
 import { Box, Menu, Pressable } from 'native-base'
-
-const firebaseConfig = {
-  apiKey: 'AIzaSyDK6l7L56LB6nkpTnqE_GK_-FqPE55QVUE',
-  authDomain: 'places-a28da.firebaseapp.com',
-  projectId: 'places-a28da',
-  storageBucket: 'places-a28da.appspot.com',
-  messagingSenderId: '471105680442',
-  appId: '1:471105680442:web:844ff5c1f250a6e9e4b103',
-  measurementId: 'G-98XG6SNW8N',
-}
+import getCountryCode from '../Utils.tsx/GetCountryCode'
+import { auth, app, firebaseConfig } from '../Utils.tsx/Firebase'
 
 const countries = [
   { label: 'United States', value: 'usa' },
@@ -63,8 +55,7 @@ const LogInForm: React.FC = () => {
   const [verificationId, setVerificationId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const handleNavigation = useHandleNavigation()
-  const app = initializeApp(firebaseConfig)
-  const auth = getAuth(app)
+
   const [country, setCountry] = useState<string>('ro')
   const [flagSource, setFlagSource] = useState(countryData.ro.flag) // Default flag
   const [phonePrefix, setPhonePrefix] = useState(countryData.ro.prefix)
@@ -74,9 +65,39 @@ const LogInForm: React.FC = () => {
 
   const { showNotificationMessage } = useNotification()
 
+  useEffect(() => {
+    const fetchCountryCode = async () => {
+      const code: any = await getCountryCode()
+      const countryInfo = countryData[code as CountryCode]
+
+      if (countryInfo) {
+        setCountry(code)
+        setFlagSource(countryInfo.flag)
+        setPhonePrefix(countryInfo.prefix)
+      }
+    }
+
+    fetchCountryCode()
+  }, [])
+  useEffect(() => {
+    const originalConsoleError = console.error
+
+    console.error = (...args: any[]) => {
+      if (typeof args[0] === 'string' && /defaultProps/.test(args[0])) {
+        return
+      }
+
+      originalConsoleError(...args)
+    }
+
+    return () => {
+      console.error = originalConsoleError
+    }
+  }, [])
+
   const onLoginPress = async (phoneNumber: string) => {
     try {
-      await handleLogin(phoneNumber)
+      await handleLogin(0 + phoneNumber)
       setIsLoading(false)
     } catch (error) {
       console.error('Login Error:', error)
@@ -84,9 +105,10 @@ const LogInForm: React.FC = () => {
   }
 
   const sendVerification = async () => {
+    console.log(0 + phoneNumber)
     try {
       const response = await axios.get(
-        `${config.BASE_URL}/api/userprofile/checkifphonenumberexists?phoneNumber=${phoneNumber}`,
+        `${config.BASE_URL}/api/userprofile/checkifphonenumberexists?phoneNumber=${0 + phoneNumber}`,
       )
 
       if (response.status == 200) {
@@ -147,12 +169,12 @@ const LogInForm: React.FC = () => {
       setCountry(value)
       setFlagSource(countryInfo.flag)
       setPhonePrefix(countryInfo.prefix)
-      console.log(countryInfo.prefix)
     }
   }
   if (isLoading) {
     return <LoadingComponent />
   }
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
@@ -246,7 +268,7 @@ const LogInForm: React.FC = () => {
                 <TextInput
                   placeholder={
                     //  { phonePrefix }.phonePrefix + t('logInScreen.phoneNumber')
-                    '721221122'
+                    '721 221 122'
                   }
                   value={phoneNumber}
                   keyboardType="phone-pad"
@@ -266,7 +288,7 @@ const LogInForm: React.FC = () => {
 
               <TouchableOpacity
                 onPress={sendVerification}
-                //   onPress={() => handleLogin(phoneNumber)}
+                //  onPress={() => handleLogin(phoneNumber)}
                 disabled={isFormComplete}>
                 <LinearGradient
                   colors={['#5151C6', '#888BF4']}

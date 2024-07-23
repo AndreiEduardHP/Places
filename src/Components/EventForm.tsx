@@ -28,6 +28,8 @@ import { ScrollView } from 'react-native-gesture-handler'
 import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
 import { useTranslation } from 'react-i18next'
 import Checkbox from 'expo-checkbox'
+import { interests } from '../Utils.tsx/Interests/Interests'
+import { CheckBox } from '@rneui/base'
 
 interface EditFormProps {
   latitude?: number
@@ -35,24 +37,7 @@ interface EditFormProps {
   onEventAdded?: () => void
   setAddNewEvent: React.Dispatch<React.SetStateAction<boolean>>
 }
-const interests = [
-  'Travel and Adventure',
-  'Music',
-  'Food and Cooking',
-  'Sports and Fitness',
-  'Technology and Gadgets',
-  'Reading and Literature',
-  'Gaming and eSports',
-  'Movies and Television',
-  'Art and Culture',
-  'Nature and Environment',
-  'Science and Space',
-  'Fashion and Beauty',
-  'Photography and Videography',
-  'Social Media and Blogging',
-  'Health and Wellness',
-  'Business and Entrepreneurship',
-]
+
 const EditForm: React.FC<EditFormProps> = ({
   latitude,
   longitude,
@@ -62,13 +47,14 @@ const EditForm: React.FC<EditFormProps> = ({
   const [date, setDate] = useState(new Date('2024-02-09T00:50:00+00:00'))
   const { loggedUser, refreshData } = useUser()
   const { showNotificationMessage } = useNotification()
+  const [checkFunctionality, setCheckFunctionality] = useState(false)
   const [formData, setFormData] = useState({
     otherRelevantInformation: '',
     eventName: '',
     eventDescription: '',
     eventImage: '',
     interest: '',
-    checkFunctionality: false,
+    checkFunctionality: checkFunctionality,
     eventTime: new Date(),
     locationLatitude: latitude ? latitude.toString() : '',
     locationLongitude: longitude ? longitude.toString() : '',
@@ -83,6 +69,7 @@ const EditForm: React.FC<EditFormProps> = ({
 
   const [formComplete, setFormComplete] = useState<boolean>(false)
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false)
+
   const [isPickerVisible, setPickerVisible] = useState(false)
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
 
@@ -158,6 +145,7 @@ const EditForm: React.FC<EditFormProps> = ({
 
   const createEvent = async () => {
     formData.eventTime = date
+    formData.checkFunctionality = checkFunctionality
     formData.interest = selectedInterests.join(',')
     console.log(formData.interest)
     try {
@@ -339,12 +327,12 @@ const EditForm: React.FC<EditFormProps> = ({
                 <ScrollView>
                   {interests.map((interest, index) => (
                     <View key={index} style={styles.checkboxContainer}>
-                      <Checkbox
-                        value={selectedInterests.includes(interest)}
-                        onValueChange={() => handleSelectInterest(interest)}
-                        style={styles.checkbox}
+                      <CheckBox
+                        checked={selectedInterests.includes(interest)}
+                        onPress={() => handleSelectInterest(interest)}
+                        //  style={styles.checkbox}
+                        title={interest}
                       />
-                      <Text style={styles.label}>{interest}</Text>
                     </View>
                   ))}
                 </ScrollView>
@@ -374,8 +362,11 @@ const EditForm: React.FC<EditFormProps> = ({
             onPress={() => setPickerVisible(true)}>
             <View>
               <Text numberOfLines={4} style={{ color: 'black', fontSize: 22 }}>
-                {'Selected interest: ' +
-                  (selectedInterests || 'Select Interest')}
+                Selected interest:
+                <Text style={{ fontWeight: 300, fontSize: 18 }}>
+                  {' '}
+                  {selectedInterests || 'Select Interest'}
+                </Text>
               </Text>
             </View>
           </TouchableWithoutFeedback>
@@ -386,6 +377,7 @@ const EditForm: React.FC<EditFormProps> = ({
                   fontSize: 12,
                   fontWeight: '500',
                   marginTop: 5,
+                  paddingHorizontal: 10,
                   color: 'black',
                 }}>
                 {t('signUpScreen.noteSelections')}
@@ -418,6 +410,12 @@ const EditForm: React.FC<EditFormProps> = ({
             />
           )}
           <View style={{ marginVertical: 10 }}></View>
+          <CheckBox
+            center
+            title="Enable check functionality for this event?"
+            checked={checkFunctionality}
+            onPress={() => setCheckFunctionality(!checkFunctionality)}
+          />
           <TermsAndConditions
             accepted={termsAccepted}
             onToggle={() => {
@@ -453,7 +451,7 @@ const EditForm: React.FC<EditFormProps> = ({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    margin: 10,
+    margin: 4,
     flex: 1,
   },
   inputInterest: {
@@ -469,7 +467,7 @@ const styles = StyleSheet.create({
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    // marginBottom: 10,
   },
   centeredView: {
     flex: 1,
@@ -488,6 +486,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.25,
     shadowRadius: 4,
+    height: 700,
     // elevation: 5,
   },
   picker: {

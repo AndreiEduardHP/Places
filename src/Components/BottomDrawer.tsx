@@ -8,11 +8,13 @@ import {
   Platform,
   PanResponder,
   KeyboardAvoidingView,
+  Dimensions,
 } from 'react-native'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Container } from 'native-base'
+import { StatusBar } from 'react-native'
 
 interface BottomDrawerProps {
   children: React.ReactNode
@@ -29,16 +31,23 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
 }) => {
   const translateY = useRef(new Animated.Value(0)).current
   const animatedHeight = useRef(new Animated.Value(0)).current
-  const [currentHeight, setCurrentHeight] = useState(800)
+  const screenHeight = Dimensions.get('window').height
+  const statusBarHeight =
+    Platform.OS === 'android' && StatusBar.currentHeight
+      ? StatusBar.currentHeight
+      : 40
+  const usableScreenHeight = screenHeight - statusBarHeight
+  const [currentHeight, setCurrentHeight] = useState(usableScreenHeight)
   const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
-
+  console.log('uh' + usableScreenHeight)
+  console.log('ch' + currentHeight)
   useEffect(() => {
     if (visible) {
-      animatedHeight.setValue(800)
-      setCurrentHeight(800)
+      animatedHeight.setValue(usableScreenHeight)
+      setCurrentHeight(usableScreenHeight)
     }
     Animated.timing(translateY, {
-      toValue: visible ? 60 : currentHeight,
+      toValue: visible ? (Platform.OS === 'android' ? 20 : 50) : currentHeight,
       duration: 500,
       useNativeDriver: false,
     }).start()
@@ -55,11 +64,11 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
 
         // Allow dragging down to set height to 100
         if (gestureState.dy > 100 && currentHeight > 100) {
-          nextHeight = 100
+          nextHeight = 201
         }
 
         // Set initial height if drawer dragged up
-        if (gestureState.dy < -100 && currentHeight < currentHeight) {
+        if (gestureState.dy < -100 && currentHeight) {
           nextHeight = currentHeight
         }
 
@@ -77,6 +86,7 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      zIndex: 29,
     },
     header: {
       flexDirection: 'row',
@@ -85,8 +95,9 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
       borderBottomWidth: 1,
     },
     drawerContainer: {
-      position: 'absolute',
-      zIndex: 220,
+      ...Platform.select({ ios: { position: 'absolute' } }),
+
+      zIndex: 2222,
       bottom: 0,
       left: 0,
       right: 0,
@@ -96,10 +107,10 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
       borderTopRightRadius: 20,
       ...Platform.select({
         ios: {
-          shadowColor: 'black',
-          shadowOffset: { width: 0, height: -5 },
-          shadowOpacity: 1,
-          shadowRadius: 1,
+          //   shadowColor: 'black',
+          //   shadowOffset: { width: 0, height: -5 },
+          //   shadowOpacity: 1,
+          //  shadowRadius: 1,
         },
       }),
       // overflow: 'hidden',

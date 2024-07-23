@@ -84,7 +84,9 @@ const DefaultScreen: React.FC = () => {
       const token = await AsyncStorage.getItem('token')
       if (token) {
         const userProfileString = await AsyncStorage.getItem('loggedUser')
+        console.log(userProfileString)
         if (userProfileString) {
+          console.log('Dc ajunge aici')
           const userProfile: Profile = JSON.parse(userProfileString)
           const token = (await Notifications.getExpoPushTokenAsync()).data
           updateNotificationToken(userProfile.id, token)

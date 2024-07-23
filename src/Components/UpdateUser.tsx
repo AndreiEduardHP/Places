@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, TouchableOpacity } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  TouchableWithoutFeedback,
+} from 'react-native'
 import axios from 'axios'
 import { Profile, useUser } from '../Context/AuthContext'
 import { config } from '../config/urlConfig'
@@ -9,8 +16,11 @@ import { useTranslation } from 'react-i18next'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Button } from '@rneui/base'
 import { Text } from '@rneui/themed'
+import { CheckBox } from '@rneui/base'
 import { DefaultTheme, PaperProvider, TextInput } from 'react-native-paper'
 import { DarkTheme } from '@react-navigation/native'
+import { validateEmail } from '../Utils.tsx/EmailValidation'
+import { interests } from '../Utils.tsx/Interests/Interests'
 
 interface UserProfileDto {
   Id?: number
@@ -33,6 +43,9 @@ const UserProfileForm: React.FC = () => {
   const { showNotificationMessage } = useNotification()
   const { textColor, backgroundColor } = useThemeColor()
   const { t } = useTranslation()
+  const [isPickerVisible, setPickerVisible] = useState(false)
+  const [showNewInterest, setShowNewInterest] = useState(false)
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const theme = {
     ...DefaultTheme,
     roundness: 16,
@@ -58,6 +71,9 @@ const UserProfileForm: React.FC = () => {
       updateField('PhoneNumber', loggedUser?.phoneNumber)
       updateField('Email', loggedUser?.email)
       updateField('City', loggedUser?.city)
+      if (loggedUser?.interest) {
+        setSelectedInterests(loggedUser.interest.split(', '))
+      }
     }
   }, [])
 
@@ -65,6 +81,11 @@ const UserProfileForm: React.FC = () => {
     if (loggedUser?.id) {
       try {
         const updatePayload = { ...userProfile, Id: loggedUser.id }
+        updatePayload.Username = updatePayload.FirstName
+          ? updatePayload.FirstName +
+            (updatePayload.LastName ? updatePayload.LastName?.charAt(0) : '')
+          : 'UserName'
+        updatePayload.Interest = selectedInterests.join(', ')
         const url = `${config.BASE_URL}/api/userprofile/${loggedUser.id}`
         await axios.put(url, updatePayload, {
           headers: {
@@ -78,6 +99,15 @@ const UserProfileForm: React.FC = () => {
       }
     } else {
       showNotificationMessage('User ID is undefined', 'fail')
+    }
+  }
+  const handleSelectInterest = (interest: any) => {
+    if (selectedInterests.includes(interest)) {
+      setSelectedInterests(
+        selectedInterests.filter((item) => item !== interest),
+      )
+    } else {
+      setSelectedInterests([...selectedInterests, interest])
     }
   }
 
@@ -101,7 +131,7 @@ const UserProfileForm: React.FC = () => {
       color: 'red',
     },
     button: {
-      marginTop: 'auto',
+      marginTop: 20,
       marginBottom: 10,
     },
     buttonContent: {
@@ -123,6 +153,45 @@ const UserProfileForm: React.FC = () => {
       marginBottom: 8,
       marginTop: 2,
       borderRadius: 20,
+    },
+    centeredView: {
+      flex: 1,
+      width: '100%',
+
+      height: 650,
+      padding: 0,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+      borderRadius: 10,
+      justifyContent: 'center',
+    },
+    modalView: {
+      margin: 10,
+      backgroundColor: 'white',
+      borderRadius: 20,
+      padding: 25,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      height: 600,
+      // elevation: 5,
+    },
+    checkbox: {
+      marginRight: 8,
+    },
+    checkboxContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    inputInterest: {
+      justifyContent: 'center',
+      width: 375,
+      height: 40,
+      margin: 4,
+      borderRadius: 10,
+      borderColor: 'black',
+      borderWidth: 1,
+      paddingHorizontal: 15,
     },
   })
 
@@ -157,7 +226,7 @@ const UserProfileForm: React.FC = () => {
           outlineColor={textColor}
           selectionColor={textColor}
         />
-        <TextInput
+        {/*  <TextInput
           mode="outlined"
           label={t('updateUser.userName')}
           placeholder={t('updateUser.userName')}
@@ -169,7 +238,7 @@ const UserProfileForm: React.FC = () => {
           cursorColor={textColor}
           outlineColor={textColor}
           selectionColor={textColor}
-        />
+        />*/}
         <TextInput
           mode="outlined"
           label={t('updateUser.phoneNumber')}
@@ -182,6 +251,7 @@ const UserProfileForm: React.FC = () => {
           cursorColor={textColor}
           outlineColor={textColor}
           selectionColor={textColor}
+          keyboardType="numeric"
         />
         <TextInput
           mode="outlined"
@@ -193,7 +263,9 @@ const UserProfileForm: React.FC = () => {
           placeholderTextColor={textColor}
           textColor={textColor}
           cursorColor={textColor}
-          outlineColor={textColor}
+          outlineColor={
+            validateEmail(userProfile.Email ?? '') ? textColor : 'red'
+          }
           selectionColor={textColor}
         />
         <TextInput
@@ -209,19 +281,89 @@ const UserProfileForm: React.FC = () => {
           outlineColor={textColor}
           selectionColor={textColor}
         />
-        <TextInput
-          mode="outlined"
-          label={t('updateUser.interest')}
-          placeholder={t('updateUser.interest')}
-          value={userProfile.Interest}
-          onChangeText={(text) => updateField('Interest', text)}
-          style={styles.input}
-          placeholderTextColor={textColor}
-          textColor={textColor}
-          cursorColor={textColor}
-          outlineColor={textColor}
-          selectionColor={textColor}
-        />
+        <TouchableWithoutFeedback
+          style={styles.inputInterest}
+          onPress={() => {
+            setPickerVisible(true)
+            setShowNewInterest(true)
+          }}>
+          <View>
+            <Text
+              numberOfLines={2}
+              style={{ color: '#266EC3', paddingHorizontal: 7 }}>
+              Selected interest:{' '}
+              <Text style={{ color: '#266EC3' }}>{loggedUser?.interest}</Text>
+            </Text>
+            {showNewInterest && (
+              <Text
+                style={{
+                  color: textColor,
+                  paddingHorizontal: 7,
+                  paddingTop: 10,
+                }}>
+                New Interests: {selectedInterests.join(', ')}
+              </Text>
+            )}
+          </View>
+        </TouchableWithoutFeedback>
+        <View style={{ alignItems: 'center' }}>
+          {selectedInterests.length > 0 || loggedUser?.interest !== ' ' ? (
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '300',
+                marginTop: 5,
+                paddingHorizontal: 5,
+                color: textColor,
+              }}>
+              {t('signUpScreen.noteSelections')}
+            </Text>
+          ) : null}
+        </View>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isPickerVisible}
+          onRequestClose={() => setPickerVisible(false)}>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={{ fontSize: 24, marginBottom: 20 }}>
+                {t('signUpScreen.selectMinimumOneInterest')}
+              </Text>
+              <ScrollView>
+                {interests.map((interest, index) => (
+                  <View key={index} style={styles.checkboxContainer}>
+                    <CheckBox
+                      // value={selectedInterests.includes(interest)}
+                      onPress={() => handleSelectInterest(interest)}
+                      style={styles.checkbox}
+                      title={interest}
+                      checked={selectedInterests.includes(interest)}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'black',
+                  borderRadius: 10,
+                  width: 80,
+                  alignItems: 'center',
+                }}
+                onPress={() => setPickerVisible(false)}>
+                <Text
+                  style={{
+                    color: 'white',
+                    fontSize: 18,
+                    padding: 5,
+                  }}>
+                  {t('buttons.save')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
         <Button
           buttonStyle={{ backgroundColor: textColor, borderRadius: 10 }}
           onPress={handleUpdate}

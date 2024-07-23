@@ -7,6 +7,7 @@ import {
   FlatList,
   Platform,
   Modal,
+  ScrollView,
 } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { ImageConfig } from '../config/imageConfig'
@@ -25,6 +26,7 @@ import axios from 'axios'
 import { Card, Paragraph, Title } from 'react-native-paper'
 import LineComponent from './LineComponent'
 import { remoteImages } from '../AzureImages/Images'
+import { interests } from '../Utils.tsx/Interests/Interests'
 
 type Person = {
   friendRequestStatus: string
@@ -379,7 +381,7 @@ const Item: React.FC<ItemProps> = ({
 
             width: 210,
           }}
-          onPress={() => onConnect}>
+          onPress={onConnect}>
           {friendRequestStatus === 'Accepted'
             ? t('peopleCard.message')
             : friendRequestStatus === 'Pending'
@@ -412,16 +414,6 @@ const PeopleCard: React.FC = () => {
   const [distance, setDistance] = useState(5)
   const [filterFriendRequestStatus, setFilterFriendRequestStatus] =
     useState(false)
-
-  const interests = [
-    'Movies and Television',
-    'Art and Culture',
-    'Sports',
-    'Music',
-    'Technology',
-    'Food and Drink',
-    'Idk',
-  ]
 
   useEffect(() => {
     fetchData()
@@ -509,11 +501,12 @@ const PeopleCard: React.FC = () => {
     friendRequestStatus: string,
     personId: number,
   ) => {
+    console.log(friendRequestStatus, personId)
     if (friendRequestStatus === 'Pending') {
       showNotificationMessage('Friend request is already pending.', 'neutral')
     } else if (friendRequestStatus === 'Accepted') {
       const chatId = await retrieveChatId(personId)
-
+      console.log(chatId)
       handleNavigation('Chat', { chatId: chatId })
     } else {
       handleConnect(personId)
@@ -652,19 +645,23 @@ const PeopleCard: React.FC = () => {
     modalContainer: {
       flex: 1,
       justifyContent: 'center',
-      alignItems: 'center',
+      //  alignItems: 'center',
+      //  marginHorizontal: 20,
       backgroundColor: 'rgba(0,0,0,0.5)',
     },
     modalContent: {
-      width: 300,
-      padding: 20,
+      width: '100%',
+
+      height: 650,
+      padding: 0,
       backgroundColor: 'white',
       borderRadius: 10,
-      alignItems: 'center',
+      //  alignItems: 'center',
     },
     modalOption: {
       fontSize: 18,
-      marginVertical: 10,
+      color: 'white',
+      //  marginVertical: 10,
     },
     card: {
       margin: 10,
@@ -707,7 +704,7 @@ const PeopleCard: React.FC = () => {
     checkboxWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginVertical: 5,
+      //  marginTop: 5,
     },
     checkbox: {
       backgroundColor: 'transparent',
@@ -782,41 +779,7 @@ const PeopleCard: React.FC = () => {
           />
         </TouchableOpacity>
       </View>
-      <Modal
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => setIsModalVisible(false)}
-        animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text>
-              Select the radius within which events should be displayed.
-            </Text>
-            <ButtonGroup
-              selectedButtonStyle={{ backgroundColor: 'black' }}
-              buttons={['10Km', '50Km', 'All']}
-              selectedIndex={selectedIndex}
-              onPress={(value) => {
-                setSelectedIndex(value)
-                setDistance(
-                  value == 0
-                    ? 10
-                    : value == 1
-                      ? 50
-                      : value == 2
-                        ? 100000000000
-                        : 999999,
-                )
-                setIsModalVisible(false)
-              }}
-              containerStyle={{ marginBottom: 20 }}
-            />
-            <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-              <Text style={styles.modalOption}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+
       <Modal
         transparent={true}
         visible={isInterestModalVisible}
@@ -824,36 +787,44 @@ const PeopleCard: React.FC = () => {
         animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text>Select interests:</Text>
-            <View style={styles.checkboxContainer}>
-              {interests.map((interest) => (
-                <View key={interest} style={styles.checkboxWrapper}>
-                  <CheckBox
-                    title={interest}
-                    checked={selectedInterests.includes(interest)}
-                    onPress={() => toggleInterest(interest)}
-                    containerStyle={styles.checkbox}
-                  />
-                </View>
-              ))}
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginVertical: 10,
+            <Text style={[styles.title, { color: 'black' }]}>
+              Select interests:
+            </Text>
+            <ScrollView contentContainerStyle={{}}>
+              <View style={styles.checkboxContainer}>
+                {interests.map((interest) => (
+                  <View key={interest} style={styles.checkboxWrapper}>
+                    <CheckBox
+                      title={interest}
+                      checked={selectedInterests.includes(interest)}
+                      onPress={() => toggleInterest(interest)}
+                      containerStyle={styles.checkbox}
+                    />
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+            <Text
+              style={[
+                styles.title,
+                { color: 'black', fontSize: 24, fontWeight: '400' },
+              ]}>
+              More Filters
+            </Text>
+            <CheckBox
+              title="Show only accepted friends"
+              checked={filterFriendRequestStatus}
+              onPress={toggleFriendRequestStatusFilter}
+              containerStyle={styles.checkbox}
+            />
+            <Button
+              onPress={() => setIsInterestModalVisible(false)}
+              buttonStyle={{
+                backgroundColor: 'black',
+                margin: 20,
               }}>
-              <CheckBox
-                title="Show only accepted friends"
-                checked={filterFriendRequestStatus}
-                onPress={toggleFriendRequestStatusFilter}
-                containerStyle={styles.checkbox}
-              />
-            </View>
-            <TouchableOpacity onPress={() => setIsInterestModalVisible(false)}>
               <Text style={styles.modalOption}>Close</Text>
-            </TouchableOpacity>
+            </Button>
           </View>
         </View>
       </Modal>

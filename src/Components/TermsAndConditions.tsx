@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
+import { CheckBox } from '@rneui/base'
 
 interface Props {
   accepted: boolean
@@ -28,12 +29,13 @@ const TermsAndConditions: React.FC<Props> = ({
   const { t } = useTranslation()
   return (
     <View style={styles.container}>
-      <Checkbox
-        value={accepted}
-        onValueChange={onToggle}
-        style={styles.checkbox}
+      <CheckBox
+        checked={accepted}
+        onPress={onToggle}
+        // style={styles.checkbox}
         //  disabled={checkBoxEnabled}
       />
+
       <TouchableOpacity
         onPress={() => {
           setModalVisible(true)
@@ -137,8 +139,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 20,
-    marginHorizontal: 10,
-    marginBottom: 10,
+    // marginHorizontal: 10,
+    // marginBottom: 10,
   },
   textAgree: { fontSize: 20 },
   textTerms: {

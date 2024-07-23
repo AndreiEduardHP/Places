@@ -1,14 +1,12 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
   TextInput,
   StyleSheet,
-  TextInputKeyPressEventData,
   Text,
-  NativeSyntheticEvent,
-  Clipboard,
+  TouchableOpacity,
+  Animated,
 } from 'react-native'
-import { TouchableOpacity } from 'react-native-gesture-handler'
 
 interface SegmentedCodeInputProps {
   length: number
@@ -21,60 +19,82 @@ const SegmentedCodeInput: React.FC<SegmentedCodeInputProps> = ({
   onCodeFilled,
   editable,
 }) => {
-  const [code, setCode] = useState<string[]>(new Array(length).fill(''))
-  const inputs = useRef<(TextInput | null)[]>([])
+  const [code, setCode] = useState<string>('')
+  const [focusedIndex, setFocusedIndex] = useState<number>(0)
+  const inputRef = useRef<TextInput | null>(null)
+  const cursorOpacity = useRef(new Animated.Value(1)).current
 
-  const handleChange = (text: string, index: number) => {
-    const newCode = [...code]
-    newCode[index] = text
-    setCode(newCode)
-
-    if (text && index < length - 1) {
-      inputs.current[index + 1]?.focus()
+  useEffect(() => {
+    const blink = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(cursorOpacity, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(cursorOpacity, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start()
     }
+    blink()
+  }, [cursorOpacity])
 
-    if (index === length - 1 && text) {
-      onCodeFilled(newCode.join(''))
+  const handleChange = (text: string) => {
+    setCode(text)
+    setFocusedIndex(text.length)
+    if (text.length === length) {
+      onCodeFilled(text)
     }
   }
 
-  const handleKeyPress = (
-    e: NativeSyntheticEvent<TextInputKeyPressEventData>,
-    index: number,
-  ) => {
-    if (e.nativeEvent.key === 'Backspace' && index > 0 && !code[index]) {
-      inputs.current[index - 1]?.focus()
+  const renderCodeInputs = () => {
+    const codeArray = code.split('')
+    const inputs = []
+    for (let i = 0; i < length; i++) {
+      inputs.push(
+        <View key={i} style={styles.inputContainer}>
+          {codeArray[i] ? (
+            <Text style={styles.inputText}>{codeArray[i]}</Text>
+          ) : (
+            focusedIndex === i && (
+              <Animated.Text
+                style={{ ...styles.inputText, opacity: cursorOpacity }}>
+                |
+              </Animated.Text>
+            )
+          )}
+        </View>,
+      )
     }
-  }
-  const handlePress = () => {
-    const presetCode = '493933'.split('')
-    const newCode = presetCode.slice(0, length)
-    setCode(newCode)
-    newCode.forEach((digit, index) => {
-      if (inputs.current[index]) {
-        inputs.current[index]?.setNativeProps({ text: digit })
-      }
-    })
-    onCodeFilled(newCode.join(''))
+    return inputs
   }
 
   return (
     <View style={styles.container}>
-      {code.map((digit, index) => (
-        <TextInput
-          key={index}
-          value={digit}
-          onChangeText={(text) => handleChange(text, index)}
-          onKeyPress={(e) => handleKeyPress(e, index)}
-          keyboardType="number-pad"
-          style={styles.input}
-          maxLength={1}
-          editable={editable}
-          ref={(ref) => (inputs.current[index] = ref)}
-        />
-      ))}
-      <TouchableOpacity onPress={handlePress}>
-        <Text>Press</Text>
+      <TextInput
+        ref={inputRef}
+        value={code}
+        onChangeText={handleChange}
+        keyboardType="number-pad"
+        style={styles.hiddenInput}
+        maxLength={length}
+        textContentType="oneTimeCode"
+        editable={editable}
+        autoFocus={true}
+        onSelectionChange={(e) =>
+          setFocusedIndex(e.nativeEvent.selection.start)
+        }
+      />
+      <TouchableOpacity
+        style={styles.inputsContainer}
+        onPress={() => inputRef.current?.focus()}
+        activeOpacity={1}>
+        {renderCodeInputs()}
       </TouchableOpacity>
     </View>
   )
@@ -82,19 +102,30 @@ const SegmentedCodeInput: React.FC<SegmentedCodeInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  input: {
+  hiddenInput: {
+    position: 'absolute',
+    opacity: 0,
+  },
+  inputsContainer: {
+    flexDirection: 'row',
+  },
+  inputContainer: {
     width: 50,
     height: 50,
     borderColor: 'orange',
     borderWidth: 1,
     borderRadius: 10,
     backgroundColor: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 10,
+  },
+  inputText: {
+    fontSize: 24,
+    textAlign: 'center',
   },
 })
 

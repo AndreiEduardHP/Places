@@ -9,7 +9,7 @@ export const validateEmail = (email: string) => {
 }
 
 export const validatePhoneNumber = (phoneNumber: string) => {
-  const phoneNumberRegex = /^\d{9,}$/
+  const phoneNumberRegex = /^[1-9]\d{8,}$/
 
   if (!phoneNumberRegex.test(phoneNumber)) {
     return true

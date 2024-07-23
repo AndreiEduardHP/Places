@@ -28,6 +28,7 @@ import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { Button } from '@rneui/base'
+import BackAction from '../Components/Back'
 
 const SelectedPersonInfo: React.FC = () => {
   const { t } = useTranslation()
@@ -121,6 +122,7 @@ const SelectedPersonInfo: React.FC = () => {
   }
 
   const deleteFriend = async (userId1: any, userId2: any) => {
+    console.log(userId1, userId2)
     try {
       const response = await axios.delete(
         `${config.BASE_URL}/api/friend/${userId1}/${userId2}`,
@@ -147,13 +149,13 @@ const SelectedPersonInfo: React.FC = () => {
     }
   }
 
-  const handleConnect = async (personId: number) => {
+  const handleConnect = async () => {
     try {
       const requestBody = {
         SenderId: loggedUser?.id,
-        ReceiverId: personId,
+        ReceiverId: personData?.id,
       }
-
+      console.log(personData?.id)
       await axios.post(
         `${config.BASE_URL}/api/Friend/sendFriendRequest`,
         requestBody,
@@ -239,6 +241,14 @@ const SelectedPersonInfo: React.FC = () => {
         {/*  <Text style={styles.text}>
           {t('selectedPersonInfo.userInformation')}
         </Text>*/}
+        <View style={{ position: 'absolute', zIndex: 2 }}>
+          <BackAction
+            style={{
+              backgroundColor: 'white',
+              width: 26,
+              height: 26,
+            }}></BackAction>
+        </View>
         <ImageBackground
           source={require('../../assets/Untitled.png')}
           style={{
@@ -285,7 +295,7 @@ const SelectedPersonInfo: React.FC = () => {
                   style={{ paddingTop: 5 }}
                 />
                 <Text style={{ color: 'white', marginTop: 5 }}>
-                  {personData.city} {personData.receiverId}
+                  {personData.city}
                 </Text>
               </View>
             </View>
@@ -316,9 +326,14 @@ const SelectedPersonInfo: React.FC = () => {
                 }}
                 onPress={() => {
                   if (personData.friendRequestStatus === 'Accepted') {
-                    deleteFriend(personData.receiverId, loggedUser?.id) // Assuming currentUserId is defined
+                    deleteFriend(personData.id, loggedUser?.id) // Assuming currentUserId is defined
+                  } else if (personData.friendRequestStatus === 'Pending') {
+                    showNotificationMessage(
+                      'Friend request is already pending.',
+                      'neutral',
+                    )
                   } else {
-                    handleConnect(personData.receiverId)
+                    handleConnect()
                   }
                 }}
               />
@@ -348,8 +363,7 @@ const SelectedPersonInfo: React.FC = () => {
               <View
                 style={{
                   marginHorizontal: 5,
-                  backgroundColor: backgroundColorGrey,
-                  borderRadius: 10,
+
                   marginTop: 20,
                 }}>
                 {/*   <Text style={[styles.contactButtonsText, { color: 'white' }]}>
@@ -366,6 +380,8 @@ const SelectedPersonInfo: React.FC = () => {
                   marginHorizontal: 10,
                   backgroundColor: backgroundColorGrey,
                   borderRadius: 10,
+                  //   borderWidth: 1,
+                  //   borderColor: textColor,
                 }}>
                 <TouchableOpacity
                   onPress={handleEmail}

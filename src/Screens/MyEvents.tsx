@@ -19,6 +19,7 @@ import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import { useFocusEffect } from '@react-navigation/native'
 import * as Brightness from 'expo-brightness'
 import { Button, Overlay, Card, SearchBar } from '@rneui/themed'
+import BackAction from '../Components/Back'
 
 interface Event {
   id: number
@@ -196,7 +197,7 @@ const JoinedEventsScreen: React.FC = () => {
     text: {
       fontSize: 32,
       fontWeight: '300',
-      marginHorizontal: 10,
+      // marginHorizontal: 10,
       color: textColor,
     },
     mapButton: {
@@ -273,7 +274,12 @@ const JoinedEventsScreen: React.FC = () => {
     </View>
   ) : (
     <View style={styles.container}>
-      <Text style={styles.text}>{t('myEvents.joinedEvents')}:</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <BackAction
+          style={{ backgroundColor: 'white', width: 26, height: 26 }}
+        />
+        <Text style={styles.text}>{t('myEvents.joinedEvents')}:</Text>
+      </View>
       <View style={styles.searchInputContainer}>
         <SearchBar
           placeholder={t('myEvents.searchPlaceholder')}

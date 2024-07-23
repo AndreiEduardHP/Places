@@ -11,6 +11,7 @@ import ProfileDetails from '../Components/SettingSections/ProfileDetails'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import BackAction from '../Components/Back'
 
 const ProfileScreen: React.FC = () => {
   const { loggedUser } = useUser()
@@ -35,7 +36,7 @@ const ProfileScreen: React.FC = () => {
     text: {
       fontSize: 32,
       fontWeight: '300',
-      marginHorizontal: 20,
+      //  marginHorizontal: 20,
       color: textColor,
     },
 
@@ -182,8 +183,13 @@ const ProfileScreen: React.FC = () => {
   ]
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.container}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <BackAction
+          style={{ backgroundColor: 'white', width: 26, height: 26 }}
+        />
         <Text style={styles.text}>{t('profileScreen.accountDetails')}</Text>
+      </View>
+      <ScrollView style={styles.container}>
         <ProfileSection
           showEditIcon={false}
           showTouchIcon={false}></ProfileSection>

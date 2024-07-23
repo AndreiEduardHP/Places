@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
+  ScrollView,
 } from 'react-native'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
@@ -24,6 +25,7 @@ import { CheckBox as C } from '@rneui/base'
 
 import LineComponent from './LineComponent'
 import { Checkbox } from 'native-base'
+import { interests } from '../Utils.tsx/Interests/Interests'
 
 type Event = {
   id: number
@@ -261,14 +263,7 @@ const EventsAroundYou: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [isInterestModalVisible, setIsInterestModalVisible] = useState(false)
-  const interests = [
-    'Movies and Television',
-    'Art and Culture',
-    'Sports',
-    'Music',
-    'Technology',
-    'Food and Drink',
-  ]
+
   useEffect(() => {
     fetchEvents()
   }, [distance]) // Fetch events when the distance changes
@@ -338,23 +333,7 @@ const EventsAroundYou: React.FC = () => {
       letterSpacing: -0.6,
       fontWeight: '300',
     },
-    modalContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContent: {
-      width: 300,
-      padding: 20,
-      backgroundColor: 'white',
-      borderRadius: 10,
-      alignItems: 'center',
-    },
-    modalOption: {
-      fontSize: 18,
-      marginVertical: 10,
-    },
+
     searchInput: {
       marginTop: 10,
       paddingHorizontal: 10,
@@ -398,6 +377,29 @@ const EventsAroundYou: React.FC = () => {
     picker: {
       height: 50,
       width: '100%',
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      // marginHorizontal: 20,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+      backgroundColor: 'white',
+      padding: 20,
+      borderRadius: 10,
+      width: '100%',
+      maxHeight: '80%',
+    },
+    scrollViewContent: {
+      flexGrow: 1,
+    },
+    modalOption: {
+      color: 'white',
+      textAlign: 'center',
+      // marginTop: 20,
+      fontSize: 20,
     },
   })
 
@@ -474,7 +476,7 @@ const EventsAroundYou: React.FC = () => {
           animationType="slide">
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <Text>
+              <Text style={{ color: 'black', fontSize: 28, fontWeight: '300' }}>
                 Select the radius within which events should be displayed.
               </Text>
               <ButtonGroup
@@ -492,28 +494,32 @@ const EventsAroundYou: React.FC = () => {
                           ? 100000000000
                           : 999999,
                   )
-                  setIsModalVisible(false)
+                  //         setIsModalVisible(false)
                 }}
                 containerStyle={{ marginBottom: 20 }}
               />
-              <Text>Select interests:</Text>
-              {interests.map((interest) => (
-                <C
-                  key={interest}
-                  title={interest}
-                  checked={selectedInterests.includes(interest)}
-                  onPress={() => toggleInterest(interest)}
-                  containerStyle={{
-                    justifyContent: 'space-between',
-
-                    width: 250,
-                  }}
-                />
-              ))}
-
-              <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-                <Text style={styles.modalOption}>Cancel</Text>
-              </TouchableOpacity>
+              <Text style={{ color: 'black', fontSize: 22, fontWeight: '300' }}>
+                Select interests:
+              </Text>
+              <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                {interests.map((interest) => (
+                  <C
+                    key={interest}
+                    title={interest}
+                    checked={selectedInterests.includes(interest)}
+                    onPress={() => toggleInterest(interest)}
+                    containerStyle={{
+                      justifyContent: 'space-between',
+                      width: 250,
+                    }}
+                  />
+                ))}
+              </ScrollView>
+              <Button
+                onPress={() => setIsModalVisible(false)}
+                buttonStyle={{ backgroundColor: 'black' }}>
+                <Text style={styles.modalOption}>Close</Text>
+              </Button>
             </View>
           </View>
         </Modal>

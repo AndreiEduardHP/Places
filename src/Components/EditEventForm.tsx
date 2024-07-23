@@ -19,6 +19,7 @@ import { MapMarkerDetail } from '../Interfaces/IUserData'
 import { useTranslation } from 'react-i18next'
 import { ScrollView } from 'react-native-gesture-handler'
 import * as ImagePicker from 'expo-image-picker'
+import { Button } from 'native-base'
 
 interface EditFormProps {
   eventId: any
@@ -121,7 +122,9 @@ const EditForm: React.FC<EditFormProps> = ({
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           contentContainerStyle={{
-            alignItems: 'center',
+            //  alignItems: 'center',
+            width: '100%',
+            // backgroundColor: 'red',
             marginTop: 10,
           }}>
           <View>
@@ -181,11 +184,11 @@ const EditForm: React.FC<EditFormProps> = ({
             }
           />
 
-          <TouchableOpacity
+          <Button
             style={{
               backgroundColor: 'black',
               borderRadius: 10,
-              //  width: 100,
+              //  width: 300,
               alignItems: 'center',
             }}
             onPress={selectImage}>
@@ -193,20 +196,20 @@ const EditForm: React.FC<EditFormProps> = ({
               style={[
                 // styles.title,
                 {
-                  padding: 7,
+                  // padding: 5,
                   color: 'white',
                   fontSize: 18,
                 },
               ]}>
               Change event image
             </Text>
-          </TouchableOpacity>
+          </Button>
 
-          <TouchableOpacity
+          <Button
             style={{
               backgroundColor: 'black',
               borderRadius: 10,
-              width: 100,
+              // width: 300,
               alignItems: 'center',
               marginTop: 10,
             }}
@@ -215,14 +218,14 @@ const EditForm: React.FC<EditFormProps> = ({
               style={[
                 styles.title,
                 {
-                  padding: 7,
+                  //   padding: 5,
                   color: 'white',
                   fontSize: 18,
                 },
               ]}>
               {t('buttons.save')}
             </Text>
-          </TouchableOpacity>
+          </Button>
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -231,11 +234,12 @@ const EditForm: React.FC<EditFormProps> = ({
 
 const styles = StyleSheet.create({
   input: {
-    width: 300,
+    //width: 300,
     height: 40,
     margin: 7,
     borderRadius: 10,
     borderColor: 'gray',
+
     borderWidth: 1,
     paddingHorizontal: 5,
   },
@@ -244,9 +248,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   eventImage: {
-    width: 305,
-    height: 150,
-    borderRadius: 25,
+    //  width: 305,
+    height: 190,
+    borderRadius: 15,
     marginVertical: 10,
   },
 })

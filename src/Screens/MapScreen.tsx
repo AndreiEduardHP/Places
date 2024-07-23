@@ -13,14 +13,9 @@ const MapScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {loggedUser ? (
-        <View style={{ flex: 1 }}>
-          <CustomeMap />
-        </View>
-      ) : (
-        <Text>{t('noUserIsLoggedIn')}</Text>
-      )}
-      <View style={{ zIndex: -1 }}>
+      {loggedUser ? <CustomeMap /> : <Text>{t('noUserIsLoggedIn')}</Text>}
+      <View
+        style={{ zIndex: 1, position: 'absolute', bottom: 0, width: '100%' }}>
         <FooterNavbar currentRoute={'MapScreen'} />
       </View>
     </View>

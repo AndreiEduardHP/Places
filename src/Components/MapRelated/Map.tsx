@@ -35,6 +35,7 @@ import Stepper from 'react-native-stepper-ui'
 import StepperHorizontal from '../../Screens/Stepper'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { t } from 'i18next'
+import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 
 const CustomeMap: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<MapMarker | null>(null)
@@ -62,6 +63,7 @@ const CustomeMap: React.FC = () => {
   const [savedMarkers, setSavedMarkers] = useState<MapMarkerDetail[]>([])
   const [isChecked, setChecked] = useState(false)
   const { showNotificationMessage } = useNotification()
+  const { backgroundColor } = useThemeColor()
 
   const getLocation = async () => {
     try {
@@ -221,6 +223,7 @@ const CustomeMap: React.FC = () => {
       EventId: selectedMarker?.key,
       UserProfileId: loggedUser?.id,
       HideUserInParticipantsList: isChecked,
+      UserChecked: false,
     }
 
     try {
@@ -505,13 +508,13 @@ const CustomeMap: React.FC = () => {
         style={{
           position: 'absolute',
           width: 'auto',
-          right: '1%',
+          right: '3%',
           shadowColor: 'black',
           shadowOffset: { width: 2, height: 2 },
           shadowOpacity: 0.5,
           shadowRadius: 4,
           elevation: 4,
-          bottom: '1%',
+          bottom: '8%',
         }}>
         <TouchableOpacity
           style={{
@@ -530,7 +533,7 @@ const CustomeMap: React.FC = () => {
               1000,
             )
           }}>
-          <Icon name="explore" size={46} color={'#00B0EF'}></Icon>
+          <Icon name="explore" size={70} color={'#00B0EF'}></Icon>
         </TouchableOpacity>
       </View>
 

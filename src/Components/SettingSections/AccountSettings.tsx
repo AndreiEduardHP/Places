@@ -22,7 +22,7 @@ const AccountSection: React.FC = () => {
       backgroundColor: backgroundColorGrey,
       borderRadius: 10,
       marginHorizontal: 10,
-      marginTop: 15,
+      marginTop: 10,
     },
     text: {
       color: textColor,

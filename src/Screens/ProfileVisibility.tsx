@@ -8,6 +8,7 @@ import { config } from '../config/urlConfig'
 import { useUser } from '../Context/AuthContext'
 import axios from 'axios'
 import { useNotification } from '../Components/Notification/NotificationProvider'
+import BackAction from '../Components/Back'
 
 const ProfileVisibilityScreen: React.FC = () => {
   const { t } = useTranslation()
@@ -54,7 +55,7 @@ const ProfileVisibilityScreen: React.FC = () => {
     text: {
       fontSize: 32,
       fontWeight: '300',
-      marginHorizontal: 20,
+      //  marginHorizontal: 20,
       color: textColor,
     },
     content: {
@@ -87,7 +88,16 @@ const ProfileVisibilityScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Profile Visibility</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <BackAction
+          style={{
+            backgroundColor: 'white',
+            width: 26,
+            height: 26,
+          }}></BackAction>
+
+        <Text style={styles.text}>Profile Visibility</Text>
+      </View>
       <Text style={{ color: textColor, marginLeft: 20, marginTop: 10 }}>
         {' '}
         You can set the Confidentiality status for your profile
