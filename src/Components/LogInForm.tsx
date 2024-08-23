@@ -16,7 +16,7 @@ import { t } from 'i18next'
 import { validatePhoneNumber } from '../Utils.tsx/EmailValidation'
 import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
+
 import { signInWithCredential, PhoneAuthProvider } from 'firebase/auth'
 import LoadingComponent from './Loading/Loading'
 import { useNotification } from './Notification/NotificationProvider'
@@ -25,7 +25,8 @@ import { config } from '../config/urlConfig'
 import SegmentedCodeInput from './SegmentedInput'
 import { Menu, Pressable } from 'native-base'
 import getCountryCode from '../Utils.tsx/GetCountryCode'
-import { auth, firebaseConfig } from '../Utils.tsx/Firebase'
+import { firebaseConfig } from '../Utils.tsx/Firebase'
+import auth from '@react-native-firebase/auth'
 
 const countries = [
   { label: 'United States', value: 'usa' },
@@ -44,7 +45,7 @@ const countryData: Record<
 
 const LogInForm: React.FC = () => {
   const { handleLogin } = useUser()
-  const [code, setCode] = useState('')
+  // const [code, setCode] = useState('')
   const recaptchaVerifier = useRef<any>(null)
   const [verificationId, setVerificationId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -56,7 +57,11 @@ const LogInForm: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState<string>('')
   const isFormComplete = validatePhoneNumber(phoneNumber)
   // const phonePrefix = '+4'
+  // If null, no SMS has been sent
+  const [confirm, setConfirm] = useState<any>(null)
 
+  // verification code (OTP - One-Time-Passcode)
+  const [code, setCode] = useState('')
   const { showNotificationMessage } = useNotification()
 
   useEffect(() => {
@@ -106,13 +111,14 @@ const LogInForm: React.FC = () => {
 
       if (response.status == 200) {
         try {
-          const phoneProvider = new PhoneAuthProvider(auth)
-          const verificationId = await phoneProvider.verifyPhoneNumber(
-            phonePrefix + phoneNumber,
-            recaptchaVerifier.current,
-          )
+          //     const phoneProvider = new PhoneAuthProvider(auth)
+          //     const verificationId = await phoneProvider.verifyPhoneNumber(
+          //      phonePrefix + phoneNumber,
+          //      recaptchaVerifier.current,
+          //    )
+          signInWithPhoneNumber(phonePrefix + phoneNumber)
           setVerificationId(verificationId)
-          return verificationId
+          //    return verificationId
         } catch (error) {
           showNotificationMessage('Send code error', 'fail')
           throw new Error('Failed to send verification code')
@@ -124,7 +130,20 @@ const LogInForm: React.FC = () => {
       showNotificationMessage('Error', 'fail')
     }
   }
+  async function signInWithPhoneNumber(phoneNumber: string) {
+    const confirmation = await auth().signInWithPhoneNumber(phoneNumber)
+    setConfirm(confirmation)
+  }
 
+  async function confirmCode() {
+    try {
+      await confirm.confirm(code)
+    } catch (error) {
+      console.log('Invalid code.')
+    }
+  }
+  {
+    /*   
   const confirmCode = async () => {
     if (!verificationId) {
       showNotificationMessage('Verification error', 'fail')
@@ -142,6 +161,7 @@ const LogInForm: React.FC = () => {
       setIsLoading(false)
       return false
     }
+  }*/
   }
   const formatPhoneNumber = (phoneNumber: string | any[]) => {
     const lastThreeDigits = phoneNumber.slice(-3)
@@ -196,10 +216,6 @@ const LogInForm: React.FC = () => {
             width: '100%',
             zIndex: 1,
           }}>
-          <FirebaseRecaptchaVerifierModal
-            ref={recaptchaVerifier}
-            firebaseConfig={firebaseConfig}
-          />
           {!verificationId && (
             <View>
               <Text

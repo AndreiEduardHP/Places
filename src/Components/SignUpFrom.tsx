@@ -27,7 +27,6 @@ import { interests } from '../Utils.tsx/Interests/Interests'
 import getCountryCode from '../Utils.tsx/GetCountryCode'
 import { CheckBox } from '@rneui/base'
 import { LinearGradient } from 'expo-linear-gradient'
-import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
 
 import { signInWithCredential, PhoneAuthProvider } from 'firebase/auth'
 import SegmentedCodeInput from './SegmentedInput'
@@ -264,10 +263,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setVerificationId2 }) => {
 
   return (
     <PaperProvider theme={theme}>
-      <FirebaseRecaptchaVerifierModal
-        ref={recaptchaVerifier}
-        firebaseConfig={firebaseConfig}
-      />
       <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }}>
         {!verificationId && (
           <>
