@@ -1,22 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react'
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  LayoutAnimation,
-} from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
 import ParticipantsList from './ShowEventParticipants'
-import { useTranslation } from 'react-i18next'
+import { Button, Icon, ListItem } from '@rneui/base'
+import { t } from 'i18next'
 
 interface Participant {
   id: string
   firstName: string
   lastName: string
   interest: string
+  description: string
   profilePicture: string
 }
 
@@ -25,6 +20,7 @@ interface ParticipantsListContainerProps {
   textColor?: string
   shouldRefreshParticipants: boolean
   updateParticipantsCount: (count: number) => void
+  applyMarginHorizontal?: boolean
 }
 
 const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
@@ -32,13 +28,15 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
   textColor,
   shouldRefreshParticipants,
   updateParticipantsCount,
+  applyMarginHorizontal = false,
 }) => {
   const [participants, setParticipants] = useState<Participant[]>([])
   const [totalParticipants, setTotalParticipants] = useState<number>(0)
-  const [showParticipants, setShowParticipants] = useState<boolean>(false)
-  const slideAnimation = useRef(new Animated.Value(0)).current
-  const { t } = useTranslation()
+  const [modalVisible, setModalVisible] = useState(false)
 
+  const toggleModal = () => {
+    setModalVisible(!modalVisible)
+  }
   useEffect(() => {
     fetchParticipants()
   }, [eventId, shouldRefreshParticipants])
@@ -66,39 +64,69 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
     }
   }
 
-  const toggleParticipants = () => {
-    setShowParticipants(!showParticipants)
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    Animated.timing(slideAnimation, {
-      toValue: showParticipants ? 0 : 1,
-      duration: 500,
-      useNativeDriver: false,
-    }).start()
-  }
-
-  const animatedStyle = {
-    opacity: slideAnimation,
-    height: slideAnimation.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 150],
-    }),
-  }
-
   return (
     <View>
-      <TouchableOpacity onPress={toggleParticipants}>
-        <Text style={[styles.participants, { color: textColor }]}>
-          {t('eventParticipants.totalParticipants')}: {totalParticipants}
-        </Text>
-        <Text style={{ color: textColor, marginBottom: 10 }}>
-          {t('eventParticipants.note')}
-        </Text>
+      <TouchableOpacity onPress={toggleModal}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginHorizontal: applyMarginHorizontal ? 10 : 0,
+          }}>
+          <Text
+            style={{
+              color: textColor || 'black',
+              marginLeft: 0,
+              fontSize: 18,
+            }}>
+            {t('eventParticipants.totalParticipants')}: {totalParticipants}
+          </Text>
+          <Icon
+            name="keyboard-arrow-right"
+            size={26}
+            color={textColor || 'black'}
+            containerStyle={{ padding: 0, margin: 0 }}
+          />
+        </View>
       </TouchableOpacity>
-      {showParticipants && (
-        <Animated.View style={[styles.listContainer, animatedStyle]}>
-          <ParticipantsList eventId={eventId} participants={participants} />
-        </Animated.View>
-      )}
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={toggleModal}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+          }}>
+          <View
+            style={{
+              width: '97%',
+              height: '85%',
+              backgroundColor: 'white',
+              padding: 10,
+              borderRadius: 8,
+            }}>
+            <Text
+              style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+              {t('eventParticipants.totalParticipants')} ({totalParticipants})
+            </Text>
+            <Text style={{ fontSize: 18, fontWeight: '300', marginBottom: 5 }}>
+              {t('eventParticipants.note')}
+            </Text>
+            <ParticipantsList
+              eventId={eventId}
+              participants={participants}
+              onCloseModal={toggleModal}
+            />
+            <Button title={t('buttons.close')} onPress={toggleModal} />
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }

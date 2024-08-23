@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
+
 import {
   View,
   Text,
@@ -17,13 +17,9 @@ import { Profile, useUser } from '../Context/AuthContext'
 import * as Notifications from 'expo-notifications'
 import { LinearGradient } from 'expo-linear-gradient'
 import SvgComponent from '../Components/SVG/Logo'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import Svg, { Path } from 'react-native-svg'
-import CustomSvgComponent from '../Components/SVG/Shapes/Star'
-import SvgComponent2 from '../Components/SVG/Shapes/Wow'
+import { Button } from 'native-base'
 
 const DefaultScreen: React.FC = () => {
-  const { t } = useTranslation()
   const { handleLogin, updateNotificationToken, refreshData } = useUser()
   const opacityMember = useRef(new Animated.Value(0)).current
   const opacityLine = useRef(new Animated.Value(0)).current
@@ -84,9 +80,8 @@ const DefaultScreen: React.FC = () => {
       const token = await AsyncStorage.getItem('token')
       if (token) {
         const userProfileString = await AsyncStorage.getItem('loggedUser')
-        console.log(userProfileString)
+
         if (userProfileString) {
-          console.log('Dc ajunge aici')
           const userProfile: Profile = JSON.parse(userProfileString)
           const token = (await Notifications.getExpoPushTokenAsync()).data
           updateNotificationToken(userProfile.id, token)
@@ -102,149 +97,6 @@ const DefaultScreen: React.FC = () => {
     checkLoggedInStatus()
   }, [])
 
-  const handlePressSocialMedia = (url: string) => {
-    return () => {
-      Linking.openURL(url)
-    }
-  }
-
-  /* return (
-    <View
-      style={{
-        flex: 1,
-
-        backgroundColor: 'white',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-      <Image
-        source={require('../../assets/world.png')}
-        style={[styles.backgroundImage]}></Image>
-      <View
-        style={{ flex: 3, alignItems: 'center', height: 200, marginTop: 80 }}>
-        <Animated.View style={{ opacity: opacity }}>
-          <Text style={styles.welcome}>{t('defaultScreen.welcome')}</Text>
-        </Animated.View>
-
-        <Animated.View
-          style={{
-            height: 2,
-            width: 400,
-            backgroundColor: 'black',
-            borderRadius: 10,
-            opacity: opacityLine,
-            transform: [{ scaleX: scaleX }],
-          }}
-        />
-        <View style={{ flex: 1, justifyContent: 'space-between' }}>
-          <Animated.View style={{ opacity: opacityMember }}>
-            <Text style={[styles.description, {}]}>
-              {t('defaultScreen.description')}
-            </Text>
-          </Animated.View>
-          <View>
-            <Animated.View style={{ opacity: opacityMember }}>
-              <Text style={[styles.joinPlaces, {}]}>
-                {t('defaultScreen.joinPlaces')}
-              </Text>
-            </Animated.View>
-            <Animated.View style={{ opacity: opacityMember }}>
-              <Text style={[styles.motto, {}]}>{t('defaultScreen.motto')}</Text>
-            </Animated.View>
-          </View>
-        </View>
-      </View>
-
-      <View style={[styles.logButtons]}>
-        <View style={{ alignItems: 'center', marginRight: 30 }}>
-          <Animated.View style={{ opacity: opacityMember }}>
-            <Text style={styles.alreadyMember}>
-              {t('defaultScreen.alreadyMember')}
-            </Text>
-          </Animated.View>
-          <Animated.View style={{ opacity: opacityMember }}>
-            <TouchableOpacity
-              onPress={() => handleNavigation('LoginScreen')}
-              style={styles.logBtn}>
-              <View style={styles.clickToLogIn}>
-                <Text style={styles.buttonLoginSubmit}>
-                  {t('buttons.logIn')}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
-
-        <View style={{ alignItems: 'center' }}>
-          <Animated.View style={{ opacity: opacityMember }}>
-            <View>
-              <Text style={styles.alreadyMember}>
-                {t('defaultScreen.noAccount')}
-              </Text>
-            </View>
-          </Animated.View>
-          <Animated.View style={{ opacity: opacityMember }}>
-            <TouchableOpacity
-              onPress={() => handleNavigation('SignUp')}
-              style={styles.logBtn}>
-              <View style={styles.clickToLogIn}>
-                <Text style={styles.buttonLoginSubmit}>
-                  {t('buttons.signUp')}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
-      </View>
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-        <Text
-          style={{
-            letterSpacing: -1,
-            fontSize: 18,
-          }}>
-          {t('defaultScreen.joinUsOn')}
-        </Text>
-      </View>
-
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 10,
-        }}>
-        <TouchableOpacity
-          onPress={handlePressSocialMedia('https://www.facebook.com')}>
-          <Image
-            source={require('../../assets/Icons/facebook.png')}
-            style={{ width: 47, height: 47, marginRight: 20 }}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handlePressSocialMedia('https://www.instagram.com')}>
-          <Image
-            source={require('../../assets/Icons/instagram.png')}
-            style={{ width: 47, height: 47, marginRight: 20 }}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handlePressSocialMedia('https://www.facebook.com')}>
-          <Image
-            source={require('../../assets/Icons/twitter.png')}
-            style={{ width: 47, height: 47 }}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-  )
-
-  */
   const imageAnimations = [
     useRef(new Animated.Value(0)).current,
     useRef(new Animated.Value(0)).current,
@@ -321,25 +173,25 @@ const DefaultScreen: React.FC = () => {
 
         <View style={styles.containerGradient}>
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0)', '#5151C6']}
+            colors={['rgba(255, 255, 255, 0)', '#888BF4']}
             style={styles.gradient}
           />
         </View>
         <View style={styles.containerGradient2}>
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0)', '#5151C6']}
+            colors={['rgba(255, 255, 255, 0)', '#888BF4']}
             style={styles.gradient}
           />
         </View>
         <View style={styles.containerGradient3}>
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0)', '#5151C6']}
+            colors={['rgba(255, 255, 255, 0)', '#888BF4']}
             style={styles.gradient2}
           />
         </View>
         <View style={styles.containerGradient4}>
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0)', '#5151C6']}
+            colors={['rgba(255, 255, 255, 0)', '#888BF4']}
             style={styles.gradient2}
           />
         </View>
@@ -376,16 +228,16 @@ const DefaultScreen: React.FC = () => {
       <Text style={styles.footer}>SHARE - INSPIRE - CONNECT</Text>
       <View style={styles.containerGradientLines}>
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0)', 'rgba(122, 155, 155, 1)']}
+          colors={['rgba(25, 255, 255, 0)', '#888BF4']}
           style={styles.gradient2}
         />
       </View>
 
-      <TouchableOpacity
+      <Button
         style={styles.button}
         onPress={() => handleNavigation('LoginScreen')}>
         <Text style={styles.buttonText}>GET STARTED</Text>
-      </TouchableOpacity>
+      </Button>
     </ImageBackground>
   )
 }
@@ -524,19 +376,20 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   button: {
-    backgroundColor: 'rgba(208, 208, 208, 0.3)',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 30,
+    backgroundColor: '#888BF4',
+    // paddingVertical: 10,
+    //  paddingHorizontal: 25,
+    borderRadius: 20,
     marginTop: 15,
 
-    height: 52,
-    justifyContent: 'center',
+    //  height: 52,
+    //  justifyContent: 'center',
   },
   buttonText: {
     textAlign: 'center',
+    paddingHorizontal: 20,
     color: 'white',
-    fontSize: 26,
+    fontSize: 22,
   },
 })
 

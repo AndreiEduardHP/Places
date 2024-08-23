@@ -1,5 +1,4 @@
-import React from 'react'
-import { useTranslation } from 'react-i18next'
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -10,13 +9,12 @@ import {
   Platform,
   Keyboard,
 } from 'react-native'
-
-import { SafeAreaView } from 'react-native-safe-area-context'
 import SvgComponent from '../Components/SVG/Logo'
 import SignUpForm from '../Components/SignUpFrom'
+import { t } from 'i18next'
 
 const SignUpScreen: React.FC = () => {
-  const { t } = useTranslation()
+  const [verificationId, setVerificationId] = useState<any>()
 
   return (
     <KeyboardAvoidingView
@@ -35,10 +33,12 @@ const SignUpScreen: React.FC = () => {
           <View style={styles.formContainer}>
             <View style={styles.formBackground}>
               <View style={styles.scrollViewContent}>
-                <Text style={styles.signUpText}>
-                  {t('signUpScreen.signUp')}
-                </Text>
-                <SignUpForm />
+                {!verificationId && (
+                  <Text style={styles.signUpText}>
+                    {t('signUpScreen.signUp')}
+                  </Text>
+                )}
+                <SignUpForm setVerificationId2={setVerificationId} />
               </View>
             </View>
           </View>
@@ -54,13 +54,11 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    //  position: 'relative',
     backgroundColor: 'white',
   },
   logoContainer: {
     width: '100%',
     height: 210,
-    // position: 'absolute',
     zIndex: 3,
     alignItems: 'center',
     justifyContent: 'center',
@@ -72,8 +70,6 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   formContainer: {
-    //  position: 'absolute',
-    // top: 170,
     left: 0,
     right: 0,
     flex: 1,

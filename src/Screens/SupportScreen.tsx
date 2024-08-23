@@ -1,24 +1,13 @@
 import { t } from 'i18next'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
-
-import i18n from '../TranslationFiles/i18n'
-
-import { useNotification } from '../Components/Notification/NotificationProvider'
 import SupportTicket from '../Components/SupportTicket'
-
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
-import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import BackAction from '../Components/Back'
 
 const SupportScreen: React.FC = () => {
-  const { t } = useTranslation()
-
   const { backgroundColor, textColor } = useThemeColor()
-
   const handleTicketSubmit = (ticket: {
     title: string
     description: string
@@ -32,9 +21,8 @@ const SupportScreen: React.FC = () => {
       backgroundColor: backgroundColor,
     },
     text: {
-      fontSize: 32,
+      fontSize: 28,
       fontWeight: '300',
-      //  marginHorizontal: 20,
       color: textColor,
     },
     content: {
@@ -67,7 +55,6 @@ const SupportScreen: React.FC = () => {
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <BackAction
           style={{
-            backgroundColor: 'white',
             width: 26,
             height: 26,
           }}></BackAction>
@@ -79,54 +66,6 @@ const SupportScreen: React.FC = () => {
       <FooterNavbar currentRoute={''}></FooterNavbar>
     </View>
   )
-  {
-    /*  
-   <KeyboardAvoidingView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>{t('Settings')}</Text>
-        <View style={styles.content}>
-          {loggedUser ? (
-            <>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}>
-                <Text style={styles.text}>Change theme:</Text>
-                <DarkMode />
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}>
-                <Text style={[styles.text, {}]}>Change language:</Text>
-                <RNPickerSelect
-                  onValueChange={(value: any) => changeLanguagePicker(value)}
-                  items={[
-                    { label: 'English', value: 'en' },
-                    { label: 'Română', value: 'ro' },
-                  ]}
-                  style={{
-                    inputIOS: styles.dropdown,
-                    inputAndroid: styles.dropdown,
-                  }}
-                  useNativeAndroidPickerStyle={false}
-                />
-              </View>
-              <View>
-                <SupportTicket onSubmit={handleTicketSubmit} />
-              </View>
-            </>
-          ) : (
-            <Text style={styles.noUserText}>{t('No user is logged in')}</Text>
-          )}
-        </View>
-      </ScrollView>
-      <FooterNavbar currentRoute={'SettingScreen'} />
-    </KeyboardAvoidingView>
-  */
-  }
 }
 
 export default SupportScreen

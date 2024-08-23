@@ -1,4 +1,3 @@
-import Checkbox from 'expo-checkbox'
 import React, { useState } from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 
@@ -10,8 +9,8 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
-import { useTranslation } from 'react-i18next'
 import { CheckBox } from '@rneui/base'
+import { t } from 'i18next'
 
 interface Props {
   accepted: boolean
@@ -26,34 +25,35 @@ const TermsAndConditions: React.FC<Props> = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false)
   const [checkBoxEnabled, setcheckBoxEnabled] = useState(true)
-  const { t } = useTranslation()
+
   return (
     <View style={styles.container}>
-      <CheckBox
-        checked={accepted}
-        onPress={onToggle}
-        // style={styles.checkbox}
-        //  disabled={checkBoxEnabled}
-      />
+      <View style={styles.container}>
+        <CheckBox
+          checked={accepted}
+          onPress={onToggle}
+          containerStyle={styles.checkboxContainer}
+          //  disabled={checkBoxEnabled}
+        />
 
-      <TouchableOpacity
-        onPress={() => {
-          setModalVisible(true)
-          console.log('reddd')
-        }}>
-        <View style={{ flexDirection: 'row' }}>
-          <View>
-            <Text style={[styles.textAgree, { color: textColor }]}>
-              {t('termsAndConditions.iAgreeToThe')}{' '}
-            </Text>
+        <TouchableOpacity
+          onPress={() => {
+            setModalVisible(true)
+          }}>
+          <View style={{ flexDirection: 'row' }}>
+            <View>
+              <Text style={[styles.textAgree, { color: textColor }]}>
+                {t('termsAndConditions.iAgreeToThe')}{' '}
+              </Text>
+            </View>
+            <View>
+              <Text style={styles.textTerms}>
+                {t('termsAndConditions.termsAndConditions')}
+              </Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.textTerms}>
-              {t('termsAndConditions.termsAndConditions')}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
 
       <Modal
         animationType="slide"
@@ -137,21 +137,18 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     zIndex: 20,
-    // marginHorizontal: 10,
-    // marginBottom: 10,
   },
   textAgree: { fontSize: 20 },
   textTerms: {
     fontSize: 20,
     color: '#266EC3',
   },
-  checkbox: {
-    marginRight: 7,
-    marginTop: 1,
-    width: 25,
-    height: 25,
+  checkboxContainer: {
+    padding: 0,
+    margin: 10,
+    width: 20,
+    height: 22,
   },
   text: {},
   modalHeader: {

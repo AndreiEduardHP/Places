@@ -1,9 +1,9 @@
-// BackAction.tsx
 import React from 'react'
 import { Appbar } from 'react-native-paper'
-import { useNavigation } from '@react-navigation/native'
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StyleProp, ViewStyle } from 'react-native'
-import { TouchableOpacity } from 'react-native-gesture-handler'
+import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import { ChatRouteParams } from './Chat/Chat'
 
 interface BackActionProps {
   style?: StyleProp<ViewStyle>
@@ -11,12 +11,15 @@ interface BackActionProps {
 
 const BackAction: React.FC<BackActionProps> = ({ style }) => {
   const navigation = useNavigation()
+  const { textColor } = useThemeColor()
+
+  const route = useRoute<RouteProp<{ params: ChatRouteParams }, 'params'>>()
 
   const back = () => {
     navigation.goBack()
   }
 
-  return <Appbar.BackAction onPress={back} style={style} />
+  return <Appbar.BackAction onPress={back} style={style} color={textColor} />
 }
 
 export default BackAction

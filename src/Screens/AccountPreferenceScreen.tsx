@@ -1,20 +1,12 @@
 import { t } from 'i18next'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
-import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import { useUser } from '../Context/AuthContext'
+import { View, Text, StyleSheet } from 'react-native'
 import FooterNavbar from '../Components/FooterNavbar'
-import i18n from '../TranslationFiles/i18n'
-import { config } from '../config/urlConfig'
-import axios from 'axios'
-import { useNotification } from '../Components/Notification/NotificationProvider'
-
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import AccountPreference from '../Components/SettingSections/AccountPreference'
 import BackAction from '../Components/Back'
 
 const AccountPreferenceScreen: React.FC = () => {
-  const { t } = useTranslation()
   const { backgroundColor, textColor } = useThemeColor()
 
   const styles = StyleSheet.create({
@@ -26,9 +18,8 @@ const AccountPreferenceScreen: React.FC = () => {
       backgroundColor: backgroundColor,
     },
     text: {
-      fontSize: 32,
+      fontSize: 28,
       fontWeight: '300',
-      // marginHorizontal: 20,
       color: textColor,
     },
     content: {
@@ -67,16 +58,14 @@ const AccountPreferenceScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <BackAction
-          style={{ backgroundColor: 'white', width: 26, height: 26 }}
-        />
+        <BackAction style={{ width: 26, height: 26 }} />
         <Text style={styles.text}>
           {t('accountPreferenceScreen.accountPreference')}
         </Text>
       </View>
-      <ScrollView style={styles.container}>
+      <View style={styles.container}>
         <AccountPreference></AccountPreference>
-      </ScrollView>
+      </View>
       <FooterNavbar currentRoute={''}></FooterNavbar>
     </View>
   )

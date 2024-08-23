@@ -1,6 +1,5 @@
 import { t } from 'i18next'
 import React, { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import {
   View,
   Text,
@@ -10,35 +9,27 @@ import {
   Image,
   Alert,
   ScrollView,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
-
-import i18n from '../TranslationFiles/i18n'
 import { config } from '../config/urlConfig'
 import axios from 'axios'
 import { useNotification } from '../Components/Notification/NotificationProvider'
-
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { ImageConfig } from '../config/imageConfig'
 import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
 import LoadingComponent from '../Components/Loading/Loading'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import { useFocusEffect } from '@react-navigation/native'
-import * as Brightness from 'expo-brightness'
 import { CameraView, Camera } from 'expo-camera'
 import EditEventForm from '../Components/EditEventForm'
-import { MapMarkerDetail } from '../Interfaces/IUserData'
 import Icon from 'react-native-vector-icons/MaterialIcons'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { remoteImages } from '../AzureImages/Images'
 import ParticipantsListContainer from '../Components/EventParticipants'
-import { Button, Card, Overlay, SearchBar } from '@rneui/base'
+import { Button, Card as C, Overlay, SearchBar } from '@rneui/base'
 import BackAction from '../Components/Back'
+import { Card, Title } from 'react-native-paper'
+import LineComponent from '../Components/LineComponent'
+import { Button as B } from 'native-base'
 
 interface Event {
   id: number
@@ -56,7 +47,6 @@ interface Event {
 }
 
 const EventsCreatedByMe: React.FC = () => {
-  const { t } = useTranslation()
   const { loggedUser } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
   const navigate = useHandleNavigation()
@@ -103,7 +93,7 @@ const EventsCreatedByMe: React.FC = () => {
         if (response) {
           showNotificationMessage('Event deleted succesfully!', 'success')
           setIsDeleteModalVisible(!isDeleteModalVisible)
-          //   console.log(eventId)
+
           fetchEvents()
         } else {
           showNotificationMessage(
@@ -126,7 +116,6 @@ const EventsCreatedByMe: React.FC = () => {
     const getCameraPermissions = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync()
       setHasPermission(status === 'granted')
-      // console.log(hasPermission)
     }
 
     getCameraPermissions()
@@ -136,8 +125,7 @@ const EventsCreatedByMe: React.FC = () => {
     setScanned(true)
 
     const parsedData = parseQRData(data)
-    //console.log(parsedData.userid)
-    // console.log(selectedEvent)
+
     try {
       const apiUrl = `${config.BASE_URL}/api/userprofileevent/scanQr?eventId=${selectedEvent}&userId=${parsedData.userid}`
       const response = await axios.get(apiUrl)
@@ -206,8 +194,29 @@ const EventsCreatedByMe: React.FC = () => {
   )
 
   const renderItem = ({ item }: { item: Event }) => (
-    <Card containerStyle={styles.cardContainer}>
-      <Card.Title style={styles.cardTitle}>Event Name</Card.Title>
+    <Card style={styles.cardContainer}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+        <TouchableOpacity
+          onPress={() => {
+            handleOpenModal(item)
+          }}
+          style={{ marginLeft: 5 }}>
+          <Icon name="edit" size={26} color={textColor} />
+        </TouchableOpacity>
+        <Title style={styles.cardTitle}> {t('myEvents.eventName')}</Title>
+        <TouchableOpacity
+          onPress={() => {
+            handleOpenDeleteModal(item)
+          }}
+          style={{ marginRight: 5 }}>
+          <Icon name="delete" size={28} color={textColor} />
+        </TouchableOpacity>
+      </View>
       <Text
         style={[
           styles.itemText,
@@ -216,34 +225,13 @@ const EventsCreatedByMe: React.FC = () => {
             textAlign: 'center',
             fontSize: 20,
             marginBottom: 10,
-            marginTop: -15,
           },
         ]}>
         {item.eventName}
       </Text>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <TouchableOpacity
-          onPress={() => {
-            handleOpenModal(item)
-          }}
-          style={{ marginLeft: 5, paddingTop: 1 }}>
-          <Icon
-            name="edit"
-            size={26}
-            color={textColor}
-            style={{ marginBottom: 4 }}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            handleOpenDeleteModal(item)
-          }}
-          style={{ marginRight: 5, paddingTop: 1 }}>
-          <Icon name="delete" size={28} color={textColor} />
-        </TouchableOpacity>
-      </View>
-      <Card.Divider />
-      <Card.Image
+
+      <LineComponent />
+      <C.Image
         style={{ padding: 0, marginBottom: 10 }}
         source={
           item.eventImage
@@ -252,7 +240,6 @@ const EventsCreatedByMe: React.FC = () => {
               }
             : { uri: remoteImages.partyImage }
         }
-        // resizeMode="contain"
       />
 
       <ParticipantsListContainer
@@ -290,7 +277,7 @@ const EventsCreatedByMe: React.FC = () => {
           setModalVisible(true)
           setSelectedEvent(item.id)
         }}
-        title="Check User"
+        title={t('buttons.checkUser')}
         buttonStyle={styles.checkUserButton}
       />
     </Card>
@@ -304,14 +291,17 @@ const EventsCreatedByMe: React.FC = () => {
       color: textColor,
     },
     cardContainer: {
+      marginTop: 8,
+      marginHorizontal: 10,
+      padding: 10,
       borderRadius: 10,
       backgroundColor:
         textColor == 'white' ? 'rgba(48, 51, 55,1)' : 'rgba(222,222,222,1)',
     },
     cardTitle: {
+      alignSelf: 'center',
       color: textColor,
       fontSize: 24,
-      margin: 0,
     },
     checkUserButton: {
       backgroundColor: 'rgba(55,150,200,1)',
@@ -329,7 +319,7 @@ const EventsCreatedByMe: React.FC = () => {
       marginTop: 10,
     },
     mapButton: {
-      backgroundColor: 'rgba(205,10,30,1)',
+      backgroundColor: 'rgba(105,120,130,1)',
       marginVertical: 10,
     },
     containerScroll: {
@@ -337,10 +327,11 @@ const EventsCreatedByMe: React.FC = () => {
     },
     modalHeader: {
       marginBottom: 5,
+      paddingHorizontal: 10,
       width: '100%',
       flexDirection: 'row',
-
-      justifyContent: 'flex-end',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     centeredView: {
       flex: 1,
@@ -434,7 +425,7 @@ const EventsCreatedByMe: React.FC = () => {
       marginLeft: 10,
     },
     text: {
-      fontSize: 32,
+      fontSize: 28,
       fontWeight: '300',
       // marginHorizontal: 10,
       color: textColor,
@@ -500,23 +491,20 @@ const EventsCreatedByMe: React.FC = () => {
         </Text>
       </View>
 
-      <View>
+      <View style={{ backgroundColor: backgroundColor }}>
         <FooterNavbar currentRoute={''} />
       </View>
     </View>
   ) : (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <BackAction
-          style={{ backgroundColor: 'white', width: 26, height: 26 }}
-        />
-        <Text style={styles.text}>Events Created By me</Text>
+        <BackAction style={{ width: 26, height: 26 }} />
+        <Text style={styles.text}> {t('myEvents.eventsCreatedByMe')}</Text>
       </View>
 
       <View
         style={{
           marginHorizontal: 5,
-          //  marginVertical: 5,
           marginTop: 10,
         }}>
         <SearchBar
@@ -529,7 +517,12 @@ const EventsCreatedByMe: React.FC = () => {
             borderTopWidth: 0,
             borderBottomWidth: 0,
           }}
-          // inputContainerStyle={{ backgroundColor: backgroundColor }}
+          inputContainerStyle={{
+            backgroundColor:
+              textColor === 'white'
+                ? 'rgba(35,35,35,1)'
+                : 'rgba(225,225,225,1)',
+          }}
           inputStyle={{ color: textColor }}
         />
       </View>
@@ -537,6 +530,7 @@ const EventsCreatedByMe: React.FC = () => {
         data={filteredEvents}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
+        ListFooterComponent={<View style={{ marginBottom: 50 }} />}
       />
 
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
@@ -597,7 +591,6 @@ const EventsCreatedByMe: React.FC = () => {
             <View style={styles.modalHeader}>
               <Text
                 style={{
-                  paddingTop: 4,
                   paddingLeft: 37,
                   fontSize: 24,
                   width: '100%',
@@ -609,11 +602,10 @@ const EventsCreatedByMe: React.FC = () => {
                   borderRadius: 50,
                   backgroundColor: backgroundColor,
                 }}
-                //  style={[styles.button, styles.buttonClose]}
                 onPress={async () => {
                   setIsModalVisible(!isModalVisible)
                 }}>
-                <Icon name="close" size={22} color="white" />
+                <Icon name="close" size={22} color={textColor} />
               </Button>
             </View>
             <View
@@ -652,26 +644,21 @@ const EventsCreatedByMe: React.FC = () => {
             <View style={styles.modalHeader}>
               <Text
                 style={{
-                  paddingTop: 4,
-                  paddingLeft: 37,
                   fontSize: 24,
-                  width: '100%',
+                  textAlign: 'center',
                 }}>
-                Are you sure you want to delete this event?
+                {t('labels.deleteEventConfirmation')}
               </Text>
               <Button
                 buttonStyle={{
-                  backgroundColor: 'black',
+                  backgroundColor: backgroundColor,
                   borderRadius: 50,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginTop: 10,
+                  marginLeft: 'auto',
                 }}
-                //   style={[styles.button, styles.buttonClose]}
                 onPress={() => {
                   setIsDeleteModalVisible(!isDeleteModalVisible)
                 }}>
-                <Icon name="close" size={24} color="white" />
+                <Icon name="close" size={24} color={textColor} />
               </Button>
             </View>
             <ScrollView
@@ -682,20 +669,21 @@ const EventsCreatedByMe: React.FC = () => {
               }}>
               <View>
                 <Text style={[styles.title, { fontSize: 26 }]}>
-                  Event details
+                  {t('bottomDrawer.eventDetails')}
                 </Text>
-                <Text style={[styles.title, { marginTop: 10 }]}>
-                  Event id:{event?.id}
-                </Text>
-                <Text style={styles.title}>Event Name:{event?.eventName}</Text>
+
                 <Text style={styles.title}>
-                  Event Description:{event?.eventDescription}
+                  {t('eventForm.eventName')}: {event?.eventName}
                 </Text>
                 <Text style={styles.title}>
-                  Event Max Participants:{event?.maxParticipants}
+                  {t('eventForm.eventDescription')}: {event?.eventDescription}
                 </Text>
                 <Text style={styles.title}>
-                  Event Location: {event?.locationDetails}
+                  {t('eventForm.eventMaxParticipants')}:{' '}
+                  {event?.maxParticipants}
+                </Text>
+                <Text style={styles.title}>
+                  {t('myEvents.eventLocation')}: {event?.locationDetails}
                 </Text>
                 <Image
                   style={[styles.eventImage, { marginTop: 20 }]}
@@ -708,27 +696,24 @@ const EventsCreatedByMe: React.FC = () => {
                   }
                 />
               </View>
-              <Button
-                buttonStyle={{
+              <B
+                style={{
                   alignItems: 'center',
                   justifyContent: 'center',
-                  // marginHorizontal: 60,
-                  backgroundColor: 'black',
-                  borderRadius: 10,
                   marginTop: 20,
                 }}
+                bg="black"
                 onPress={() => {
                   deleteEvent(event?.id)
                 }}>
                 <Text
                   style={{
-                    //  marginVertical: 10,
                     color: 'white',
                     fontSize: 24,
                   }}>
-                  Delete
+                  {t('buttons.delete')}
                 </Text>
-              </Button>
+              </B>
             </ScrollView>
           </View>
         </View>

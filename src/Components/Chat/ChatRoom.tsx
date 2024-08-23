@@ -3,11 +3,8 @@ import {
   View,
   Text,
   TextInput,
-  Button,
   StyleSheet,
   Image,
-  TouchableWithoutFeedback,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
@@ -18,16 +15,14 @@ import * as Notifications from 'expo-notifications'
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler'
 import { formatDateAndTime } from '../../Utils.tsx/Services/FormatDate'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
-import { Linking } from 'react-native'
-import Constants from 'expo-constants'
-import * as Device from 'expo-device'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Icon } from 'react-native-vector-icons/Icon'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
-import { ImageConfig } from '../../config/imageConfig'
 import BackAction from '../Back'
 import axios from 'axios'
+import { RootStackParamList } from '../../Navigation/Types'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RouteProp } from '@react-navigation/native'
 
 interface Message {
   id: number
@@ -36,15 +31,6 @@ interface Message {
   chatId: number
   timestamp: string
   dateSeparator?: boolean
-}
-
-interface Props {
-  //messages: Message[]
-  selectedRoom: number
-  contact: string
-  imageUri: string
-  receiverId: number
-  notificationToken: string
 }
 
 Notifications.setNotificationHandler({
@@ -78,28 +64,46 @@ async function sendPushNotification(
     body: JSON.stringify(message),
   })
 }
+type ChatRoomScreenProps = {
+  navigation: StackNavigationProp<RootStackParamList, 'ChatRoom'>
+  route: RouteProp<RootStackParamList, 'ChatRoom'>
+}
+const ChatRoom: React.FC<ChatRoomScreenProps> = ({ route, navigation }) => {
+  const {
+    selectedRoom,
+    contact,
+    imageUri,
+    firstName,
+    lastName,
+    description,
+    profilePicture,
+    friendRequestStatus,
+    areFriends,
+    username,
+    phoneNumber,
+    email,
+    interest,
+    city,
+    currentLocationId,
+    receiverId,
+    notificationToken,
+  } = route.params
 
-const ChatRoom: React.FC<Props> = ({
-  //messages,
-  selectedRoom,
-  contact,
-  imageUri,
-  receiverId,
-  notificationToken,
-}) => {
   const [messageInput, setMessageInput] = useState('')
   const [chatHubConnection, setChatHubConnection] = useState<any>()
   const [messagesData, setMessagesData] = useState<Message[]>([])
-  const [expoPushToken, setExpoPushToken] = useState<any>('')
-  const [notification, setNotification] = useState<any>(false)
-  const notificationListener = useRef<any>()
-  const responseListener = useRef<any>()
   const { loggedUser } = useUser()
-  const handleNavigation = useHandleNavigation()
   const flatListRef = useRef<FlatList<Message>>(null)
   const { backgroundColor, textColor } = useThemeColor()
+  const navigate = useHandleNavigation()
 
   const [initialMessages, setInitialMessages] = useState<number>(40)
+
+  useEffect(() => {
+    if (loggedUser && selectedRoom) {
+      markMessagesAsRead(selectedRoom, loggedUser.id)
+    }
+  }, [selectedRoom, loggedUser])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -172,7 +176,7 @@ const ChatRoom: React.FC<Props> = ({
 
     connection
       .start()
-      .then(() => console.log('Connection started!'))
+
       .catch((err) => console.error('Connection failed: ', err))
 
     connection.on('ReceiveMessage', async (newMessage) => {
@@ -194,14 +198,30 @@ const ChatRoom: React.FC<Props> = ({
   const handleSendMessage = async () => {
     if (messageInput.trim() === '') return
 
-    await chatHubConnection
-      ?.send('SendMessage', loggedUser?.id, receiverId, messageInput)
-      .then(() => setMessageInput(''))
-      .catch((err: any) => console.error('Send message error: ', err))
+    try {
+      await chatHubConnection
+        ?.send('SendMessage', loggedUser?.id, receiverId, messageInput)
+        .then(() => {
+          setMessageInput('')
+        })
+        .catch((err: any) => {
+          console.error('Send message error: ', err)
+        })
+    } catch (error) {
+      console.error('Error in handleSendMessage:', error)
+    }
   }
   const loadMoreMessages = async () => {
-    console.log('scroll')
     setInitialMessages(initialMessages + 10)
+  }
+  const markMessagesAsRead = async (chatId: number, userId: number) => {
+    try {
+      await axios.post(
+        `${config.BASE_URL}/api/chats/markAsRead?ChatId=${chatId}&UserId=${userId}`,
+      )
+    } catch (error) {
+      console.error('Error marking messages as read:', error)
+    }
   }
 
   type ItemProps = {
@@ -258,11 +278,29 @@ const ChatRoom: React.FC<Props> = ({
       <View style={styles.header}>
         <BackAction
           style={{
-            backgroundColor: 'white',
             width: 26,
             height: 26,
           }}></BackAction>
-        <View
+        <TouchableOpacity
+          onPress={() =>
+            navigate('SelectedPersonInfo', {
+              personData: {
+                friendRequestStatus,
+                areFriends,
+                receiverId,
+                username,
+                firstName,
+                lastName,
+                phoneNumber,
+                profilePicture,
+                email,
+                interest,
+                description,
+                city,
+                currentLocationId,
+              },
+            })
+          }
           style={{
             flexDirection: 'row-reverse',
             marginHorizontal: 5,
@@ -272,7 +310,7 @@ const ChatRoom: React.FC<Props> = ({
           <Image
             source={
               imageUri
-                ? { uri: ImageConfig.IMAGE_CONFIG + imageUri }
+                ? { uri: imageUri }
                 : require('../../../assets/DefaultUserIcon.png')
             }
             style={styles.profileImage}
@@ -280,7 +318,7 @@ const ChatRoom: React.FC<Props> = ({
           <Text style={[styles.contactName, { color: textColor }]}>
             {contact}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
       <View style={{ flex: 1 }}>
         <FlatList
@@ -290,7 +328,7 @@ const ChatRoom: React.FC<Props> = ({
           keyExtractor={(item) => item.id.toString()}
           onLayout={scrollToBottom}
           onScroll={handleScroll}
-          scrollEventThrottle={20} // Adjust as needed
+          scrollEventThrottle={20}
         />
         <SafeAreaView
           edges={['bottom']}
@@ -389,7 +427,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
     alignItems: 'flex-end',
     alignSelf: 'flex-end',
-    // transform: [{ matrix: [-1, 0, 0, 0, 1, 0, 0, 0, 1] }],
   },
   profileImage: {
     width: 45,
@@ -421,8 +458,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    // backgroundColor: ba,
-
     borderTopColor: '#ccc',
     paddingTop: 8,
     paddingHorizontal: 10,
@@ -436,6 +471,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 10,
+    marginBottom: Platform.OS === 'ios' ? 2 : 10,
     color: 'white',
   },
 })

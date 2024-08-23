@@ -1,5 +1,5 @@
+import { t } from 'i18next'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
 import { View, Text, TextStyle } from 'react-native'
 
 type GreetingProps = {
@@ -10,7 +10,6 @@ const Greeting = ({ style }: GreetingProps) => {
   const currentDate = new Date()
   const currentHour = currentDate.getHours()
 
-  const { t } = useTranslation()
   let greetingMessage = ''
 
   if (currentHour >= 5 && currentHour < 12) {

@@ -5,14 +5,13 @@ import {
   TextInput,
   Text,
   StyleSheet,
-  Modal,
   TouchableOpacity,
 } from 'react-native'
 import { config } from '../config/urlConfig'
 import { useNotification } from './Notification/NotificationProvider'
-import { useTranslation } from 'react-i18next'
 import { Overlay } from '@rneui/base'
 import { Button } from 'native-base'
+import { t } from 'i18next'
 
 type Props = {
   onSubmit: (ticket: {
@@ -28,12 +27,10 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
   const [rating, setFeedback] = useState<number>(0)
   const [modalVisible, setModalVisible] = useState<boolean>(false)
   const { showNotificationMessage } = useNotification()
-  const { t } = useTranslation()
 
   const handleSubmit = async () => {
     if (title && description && rating) {
       try {
-        // Make HTTP POST request to your backend server
         await axios.post(`${config.BASE_URL}/api/feedback`, {
           title,
           description,
@@ -112,7 +109,6 @@ const SupportTicket: React.FC<Props> = ({ onSubmit }) => {
 
             <View
               style={{
-                //flexDirection: 'row',
                 justifyContent: 'space-evenly',
                 marginTop: 20,
               }}>
@@ -149,7 +145,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: 'rgba(255,255,255,0.5)',
     borderWidth: 1,
-    //borderRadius: 20,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -162,16 +157,13 @@ const styles = StyleSheet.create({
   },
   selectedStar: {
     fontSize: 25,
-    color: '#f1c40f', // yellow color for selected stars
+    color: '#f1c40f',
     marginRight: 5,
   },
   modalView: {
-    // margin: '30%',
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 35,
-
-    // alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -180,7 +172,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    // elevation: 5,
   },
   button: {
     borderRadius: 15,
@@ -195,7 +186,6 @@ const styles = StyleSheet.create({
   textStyle: {
     color: 'white',
     fontWeight: '400',
-    // textAlign: 'center',
   },
   label: {
     marginVertical: 8,

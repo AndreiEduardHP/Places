@@ -1,5 +1,5 @@
 import { t } from 'i18next'
-import React, { useState } from 'react'
+import React from 'react'
 
 import {
   View,
@@ -26,9 +26,8 @@ const EditUserProfileScreen: React.FC = () => {
       backgroundColor: backgroundColor,
     },
     text: {
-      fontSize: 27,
-      //   marginTop: 5,
-      //  marginLeft: 10,
+      fontSize: 28,
+      fontWeight: '300',
       color: textColor,
     },
   })
@@ -41,7 +40,6 @@ const EditUserProfileScreen: React.FC = () => {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <BackAction
             style={{
-              backgroundColor: 'white',
               width: 26,
               height: 26,
             }}></BackAction>

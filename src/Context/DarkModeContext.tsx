@@ -40,8 +40,10 @@ export const DarkModeProvider: React.FC<DarkModeProviderProps> = ({
     setIsDarkMode(newIsDarkMode)
 
     const apiUrl = `${config.BASE_URL}/api/UserProfilePreference/${loggedUser?.id}/preferences`
+
     const requestBody = {
       ThemeColor: newIsDarkMode ? 'light' : 'dark',
+      Description: loggedUser?.description,
     }
 
     try {

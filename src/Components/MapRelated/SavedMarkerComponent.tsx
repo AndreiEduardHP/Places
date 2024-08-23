@@ -1,6 +1,5 @@
 import React from 'react'
 import { Marker } from 'react-native-maps'
-import { Image } from 'react-native'
 import { MapMarkerProps } from 'react-native-maps'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { useUser } from '../../Context/AuthContext'

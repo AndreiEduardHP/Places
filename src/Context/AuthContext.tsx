@@ -15,7 +15,6 @@ import i18n from '../TranslationFiles/i18n'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants'
-import { MapMarker } from 'react-native-maps'
 import * as Location from 'expo-location'
 import { Platform } from 'react-native'
 
@@ -40,6 +39,8 @@ export interface Profile {
   languagePreference: string
   dateAccountCreation: string
   notificationToken: string
+  emailVerified: boolean
+  description: string
 }
 
 interface UserContextType {
@@ -59,6 +60,10 @@ interface UserContextType {
     userProfileId: number,
     notificationToken: string,
   ) => Promise<void>
+  updateUserNotificationToken: (
+    userProfileId: number,
+    notificationToken: string,
+  ) => Promise<void>
   fetchFriendCount: (userId: number) => Promise<number>
 }
 
@@ -68,6 +73,12 @@ export const UserContext = createContext<UserContextType>({
   token: null,
   setToken: () => {},
   updateNotificationToken: async (
+    userProfileId: number,
+    notificationToken: string,
+  ) => {
+    console.warn('updateProfileImage function is not implemented')
+  },
+  updateUserNotificationToken: async (
     userProfileId: number,
     notificationToken: string,
   ) => {
@@ -95,6 +106,7 @@ export interface FriendRequest {
   requestId: number
   senderName: string
   requestDate: string
+  senderPicture: string
 }
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -130,7 +142,6 @@ async function registerForPushNotificationsAsync() {
     token = await Notifications.getExpoPushTokenAsync({
       projectId: Constants.expoConfig?.extra?.eas.projectId,
     })
-    //console.log(token)
   } else {
     alert('Must use physical device for Push Notifications')
   }
@@ -146,6 +157,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [friendRequestsCount, setFriendRequestsCount] = useState<number>(0)
   const { showNotificationMessage } = useNotification()
   const handleNavigation = useHandleNavigation()
+  const [loading, setLoading] = useState(true)
   useEffect(() => {
     const checkTokenExpiration = async () => {
       try {
@@ -298,7 +310,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           'tokenExpirationDate',
           expirationDate.toISOString(),
         )
-        handleNavigation('HomeScreen')
+        handleNavigation('NewConnectionScreen')
         if (profileResponse.data.languagePreference) {
           i18n.changeLanguage(profileResponse.data.languagePreference)
         } else {
@@ -362,6 +374,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       )
 
       setLoggedUser(response.data)
+
       await AsyncStorage.setItem('loggedUser', JSON.stringify(response.data))
     } catch (error) {
       // console.error('Error fetching user profile:', error)
@@ -395,6 +408,43 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   }
   useEffect(() => {
+    const checkLoggedInStatus = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token')
+        if (token) {
+          const userProfileString = await AsyncStorage.getItem('loggedUser')
+          if (userProfileString) {
+            const userProfile: Profile = JSON.parse(userProfileString)
+            const notificationToken = (
+              await Notifications.getExpoPushTokenAsync()
+            ).data
+
+            updateUserNotificationToken(userProfile.id, notificationToken)
+            // handleLogin(userProfile.phoneNumber)
+            refreshData()
+          } else {
+            setLoggedUser(null)
+            setToken(null)
+            AsyncStorage.removeItem('loggedUser')
+            AsyncStorage.removeItem('token')
+            handleNavigation('DefaultScreen')
+          }
+        } else {
+          setLoggedUser(null)
+          setToken(null)
+          AsyncStorage.removeItem('loggedUser')
+          AsyncStorage.removeItem('token')
+          handleNavigation('DefaultScreen')
+        }
+      } catch (error) {
+        console.error('Error checking logged in status:', error)
+      }
+    }
+
+    checkLoggedInStatus()
+  }, [])
+
+  useEffect(() => {
     if (loggedUser && token) {
       fetchFriendRequests()
     }
@@ -407,8 +457,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const subscription = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = response.notification.request.content.data
-        console.log(data)
-        handleNavigation('Chat', data)
+        if (data.someData === 'goToNotification') {
+          handleNavigation('FriendRequestScreen')
+        } else {
+          handleNavigation('Chat', data)
+        }
       },
     )
 
@@ -426,6 +479,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     <UserContext.Provider
       value={{
         loggedUser,
+        updateUserNotificationToken,
         setLoggedUser,
         token,
         updateNotificationToken,

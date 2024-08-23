@@ -3,17 +3,14 @@ import { createStackNavigator } from '@react-navigation/stack'
 import DefaultScreen from '../Screens/DefaultScreen'
 import LoginScreen from '../Screens/LoginScreen'
 import SignUpScreen from '../Screens/SignUpScreen'
-import AboutUsScreen from '../Screens/AboutUsScreen'
 import { NavigationContainer } from '@react-navigation/native'
 import { DarkModeProvider } from '../Context/DarkModeContext'
-import { StatusBar, SafeAreaView, View, Text, Platform } from 'react-native'
 import Navbar from '../Components/Navbar'
 import ProfileScreen from '../Screens/ProfileScreen'
 import MapScreen from '../Screens/MapScreen'
 import SettingScreen from '../Screens/SettingScreen'
 import HomeScreen from '../Screens/HomeScreen'
 import NewConnectionScreen from '../Screens/NewConnectionScreen'
-import FriendRequestScreen from '../Screens/FriendRequestScreen'
 import { RootStackParamList } from './Types'
 import SelectedPersonInfo from '../Screens/SelectedPersonInfo'
 import { NotificationProvider } from '../Components/Notification/NotificationProvider'
@@ -26,20 +23,20 @@ import SupportScreen from '../Screens/SupportScreen'
 import JoinedEventsScreen from '../Screens/MyEvents'
 import EventsCreatedByMe from '../Screens/EventsCreatedByMe'
 import MyAwardsScreen from '../Screens/MyAwardsScreen'
-import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import ProfileVisibilityScreen from '../Screens/ProfileVisibility'
+import ChatRoom from '../Components/Chat/ChatRoom'
+import FriendRequestScreen from '../Components/Friends/FriendRequestScreen'
 
 const Stack = createStackNavigator<RootStackParamList>()
 
 const StackNavigator: React.FC = () => {
-  //console.log(backgroundColor)
   return (
     <NavigationContainer>
       <NotificationProvider>
         <UserProvider>
           <DarkModeProvider>
             <Navbar title="Places" />
-            <Stack.Navigator initialRouteName="HomeScreen">
+            <Stack.Navigator initialRouteName="NewConnectionScreen">
               <Stack.Screen
                 name="DefaultScreen"
                 component={DefaultScreen}
@@ -80,11 +77,7 @@ const StackNavigator: React.FC = () => {
                 component={SelectedPersonInfo}
                 options={{ headerShown: false }}
               />
-              <Stack.Screen
-                name="AboutUs"
-                component={AboutUsScreen}
-                options={{ headerShown: false }}
-              />
+
               <Stack.Screen
                 name="Chat"
                 component={Chat}
@@ -135,9 +128,15 @@ const StackNavigator: React.FC = () => {
                 component={NewConnectionScreen}
                 options={{ headerShown: false }}
               />
+
               <Stack.Screen
                 name="FriendRequestScreen"
                 component={FriendRequestScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="ChatRoom"
+                component={ChatRoom}
                 options={{ headerShown: false }}
               />
             </Stack.Navigator>

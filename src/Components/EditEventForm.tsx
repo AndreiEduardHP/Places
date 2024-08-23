@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -16,10 +15,15 @@ import { remoteImages } from '../AzureImages/Images'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
 import { MapMarkerDetail } from '../Interfaces/IUserData'
-import { useTranslation } from 'react-i18next'
 import { ScrollView } from 'react-native-gesture-handler'
 import * as ImagePicker from 'expo-image-picker'
 import { Button } from 'native-base'
+import { Text } from '@rneui/themed'
+import ImageModal from '../Modals/ImageModal'
+import { t } from 'i18next'
+import { BlobServiceClient } from '@azure/storage-blob'
+import { azureConfigBlob } from '../config/azureBlobConfig'
+import { Skeleton } from '@rneui/base'
 
 interface EditFormProps {
   eventId: any
@@ -45,7 +49,7 @@ const EditForm: React.FC<EditFormProps> = ({
   eventDescription,
 }) => {
   const [editedEventName, setEditedEventName] = useState(eventName || '')
-  const { t } = useTranslation()
+
   const [editedEventDescription, setEditedEventDescription] = useState(
     eventDescription || '',
   )
@@ -56,9 +60,13 @@ const EditForm: React.FC<EditFormProps> = ({
     maxParticipants ? maxParticipants.toString() : '',
   )
   const [editedEventImage, setEditedEventImage] = useState<any>(
+    eventImage ? eventImage : eventImage || '',
+  )
+  const [editedEventImageSave, setEditedEventImageSave] = useState<any>(
     eventImage || '',
   )
-
+  const [isImageModalVisible, setIsImageModalVisible] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   const selectImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
@@ -68,15 +76,41 @@ const EditForm: React.FC<EditFormProps> = ({
 
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-      base64: true,
+      quality: 0.1,
+
+      allowsEditing: true,
     })
 
     if (!result.canceled && result.assets) {
       const image = result.assets[0]
-      setEditedEventImage(`data:image/jpeg;base64,${image.base64}`)
+      const blobUrl = await uploadImageToBlob(image.uri)
+      setEditedEventImage(blobUrl)
+      setEditedEventImageSave(blobUrl)
     } else {
       Alert.alert('Error', 'Image picking was cancelled or failed')
+    }
+  }
+
+  const uploadImageToBlob = async (imageUri: string) => {
+    try {
+      const blobServiceClient = new BlobServiceClient(
+        `https://${azureConfigBlob.accountName}.blob.core.windows.net?${azureConfigBlob.sasToken}`,
+      )
+
+      const containerClient = blobServiceClient.getContainerClient(
+        azureConfigBlob.containerName,
+      )
+      const blobName = `event-${Date.now()}.jpg`
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName)
+
+      const response = await fetch(imageUri)
+      const blob = await response.blob()
+
+      blockBlobClient.uploadData(blob)
+
+      return blockBlobClient.url
+    } catch (error) {
+      console.error('Error uploading image to Blob Storage:', error)
     }
   }
 
@@ -86,7 +120,7 @@ const EditForm: React.FC<EditFormProps> = ({
         `${config.BASE_URL}/api/event/updateEvent/${Number(eventId)}`,
         {
           eventName: editedEventName,
-          eventImage: editedEventImage,
+          eventImage: editedEventImageSave,
           eventDescription: editedEventDescription,
           maxParticipants: Number(editedMaxParticipants),
           otherRelevantInformation: editedEventRelevantInfo,
@@ -107,6 +141,7 @@ const EditForm: React.FC<EditFormProps> = ({
         eventImage: updatedEvent.eventImage,
         maxParticipants: updatedEvent.maxParticipants,
         createdByUserId: updatedEvent.createdByUserId,
+        otherRelevantInformation: updatedEvent.otherRelevantInformation,
       }
       refreshSelectedMarkerData(newMarker)
       Alert.alert('Success', 'Event updated successfully')
@@ -122,9 +157,7 @@ const EditForm: React.FC<EditFormProps> = ({
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           contentContainerStyle={{
-            //  alignItems: 'center',
             width: '100%',
-            // backgroundColor: 'red',
             marginTop: 10,
           }}>
           <View>
@@ -172,25 +205,46 @@ const EditForm: React.FC<EditFormProps> = ({
               style={styles.input}
             />
           </View>
+          <TouchableOpacity onPress={() => setIsImageModalVisible(true)}>
+            {!isLoaded && (
+              <Skeleton
+                animation="wave"
+                style={[
+                  styles.eventImage,
+                  {
+                    position: 'absolute',
+                    zIndex: 1,
+                  },
+                ]}
+              />
+            )}
+            <Image
+              style={styles.eventImage}
+              source={
+                editedEventImage
+                  ? {
+                      uri: editedEventImage,
+                    }
+                  : { uri: remoteImages.partyImage }
+              }
+              onLoadStart={() => setIsLoaded(false)}
+              onLoadEnd={() => setIsLoaded(true)}
+            />
+          </TouchableOpacity>
 
-          <Image
-            style={styles.eventImage}
-            source={
-              editedEventImage
-                ? {
-                    uri: editedEventImage,
-                  }
-                : { uri: remoteImages.partyImage }
-            }
+          <ImageModal
+            visible={isImageModalVisible}
+            imageUrl={editedEventImage}
+            onClose={() => setIsImageModalVisible(false)}
           />
-
           <Button
             style={{
-              backgroundColor: 'black',
-              borderRadius: 10,
+              //backgroundColor: 'black',
+              // borderRadius: 10,
               //  width: 300,
               alignItems: 'center',
             }}
+            bg="red.500"
             onPress={selectImage}>
             <Text
               style={[
@@ -201,18 +255,19 @@ const EditForm: React.FC<EditFormProps> = ({
                   fontSize: 18,
                 },
               ]}>
-              Change event image
+              {t('buttons.changeEventImage')}
             </Text>
           </Button>
 
           <Button
             style={{
-              backgroundColor: 'black',
-              borderRadius: 10,
+              //  backgroundColor: '#00B0FE',
+              // borderRadius: 10,
               // width: 300,
               alignItems: 'center',
               marginTop: 10,
             }}
+            bg="#00B0FE"
             onPress={saveEvent}>
             <Text
               style={[

@@ -1,14 +1,11 @@
 import { t } from 'i18next'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet } from 'react-native'
-
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
 import CustomeMap from '../Components/MapRelated/Map'
 
 const MapScreen: React.FC = () => {
-  const { t } = useTranslation()
   const { loggedUser } = useUser()
 
   return (

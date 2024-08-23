@@ -1,3 +1,4 @@
+import { t } from 'i18next'
 import * as React from 'react'
 import Svg, {
   Rect,
@@ -188,7 +189,7 @@ const SVGComponentOFFERS = (
         <Rect x={10} y={0} width={890} height={600} rx={30} fill="black" />
       </G>
       <Text x="80" y="120" fontWeight="600" fill="white" fontSize={42}>
-        YOUR CREDITS
+        {t('eventForm.yourCredits')}
       </Text>
       <Text x="80" y="195" fontWeight="600" fill="white" fontSize={62}>
         {credits}

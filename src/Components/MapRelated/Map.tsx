@@ -8,12 +8,9 @@ import {
   Linking,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Keyboard,
-  TextInput,
   Text,
-  Button,
-  FlatList,
+  Image,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native'
@@ -31,11 +28,11 @@ import { MapMarker, MapMarkerDetail } from '../../Interfaces/IUserData'
 import GooglePlacesInput from './GoogleAutocomplete'
 import { RouteProp, useRoute } from '@react-navigation/native'
 import { RootStackParamList } from '../../Navigation/Types'
-import Stepper from 'react-native-stepper-ui'
 import StepperHorizontal from '../../Screens/Stepper'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { t } from 'i18next'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import SearchEvent from './SearchEvent'
 
 const CustomeMap: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<MapMarker | null>(null)
@@ -57,13 +54,15 @@ const CustomeMap: React.FC = () => {
   const [refreshParticipantsTrigger, setRefreshParticipantsTrigger] =
     useState(false)
   const [optionVisible, setOptionVisible] = useState(false)
-
   const { loggedUser } = useUser()
   const route = useRoute<RouteProp<RootStackParamList, 'MapScreen'>>()
   const [savedMarkers, setSavedMarkers] = useState<MapMarkerDetail[]>([])
   const [isChecked, setChecked] = useState(false)
   const { showNotificationMessage } = useNotification()
-  const { backgroundColor } = useThemeColor()
+  const [searchLocation, setSearchLocation] = useState<boolean>(true)
+  const [searchEvent, setSearchEvent] = useState<boolean>(false)
+  const [focusInput, setFocusInput] = useState(false)
+  const googlePlacesRef = useRef<any>(null)
 
   const getLocation = async () => {
     try {
@@ -73,7 +72,7 @@ const CustomeMap: React.FC = () => {
         return
       }
 
-      let location = await await Location.getCurrentPositionAsync({
+      let location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       })
       if (location) {
@@ -99,7 +98,6 @@ const CustomeMap: React.FC = () => {
     try {
       const response = await axios.get(`${config.BASE_URL}/api/Event`)
 
-      // Transform eventData into savedMarkers
       const newMarkers: MapMarkerDetail[] = response.data.map((res: any) => ({
         latitude: res.locationLatitude,
         longitude: res.locationLongitude,
@@ -109,6 +107,7 @@ const CustomeMap: React.FC = () => {
         eventImage: res.eventImage,
         maxParticipants: res.maxParticipants,
         createdByUserId: res.createdByUserId,
+        otherRelevantInformation: res.otherRelevantInformation,
       }))
 
       setSavedMarkers(newMarkers)
@@ -160,8 +159,6 @@ const CustomeMap: React.FC = () => {
   ])
 
   const handleMapPress = async (e: any) => {
-    // Check if there is already a marker at the pressed coordinates
-
     const isExistingMarker = markers.some(
       (marker) =>
         marker.latitude === e.nativeEvent.coordinate.latitude &&
@@ -174,11 +171,9 @@ const CustomeMap: React.FC = () => {
     )
 
     if (isExistingMarker || isExistingHardcodedMarker) {
-      // Don't add a marker if there is already one at the pressed coordinates
       return
     }
 
-    // Check if the pressed location matches the current location
     if (
       currentLocation &&
       e.nativeEvent.coordinate.latitude === currentLocation.latitude &&
@@ -389,154 +384,282 @@ const CustomeMap: React.FC = () => {
       showNotificationMessage('Failed to update coordinates', 'fail')
     }
   }
+  const handleEventSelect = (event: {
+    locationLatitude: any
+    locationLongitude: any
+    maxParticipants: any
+    createdByUserId: any
+    eventName: any
+    eventImage: any
+    eventDescription: any
+    otherRelevantInformation: any
+    id: { toString: () => any }
+  }) => {
+    const selectedLocation = {
+      latitude: event.locationLatitude,
+      longitude: event.locationLongitude,
+      key: event.id.toString(),
+      eventName: event.eventName,
+      eventImage: event.eventImage,
+      eventDescription: event.eventDescription,
+      otherRelevantInformation: event.otherRelevantInformation,
+      maxParticipants: event.maxParticipants,
+      createdByUserId: event.createdByUserId,
+    }
 
+    setSearchEvent(false)
+    setSearchEvent(false)
+
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001,
+        },
+        1000,
+      )
+    }
+    handleMarkerPress(selectedLocation)
+  }
   if (isLoading) {
     return <LoadingComponent />
   }
 
   return (
     <>
-      <MapView
-        ref={mapRef}
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
-        initialRegion={{
-          latitude: currentLocation?.latitude || 0,
-          longitude: currentLocation?.longitude || 0,
-          latitudeDelta: 0.1,
-          longitudeDelta: 0.1,
-        }}
-        showsTraffic={true}
-        userInterfaceStyle={
-          loggedUser?.themeColor === 'dark' ? 'dark' : 'light'
-        }
-        onLongPress={handleMapPress}
-        onPress={() => Keyboard.dismiss()}
-        onMapReady={() => setIsMapReady(true)}>
-        {markers.map((marker) => (
-          <Marker
-            key={marker.key}
-            coordinate={{
-              latitude: marker.latitude,
-              longitude: marker.longitude,
-            }}
-            draggable={true}
-            onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
-            title={marker.eventName}
-            description={`${t('map.description')}: ${marker.latitude} ${marker.longitude}`}
-            onPress={() => handleMarkerPress(marker)}
-          />
-        ))}
-        {currentLocation && (
-          <UserLocationMarker
-            coordinate={{
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
-            }}></UserLocationMarker>
-        )}
-        {savedMarkers.map((marker) => (
-          <SavedMarker
-            key={marker.key}
-            coordinate={{
-              latitude: marker.latitude,
-              longitude: marker.longitude,
-            }}
-            draggable={true}
-            onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
-            title={marker.eventName}
-            description={`${t('map.description')}: ${marker.eventDescription}`}
-            eventName={marker.eventName}
-            eventDescription={marker.eventDescription}
-            createdByUserId={marker.createdByUserId}
-            onPress={() => handleMarkerPress(marker)}
-          />
-        ))}
+        behavior={Platform.OS === 'ios' ? undefined : 'height'}>
+        <MapView
+          ref={mapRef}
+          style={{ flex: 1 }}
+          initialRegion={{
+            latitude: currentLocation?.latitude || 0,
+            longitude: currentLocation?.longitude || 0,
+            latitudeDelta: 0.1,
+            longitudeDelta: 0.1,
+          }}
+          showsTraffic={true}
+          userInterfaceStyle={
+            loggedUser?.themeColor === 'dark' ? 'dark' : 'light'
+          }
+          onLongPress={handleMapPress}
+          onPress={() => Keyboard.dismiss()}
+          onMapReady={() => setIsMapReady(true)}>
+          {markers.map((marker) => (
+            <Marker
+              key={marker.key}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              draggable={true}
+              onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
+              title={marker.eventName}
+              description={`${t('map.description')}: ${marker.latitude} ${marker.longitude}`}
+              onPress={() => handleMarkerPress(marker)}
+            />
+          ))}
+          {currentLocation && (
+            <UserLocationMarker
+              coordinate={{
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+              }}></UserLocationMarker>
+          )}
+          {savedMarkers.map((marker) => (
+            <SavedMarker
+              key={marker.key}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              draggable={true}
+              onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
+              title={marker.eventName}
+              description={`${t('map.description')}: ${marker.eventDescription}`}
+              eventName={marker.eventName}
+              eventDescription={marker.eventDescription}
+              createdByUserId={marker.createdByUserId}
+              onPress={() => handleMarkerPress(marker)}
+            />
+          ))}
 
-        {currentLocation && selectedMarker && (
-          <MapViewDirections
-            origin={{
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
-            }}
-            destination={{
-              latitude: selectedMarker.latitude,
-              longitude: selectedMarker.longitude,
-            }}
-            apikey={apiKey}
-            strokeWidth={3}
-            strokeColor="#00B0EF"
-            onReady={(result) => {
-              setRouteDistance(result.distance)
-              setRouteDuration(result.duration)
-            }}
-          />
+          {currentLocation && selectedMarker && (
+            <MapViewDirections
+              origin={{
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+              }}
+              destination={{
+                latitude: selectedMarker.latitude,
+                longitude: selectedMarker.longitude,
+              }}
+              apikey={apiKey}
+              strokeWidth={3}
+              strokeColor="#00B0EF"
+              onReady={(result) => {
+                setRouteDistance(result.distance)
+                setRouteDuration(result.duration)
+              }}
+            />
+          )}
+        </MapView>
+        {searchLocation && (
+          <View
+            style={{
+              position: 'absolute',
+              width: '98%',
+              left: '1%',
+              zIndex: 2,
+              backgroundColor: 'white',
+              shadowColor: 'black',
+              shadowOffset: { width: 2, height: 2 },
+              shadowOpacity: 0.5,
+              shadowRadius: 4,
+              elevation: 4,
+              padding: 1,
+              borderRadius: 8,
+              top: '1%',
+            }}>
+            <GooglePlacesInput
+              ref={googlePlacesRef}
+              onLocationSelected={handleNewLocationSelected}
+              onInputChange={handleInputChange}
+              userCurrentLatitude={currentLocation?.latitude ?? 0}
+              userCurrentLongitude={currentLocation?.longitude ?? 0}
+            />
+          </View>
         )}
-      </MapView>
-      <View
-        style={{
-          position: 'absolute',
-          width: '98%',
-          left: '1%',
-          zIndex: 2,
-          backgroundColor: 'white',
-          shadowColor: 'black',
-          shadowOffset: { width: 2, height: 2 },
-          shadowOpacity: 0.5,
-          shadowRadius: 4,
-          elevation: 4,
-          padding: 1,
-          borderRadius: 8,
-          top: '1%',
-        }}>
-        <GooglePlacesInput
-          onLocationSelected={handleNewLocationSelected}
-          onInputChange={handleInputChange}
-          userCurrentLatitude={currentLocation?.latitude ?? 0}
-          userCurrentLongitude={currentLocation?.longitude ?? 0}
-        />
-      </View>
-      {optionVisible && isInputEmpty && (
-        <View style={styles.optionContainer}>
-          <TouchableOpacity onPress={() => handleOptionSelect('add')}>
-            <Text style={{ color: 'white' }}>Add Event</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleOptionSelect('navigate')}>
-            <Text style={{ color: 'white' }}>Navigate to Location</Text>
+        {optionVisible && isInputEmpty && (
+          <View style={styles.optionContainer}>
+            <TouchableOpacity onPress={() => handleOptionSelect('add')}>
+              <Text style={{ color: 'white' }}>{t('labels.addEvent')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleOptionSelect('navigate')}>
+              <Text style={{ color: 'white' }}>
+                {t('labels.navigateToLocation')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {searchEvent && (
+          <View
+            style={{
+              position: 'absolute',
+              width: '98%',
+              left: '1%',
+              zIndex: 2,
+              backgroundColor: 'white',
+              shadowColor: 'black',
+              shadowOffset: { width: 2, height: 2 },
+              shadowOpacity: 0.5,
+              shadowRadius: 4,
+              elevation: 4,
+              padding: 1,
+              borderRadius: 8,
+              top: '1%',
+            }}>
+            <SearchEvent
+              focusInput={focusInput}
+              onEventSelect={handleEventSelect}
+            />
+          </View>
+        )}
+
+        <View
+          style={{
+            position: 'absolute',
+            width: 'auto',
+            right: '3%',
+            shadowColor: 'black',
+            shadowOffset: { width: 2, height: 2 },
+            shadowOpacity: 0.4,
+            shadowRadius: 4,
+            elevation: 4,
+            bottom: '8%',
+          }}>
+          <TouchableOpacity
+            style={{
+              paddingTop: 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => {
+              mapRef.current.animateToRegion(
+                {
+                  latitude: currentLocation?.latitude,
+                  longitude: currentLocation?.longitude,
+                  latitudeDelta: 0.03,
+                  longitudeDelta: 0.03,
+                },
+                1000,
+              )
+            }}>
+            <Icon name="explore" size={70} color={'#00B0EF'}></Icon>
           </TouchableOpacity>
         </View>
-      )}
-      <View
-        style={{
-          position: 'absolute',
-          width: 'auto',
-          right: '3%',
-          shadowColor: 'black',
-          shadowOffset: { width: 2, height: 2 },
-          shadowOpacity: 0.5,
-          shadowRadius: 4,
-          elevation: 4,
-          bottom: '8%',
-        }}>
-        <TouchableOpacity
+        <View
           style={{
-            paddingTop: 4,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          onPress={() => {
-            mapRef.current.animateToRegion(
-              {
-                latitude: currentLocation?.latitude,
-                longitude: currentLocation?.longitude,
-                latitudeDelta: 0.03,
-                longitudeDelta: 0.03,
-              },
-              1000,
-            )
-          }}>
-          <Icon name="explore" size={70} color={'#00B0EF'}></Icon>
-        </TouchableOpacity>
-      </View>
+            position: 'absolute',
+            width: 'auto',
+            left: '3%',
+            shadowColor: 'black',
+            shadowOffset: { width: 2, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
 
+            elevation: 4,
+            bottom: '8%',
+          }}>
+          <TouchableOpacity
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => {
+              setSearchLocation(false)
+              setSearchEvent(true)
+              setFocusInput(true)
+            }}>
+            <Image
+              source={require('../../../assets/Icons/search.png')}
+              style={{ width: 40, height: 40, tintColor: '#00B0EF' }}
+            />
+          </TouchableOpacity>
+        </View>
+        <View
+          style={{
+            position: 'absolute',
+            width: 'auto',
+            left: '3%',
+            shadowColor: 'black',
+            shadowOffset: { width: 2, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 4,
+            bottom: '14%',
+          }}>
+          <TouchableOpacity
+            style={{
+              paddingTop: 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => {
+              setSearchLocation(true)
+              setSearchEvent(false)
+              googlePlacesRef.current?.focusInput()
+            }}>
+            <Image
+              source={require('../../../assets/Icons/plus (1).png')}
+              style={{ width: 40, height: 40, tintColor: '#00B0EF' }}
+            />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
       <BottomDrawer
         title={t('bottomDrawer.eventDetails')}
         visible={drawerVisible}
@@ -587,7 +710,7 @@ const CustomeMap: React.FC = () => {
       </BottomDrawer>
 
       <BottomDrawer
-        title="Add new event"
+        title={t('labels.addNewEvent')}
         visible={addNewEvent}
         onClose={() => {
           setAddNewEvent(false)

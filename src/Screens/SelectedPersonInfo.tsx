@@ -1,6 +1,6 @@
 import { t } from 'i18next'
-import React, { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import React, { useState } from 'react'
+
 import {
   View,
   Text,
@@ -10,14 +10,12 @@ import {
   ScrollView,
   Linking,
   ImageBackground,
+  Modal,
 } from 'react-native'
-
 import FooterNavbar from '../Components/FooterNavbar'
-
 import { ImageConfig } from '../config/imageConfig'
-
 import { RouteProp, useRoute } from '@react-navigation/native'
-import { RootStackParamList } from '../Navigation/Types'
+import { ChatRoomProps, RootStackParamList } from '../Navigation/Types'
 import { useNotification } from '../Components/Notification/NotificationProvider'
 import ProfileDetails from '../Components/SettingSections/ProfileDetails'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
@@ -27,33 +25,46 @@ import { config } from '../config/urlConfig'
 import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import Icon from 'react-native-vector-icons/MaterialIcons'
-import { Button } from '@rneui/base'
+import { Button, Skeleton } from '@rneui/base'
 import BackAction from '../Components/Back'
 
 const SelectedPersonInfo: React.FC = () => {
-  const { t } = useTranslation()
-
   const route = useRoute<RouteProp<RootStackParamList, 'HomeScreen'>>()
   const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
   const { showNotificationMessage } = useNotification()
   // const personData = route.params?.personData
   const [personData, setPersonData] = useState(route.params?.personData)
   const { loggedUser } = useUser()
+  const [modalVisible, setModalVisible] = useState(false)
   const handleNavigation = useHandleNavigation()
+  const [loading, setLoading] = useState(true)
   const userProfileData: {
     icon: string
     label: string
     value: string | number | undefined
   }[] = [
-    { icon: 'location-city', label: 'City', value: personData?.city },
+    {
+      icon: 'location-city',
+      label: t('signUpScreen.city'),
+      value: personData?.city,
+    },
     { icon: 'alternate-email', label: 'Email', value: personData?.email },
     { icon: 'interests', label: 'Interest', value: personData?.interest },
     {
+      icon: 'description',
+      label: 'Description',
+      value: personData?.description,
+    },
+    {
       icon: 'phone-callback',
-      label: 'Phone Number',
+      label: t('signUpScreen.phoneNumber'),
       value: personData?.phoneNumber,
     },
-    { icon: 'badge', label: 'Username', value: personData?.username },
+    {
+      icon: 'badge',
+      label: 'Username',
+      value: personData?.firstName + ' ' + personData?.lastName.charAt(0),
+    },
   ]
 
   const handleEmail = () => {
@@ -99,7 +110,30 @@ const SelectedPersonInfo: React.FC = () => {
   const handleSendMessage = async () => {
     try {
       const chatId = await retrieveChatId(Number(personData?.id))
-      handleNavigation('Chat', { chatId: chatId })
+
+      const chatRoomProps: ChatRoomProps = {
+        selectedRoom: chatId,
+        contact: `${personData?.firstName} ${personData?.lastName}`,
+        imageUri: personData?.profilePicture || '',
+        firstName: personData?.firstName ? personData.firstName : 'First Name',
+        lastName: personData?.lastName ? personData.firstName : 'Last Name',
+        description: personData?.description || '',
+        profilePicture: personData?.profilePicture || '',
+        friendRequestStatus: personData?.friendRequestStatus || '',
+        areFriends: personData?.areFriends || false,
+        username: personData?.username || '',
+        phoneNumber: personData?.phoneNumber || '',
+        email: personData?.email || '',
+        interest: personData?.interest || '',
+        city: personData?.city || '',
+        currentLocationId: personData?.currentLocationId
+          ? parseInt(personData.currentLocationId)
+          : 1,
+        receiverId: personData?.receiverId || 0,
+        notificationToken: personData?.notificationToken || '',
+      }
+
+      handleNavigation('ChatRoom', chatRoomProps)
     } catch (error) {
       console.error('Error navigating to chat:', error)
       showNotificationMessage('Failed to navigate to chat', 'fail')
@@ -122,7 +156,6 @@ const SelectedPersonInfo: React.FC = () => {
   }
 
   const deleteFriend = async (userId1: any, userId2: any) => {
-    console.log(userId1, userId2)
     try {
       const response = await axios.delete(
         `${config.BASE_URL}/api/friend/${userId1}/${userId2}`,
@@ -131,8 +164,8 @@ const SelectedPersonInfo: React.FC = () => {
         alert('Friend removed successfully')
         setPersonData((prevData) => {
           if (
-            prevData &&
-            (prevData.receiverId === userId1 || prevData.receiverId === userId2)
+            prevData
+            //    (prevData.receiverId === userId1 || prevData.receiverId === userId2)
           ) {
             return {
               ...prevData,
@@ -148,6 +181,26 @@ const SelectedPersonInfo: React.FC = () => {
       alert('Failed to remove friend')
     }
   }
+  async function sendPushNotification() {
+    const message = [
+      {
+        to: personData?.notificationToken,
+        sound: 'default',
+        title: 'You have a new friend request',
+        body: `${loggedUser?.firstName} ${loggedUser?.lastName} sent you a friend request!`,
+        data: { someData: 'goToNotification' },
+      },
+    ]
+    const response = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    })
+  }
 
   const handleConnect = async () => {
     try {
@@ -155,7 +208,7 @@ const SelectedPersonInfo: React.FC = () => {
         SenderId: loggedUser?.id,
         ReceiverId: personData?.id,
       }
-      console.log(personData?.id)
+      sendPushNotification()
       await axios.post(
         `${config.BASE_URL}/api/Friend/sendFriendRequest`,
         requestBody,
@@ -201,12 +254,24 @@ const SelectedPersonInfo: React.FC = () => {
       flex: 1,
       marginTop: 5,
     },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.8)',
+    },
+    modalImage: {
+      width: 370,
+      height: 370,
+      borderRadius: 20,
+      margin: 30,
+    },
     username: {
-      fontSize: 26,
-      fontWeight: '400',
-      marginLeft: 10,
-      marginTop: 20,
-      color: textColor,
+      fontSize: 24,
+      fontWeight: '300',
+      // marginLeft: 10,
+      marginVertical: 3,
+      color: 'white',
     },
     name: {
       fontSize: 16,
@@ -224,9 +289,9 @@ const SelectedPersonInfo: React.FC = () => {
       fontSize: 16,
     },
     contactButtonsText: {
-      color: 'rgba(100,110,200,1)',
+      color: '#2089dc',
       fontSize: 18,
-      padding: 5,
+      padding: 3,
     },
     text: {
       fontSize: 32,
@@ -235,20 +300,29 @@ const SelectedPersonInfo: React.FC = () => {
       color: textColor,
     },
   })
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/*  <Text style={styles.text}>
-          {t('selectedPersonInfo.userInformation')}
-        </Text>*/}
         <View style={{ position: 'absolute', zIndex: 2 }}>
           <BackAction
             style={{
-              backgroundColor: 'white',
               width: 26,
               height: 26,
             }}></BackAction>
         </View>
+        {loading && (
+          <Skeleton
+            animation="wave"
+            style={{
+              width: '100%',
+              position: 'absolute',
+              height: 370,
+              flex: 1,
+              opacity: 0.7,
+            }}
+          />
+        )}
         <ImageBackground
           source={require('../../assets/Untitled.png')}
           style={{
@@ -264,23 +338,32 @@ const SelectedPersonInfo: React.FC = () => {
             <View
               style={{
                 alignItems: 'center',
-                //  flexDirection: 'row',
+
                 marginLeft: 10,
                 marginTop: 20,
               }}>
-              <Image
-                source={
-                  personData.profilePicture !== ''
-                    ? {
-                        uri:
-                          ImageConfig.IMAGE_CONFIG + personData.profilePicture,
-                      }
-                    : require('../../assets/DefaultUserIcon.png')
-                }
-                style={styles.avatar}
-              />
+              <TouchableOpacity onPress={() => setModalVisible(true)}>
+                {loading && (
+                  <Skeleton
+                    animation="wave"
+                    style={[styles.avatar, { position: 'absolute', zIndex: 1 }]}
+                  />
+                )}
+                <Image
+                  source={
+                    personData.profilePicture
+                      ? {
+                          uri: personData.profilePicture,
+                        }
+                      : require('../../assets/DefaultUserIcon.png')
+                  }
+                  style={styles.avatar}
+                  onLoadStart={() => setLoading(true)}
+                  onLoadEnd={() => setLoading(false)}
+                />
+              </TouchableOpacity>
               <Text style={styles.username}>
-                {personData.firstName} {personData.lastName}
+                {personData.firstName} {personData.lastName.charAt(0)}{' '}
               </Text>
               <View
                 style={{
@@ -299,89 +382,80 @@ const SelectedPersonInfo: React.FC = () => {
                 </Text>
               </View>
             </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Button
-                title={
-                  personData.friendRequestStatus === 'Accepted'
-                    ? 'Unfriend'
-                    : personData.friendRequestStatus === 'Pending'
-                      ? 'Pending'
-                      : 'Send friend request'
-                }
-                containerStyle={{
-                  width: 200,
-                  marginHorizontal: 5,
-                  marginVertical: 10,
-                }}
-                icon={{
-                  name: 'user',
-                  type: 'font-awesome',
-                  size: 15,
-                  color: 'white',
-                }}
-                onPress={() => {
-                  if (personData.friendRequestStatus === 'Accepted') {
-                    deleteFriend(personData.id, loggedUser?.id) // Assuming currentUserId is defined
-                  } else if (personData.friendRequestStatus === 'Pending') {
-                    showNotificationMessage(
-                      'Friend request is already pending.',
-                      'neutral',
-                    )
-                  } else {
-                    handleConnect()
+
+            {personData.id != String(loggedUser?.id) && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingHorizontal: 11,
+                }}>
+                <Button
+                  title={
+                    personData.friendRequestStatus === 'Accepted'
+                      ? 'Unfriend'
+                      : personData.friendRequestStatus === 'Pending'
+                        ? 'Pending'
+                        : 'Send friend request'
                   }
-                }}
-              />
+                  containerStyle={{
+                    flex: 1,
+                    marginRight: 5,
+                    marginVertical: 10,
+                  }}
+                  icon={{
+                    name: 'user',
+                    type: 'font-awesome',
+                    size: 15,
+                    color: 'white',
+                  }}
+                  onPress={() => {
+                    if (personData.friendRequestStatus === 'Accepted') {
+                      deleteFriend(
+                        personData.id ? personData.id : personData.receiverId,
+                        loggedUser?.id,
+                      )
+                    } else if (personData.friendRequestStatus === 'Pending') {
+                      showNotificationMessage(
+                        'Friend request is already pending.',
+                        'neutral',
+                      )
+                    } else {
+                      handleConnect()
+                    }
+                  }}
+                />
 
-              <Button
-                onPress={handleSendMessage}
-                title={'Message'}
-                containerStyle={{
-                  width: 200,
-                  marginHorizontal: 5,
-                  marginVertical: 10,
-                }}
-                icon={{
-                  name: 'envelope',
-                  type: 'font-awesome',
-                  size: 15,
-                  color: 'white',
-                }}
-                disabled={personData.friendRequestStatus != 'Accepted'}
-                buttonStyle={{ backgroundColor: 'rgba(199, 43, 98, 1)' }}
-                color={'black'}
-              />
-            </View>
-
+                <Button
+                  onPress={handleSendMessage}
+                  title={t('labels.message')}
+                  containerStyle={{
+                    flex: 1,
+                    marginLeft: 5,
+                    marginVertical: 10,
+                  }}
+                  icon={{
+                    name: 'envelope',
+                    type: 'font-awesome',
+                    size: 15,
+                    color: 'white',
+                  }}
+                  disabled={personData.friendRequestStatus != 'Accepted'}
+                  buttonStyle={{ backgroundColor: 'rgba(199, 43, 98, 1)' }}
+                  color={'black'}
+                />
+              </View>
+            )}
             <View style={styles.infoTextContainer}>
               <ProfileDetails data={userProfileData}></ProfileDetails>
-              <View
-                style={{
-                  marginHorizontal: 5,
 
-                  marginTop: 20,
-                }}>
-                {/*   <Text style={[styles.contactButtonsText, { color: 'white' }]}>
-                  Friend Status:
-                  {personData.friendRequestStatus === 'Accepted'
-                    ? 'friends'
-                    : personData.friendRequestStatus === 'Pending'
-                      ? 'pending'
-                      : 'Not friends'}
-                </Text>*/}
-              </View>
               <View
                 style={{
+                  marginTop: 10,
                   marginHorizontal: 10,
                   backgroundColor: backgroundColorGrey,
                   borderRadius: 10,
-                  //   borderWidth: 1,
-                  //   borderColor: textColor,
                 }}>
                 <TouchableOpacity
                   onPress={handleEmail}
@@ -406,7 +480,6 @@ const SelectedPersonInfo: React.FC = () => {
                     {t('selectedPersonInfo.sendSms')}
                   </Text>
                 </TouchableOpacity>
-                <LineComponent />
               </View>
             </View>
           </View>
@@ -418,7 +491,30 @@ const SelectedPersonInfo: React.FC = () => {
 
         <View></View>
       </ScrollView>
-
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}>
+        <TouchableOpacity
+          style={styles.modalContainer}
+          onPress={() => setModalVisible(false)}
+          activeOpacity={1}>
+          <View>
+            <Image
+              source={
+                personData?.profilePicture
+                  ? {
+                      uri: personData.profilePicture,
+                    }
+                  : require('../../assets/DefaultUserIcon.png')
+              }
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
       <FooterNavbar currentRoute="" />
     </View>
   )
