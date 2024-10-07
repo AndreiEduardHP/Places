@@ -35,7 +35,7 @@ const StackNavigator: React.FC = () => {
       <NotificationProvider>
         <UserProvider>
           <DarkModeProvider>
-            <Navbar title="Places" />
+            <Navbar />
             <Stack.Navigator initialRouteName="NewConnectionScreen">
               <Stack.Screen
                 name="DefaultScreen"

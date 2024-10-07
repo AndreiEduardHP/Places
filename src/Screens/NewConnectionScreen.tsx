@@ -1,7 +1,7 @@
 import { t } from 'i18next'
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
 import PeopleCard from '../Components/PeopleCard'
@@ -26,9 +26,9 @@ TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
 })
 
 const NewConnectionScreen: React.FC = () => {
-  const { refreshData } = useUser()
+  const { refreshData, loggedUser } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
-  const [index, setIndex] = useState(0)
+  const [index, setIndex] = useState(loggedUser?.role !== 'agency' ? 0 : 1)
 
   const styles = StyleSheet.create({
     container: {
@@ -57,13 +57,6 @@ const NewConnectionScreen: React.FC = () => {
       fontWeight: '400',
       fontFamily: '',
     },
-    gradientOverlay: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      height: 30, // Adjust the height as needed
-      bottom: 0,
-    },
   })
   const startLocationUpdates = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync()
@@ -89,6 +82,7 @@ const NewConnectionScreen: React.FC = () => {
 
   useEffect(() => {
     refreshData()
+    console.log(loggedUser?.role)
     startLocationUpdates()
   }, [])
   const handleTabChange = (newIndex: number) => {
@@ -98,31 +92,22 @@ const NewConnectionScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={{ flex: 1 }}>
-        <Tab
-          value={index}
-          indicatorStyle={{
-            height: 2,
-            width: '50%',
-          }}
-          onChange={handleTabChange}
-          style={{ marginHorizontal: 10 }}>
-          <Tab.Item titleStyle={styles.tabItem}>People</Tab.Item>
-          <Tab.Item titleStyle={styles.tabItem}>Events</Tab.Item>
-        </Tab>
+        {loggedUser?.role !== 'agency' && (
+          <Tab
+            value={index}
+            indicatorStyle={{
+              height: 2,
+              width: '50%',
+            }}
+            onChange={handleTabChange}
+            style={{ marginHorizontal: 10 }}>
+            <Tab.Item titleStyle={styles.tabItem}>People</Tab.Item>
+            <Tab.Item titleStyle={styles.tabItem}>Events</Tab.Item>
+          </Tab>
+        )}
         {index === 0 && (
           <View style={{ flex: 1 }}>
             <PeopleCard />
-            <LinearGradient
-              colors={[
-                textColor === 'white'
-                  ? 'rgba(0,0,0,1)'
-                  : 'rgba(255,255,255,0.2)',
-                'transparent',
-              ]}
-              start={{ x: 0, y: 1 }}
-              end={{ x: 0, y: 0 }}
-              style={styles.gradientOverlay}
-            />
           </View>
         )}
 

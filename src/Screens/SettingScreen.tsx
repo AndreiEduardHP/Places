@@ -29,10 +29,11 @@ const SettingScreen: React.FC = () => {
       backgroundColor: backgroundColor,
     },
     text: {
-      fontSize: 28,
-      fontWeight: '300',
-      //  marginHorizontal: 20,
+      fontSize: 22,
+
       color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
     },
     content: {
       justifyContent: 'center',
@@ -68,7 +69,7 @@ const SettingScreen: React.FC = () => {
             flexDirection: 'row',
             alignItems: 'center',
           }}>
-          <BackAction style={{ width: 26, height: 26 }} />
+          <BackAction />
           <Text style={styles.text}>{t('settingsScreen.settings')}</Text>
         </View>
 

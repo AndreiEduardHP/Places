@@ -13,11 +13,7 @@ import { useUser } from '../Context/AuthContext'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 
-interface NavbarProps {
-  title: string
-}
-
-const Navbar: React.FC<NavbarProps> = ({ title }) => {
+const Navbar = () => {
   const navbarHeight = useRef(new Animated.Value(42)).current
   const handleNavigation = useHandleNavigation()
   const { loggedUser } = useUser()

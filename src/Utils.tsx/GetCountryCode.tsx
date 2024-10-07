@@ -1,5 +1,6 @@
 import axios from 'axios'
 import * as Location from 'expo-location'
+import { map } from '../config/mapConfig'
 
 const getCountryCode = async () => {
   try {
@@ -13,7 +14,7 @@ const getCountryCode = async () => {
       accuracy: Location.Accuracy.Balanced,
     })
 
-    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.coords.latitude},${location.coords.longitude}&key=AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I`
+    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.coords.latitude},${location.coords.longitude}&key=${map.key}`
     try {
       const response = await axios.get(geocodeUrl)
       const results = response.data.results

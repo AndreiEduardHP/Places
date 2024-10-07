@@ -23,11 +23,11 @@ import TermsAndConditions from './TermsAndConditions'
 import * as Notifications from 'expo-notifications'
 import { Box, Menu, Pressable } from 'native-base'
 import { PaperProvider, TextInput, DefaultTheme } from 'react-native-paper'
-import { interests } from '../Utils.tsx/Interests/Interests'
+import { interests } from '../Utils.tsx/Enums/Interests'
 import getCountryCode from '../Utils.tsx/GetCountryCode'
 import { CheckBox } from '@rneui/base'
 import { LinearGradient } from 'expo-linear-gradient'
-
+import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
 import { signInWithCredential, PhoneAuthProvider } from 'firebase/auth'
 import SegmentedCodeInput from './SegmentedInput'
 import { auth, firebaseConfig } from '../Utils.tsx/Firebase'
@@ -516,6 +516,10 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setVerificationId2 }) => {
             </View>
           </>
         )}
+        <FirebaseRecaptchaVerifierModal
+          ref={recaptchaVerifier}
+          firebaseConfig={firebaseConfig}
+        />
         {verificationId && (
           <View
             style={{

@@ -1,5 +1,5 @@
 import { t } from 'i18next'
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import {
   View,
@@ -27,6 +27,7 @@ import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { Button, Skeleton } from '@rneui/base'
 import BackAction from '../Components/Back'
+import { getLocation } from '../Services/CurrentLocation'
 
 const SelectedPersonInfo: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'HomeScreen'>>()
@@ -36,6 +37,7 @@ const SelectedPersonInfo: React.FC = () => {
   const [personData, setPersonData] = useState(route.params?.personData)
   const { loggedUser } = useUser()
   const [modalVisible, setModalVisible] = useState(false)
+  const [currentLocation, setCurrentLocation] = useState<any>(null)
   const handleNavigation = useHandleNavigation()
   const [loading, setLoading] = useState(true)
   const userProfileData: {
@@ -66,6 +68,10 @@ const SelectedPersonInfo: React.FC = () => {
       value: personData?.firstName + ' ' + personData?.lastName.charAt(0),
     },
   ]
+
+  useEffect(() => {
+    fetchLocation()
+  }, [personData, getLocation])
 
   const handleEmail = () => {
     const recipientEmail = personData?.email
@@ -201,12 +207,20 @@ const SelectedPersonInfo: React.FC = () => {
       body: JSON.stringify(message),
     })
   }
+  const fetchLocation = useCallback(async () => {
+    const location = await getLocation('lowest')
+    if (location) {
+      setCurrentLocation(location)
+    }
+  }, [])
 
   const handleConnect = async () => {
     try {
       const requestBody = {
         SenderId: loggedUser?.id,
         ReceiverId: personData?.id,
+        Latitude: currentLocation.latitude,
+        Longitude: currentLocation.longitude,
       }
       sendPushNotification()
       await axios.post(
@@ -305,11 +319,7 @@ const SelectedPersonInfo: React.FC = () => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={{ position: 'absolute', zIndex: 2 }}>
-          <BackAction
-            style={{
-              width: 26,
-              height: 26,
-            }}></BackAction>
+          <BackAction></BackAction>
         </View>
         {loading && (
           <Skeleton
@@ -383,70 +393,71 @@ const SelectedPersonInfo: React.FC = () => {
               </View>
             </View>
 
-            {personData.id != String(loggedUser?.id) && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingHorizontal: 11,
-                }}>
-                <Button
-                  title={
-                    personData.friendRequestStatus === 'Accepted'
-                      ? 'Unfriend'
-                      : personData.friendRequestStatus === 'Pending'
-                        ? 'Pending'
-                        : 'Send friend request'
-                  }
-                  containerStyle={{
-                    flex: 1,
-                    marginRight: 5,
-                    marginVertical: 10,
-                  }}
-                  icon={{
-                    name: 'user',
-                    type: 'font-awesome',
-                    size: 15,
-                    color: 'white',
-                  }}
-                  onPress={() => {
-                    if (personData.friendRequestStatus === 'Accepted') {
-                      deleteFriend(
-                        personData.id ? personData.id : personData.receiverId,
-                        loggedUser?.id,
-                      )
-                    } else if (personData.friendRequestStatus === 'Pending') {
-                      showNotificationMessage(
-                        'Friend request is already pending.',
-                        'neutral',
-                      )
-                    } else {
-                      handleConnect()
+            {personData.id != String(loggedUser?.id) &&
+              loggedUser?.role !== 'agency' && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingHorizontal: 11,
+                  }}>
+                  <Button
+                    title={
+                      personData.friendRequestStatus === 'Accepted'
+                        ? 'Unfriend'
+                        : personData.friendRequestStatus === 'Pending'
+                          ? 'Pending'
+                          : 'Send friend request'
                     }
-                  }}
-                />
+                    containerStyle={{
+                      flex: 1,
+                      marginRight: 5,
+                      marginVertical: 10,
+                    }}
+                    icon={{
+                      name: 'user',
+                      type: 'font-awesome',
+                      size: 15,
+                      color: 'white',
+                    }}
+                    onPress={() => {
+                      if (personData.friendRequestStatus === 'Accepted') {
+                        deleteFriend(
+                          personData.id ? personData.id : personData.receiverId,
+                          loggedUser?.id,
+                        )
+                      } else if (personData.friendRequestStatus === 'Pending') {
+                        showNotificationMessage(
+                          'Friend request is already pending.',
+                          'neutral',
+                        )
+                      } else {
+                        handleConnect()
+                      }
+                    }}
+                  />
 
-                <Button
-                  onPress={handleSendMessage}
-                  title={t('labels.message')}
-                  containerStyle={{
-                    flex: 1,
-                    marginLeft: 5,
-                    marginVertical: 10,
-                  }}
-                  icon={{
-                    name: 'envelope',
-                    type: 'font-awesome',
-                    size: 15,
-                    color: 'white',
-                  }}
-                  disabled={personData.friendRequestStatus != 'Accepted'}
-                  buttonStyle={{ backgroundColor: 'rgba(199, 43, 98, 1)' }}
-                  color={'black'}
-                />
-              </View>
-            )}
+                  <Button
+                    onPress={handleSendMessage}
+                    title={t('labels.message')}
+                    containerStyle={{
+                      flex: 1,
+                      marginLeft: 5,
+                      marginVertical: 10,
+                    }}
+                    icon={{
+                      name: 'envelope',
+                      type: 'font-awesome',
+                      size: 15,
+                      color: 'white',
+                    }}
+                    disabled={personData.friendRequestStatus != 'Accepted'}
+                    buttonStyle={{ backgroundColor: 'rgba(199, 43, 98, 1)' }}
+                    color={'black'}
+                  />
+                </View>
+              )}
             <View style={styles.infoTextContainer}>
               <ProfileDetails data={userProfileData}></ProfileDetails>
 

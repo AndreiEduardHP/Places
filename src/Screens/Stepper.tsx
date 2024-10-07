@@ -46,7 +46,8 @@ const StepperHorizontal: React.FC<StepperHorizontalProps> = ({
   }
 
   const content = [
-    <View style={{ height: 100, justifyContent: 'center' }}>
+    <View
+      style={{ height: 100, justifyContent: 'center', alignItems: 'center' }}>
       <TermsAndConditions
         accepted={termsAccepted}
         onToggle={handleAcceptanceToggle}

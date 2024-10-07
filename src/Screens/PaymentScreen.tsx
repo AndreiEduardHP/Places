@@ -22,6 +22,7 @@ import { Button, Card } from '@rneui/base'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import BackAction from '../Components/Back'
 import { t } from 'i18next'
+import { stripe } from '../config/stripeConfig'
 
 const PaymentScreen = () => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
@@ -272,20 +273,19 @@ const PaymentScreen = () => {
     },
     textStyle1: {
       fontStyle: 'normal',
-      fontWeight: '300',
-      fontSize: 28,
+      fontSize: 22,
 
-      letterSpacing: 2,
-      textTransform: 'uppercase',
       color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
+      textTransform: 'uppercase',
     },
     title: {
-      fontStyle: 'normal',
-      fontWeight: '300',
-      fontSize: 24,
-      lineHeight: 30,
+      fontSize: 22,
+
       color: textColor,
-      textTransform: 'uppercase',
+      letterSpacing: -0.6,
+      fontWeight: '300',
     },
     button: {
       padding: 8,
@@ -325,7 +325,7 @@ const PaymentScreen = () => {
     <View style={{ flex: 1, backgroundColor: backgroundColor }}>
       <View style={styles.container}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <BackAction style={{ width: 26, height: 26 }} />
+          <BackAction />
           <Text style={styles.title}> {t('paymentsScreen.selectAPack')}</Text>
         </View>
         <View style={{ paddingHorizontal: 15 }}>
@@ -440,7 +440,7 @@ const PaymentScreen = () => {
           </Card>
 
           <View style={{ display: 'none' }}>
-            <StripeProvider publishableKey="pk_test_51Op4EpBTlGDnVojpVzF4ZIMSKiYRbkgmTqIaTQWXjQ770OmFqdTYrSTquxwBOJyijVhwv8aRgHcudIJIpNasGiou001kLR8gLR">
+            <StripeProvider publishableKey={stripe.publishableKey}>
               <Text> {t('paymentsScreen.payments')}</Text>
             </StripeProvider>
           </View>

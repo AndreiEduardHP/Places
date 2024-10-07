@@ -9,6 +9,7 @@ import React, {
 } from 'react'
 import { Keyboard, View } from 'react-native'
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
+import { map } from '../../config/mapConfig'
 
 interface Location {
   latitude: number
@@ -40,7 +41,7 @@ const GooglePlacesInput: React.ForwardRefRenderFunction<
 
   useEffect(() => {
     const getCountryCode = async () => {
-      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${userCurrentLatitude},${userCurrentLongitude}&key=AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I`
+      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${userCurrentLatitude},${userCurrentLongitude}&key=${map.key}`
 
       try {
         const response = await axios.get(geocodeUrl)
@@ -86,7 +87,7 @@ const GooglePlacesInput: React.ForwardRefRenderFunction<
           }
         }}
         query={{
-          key: 'AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I',
+          key: map.key,
           language: 'en',
           components: countryCode ? `country:${countryCode}` : '',
         }}

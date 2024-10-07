@@ -23,15 +23,7 @@ import axios from 'axios'
 import { RootStackParamList } from '../../Navigation/Types'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RouteProp } from '@react-navigation/native'
-
-interface Message {
-  id: number
-  text: string
-  senderId: number
-  chatId: number
-  timestamp: string
-  dateSeparator?: boolean
-}
+import { Message } from '../../Interfaces/IChat'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -103,17 +95,15 @@ const ChatRoom: React.FC<ChatRoomScreenProps> = ({ route, navigation }) => {
     if (loggedUser && selectedRoom) {
       markMessagesAsRead(selectedRoom, loggedUser.id)
     }
-  }, [selectedRoom, loggedUser])
+  }, [selectedRoom, loggedUser, messagesData])
 
   useEffect(() => {
-    const fetchData = async () => {
-      const messages = await processMessagesWithSeparators(selectedRoom)
-      setMessagesData(messages)
-    }
-
     fetchData()
   }, [selectedRoom, initialMessages])
-
+  const fetchData = async () => {
+    const messages = await processMessagesWithSeparators(selectedRoom)
+    setMessagesData(messages)
+  }
   const scrollToBottom = useCallback(() => {
     flatListRef.current?.scrollToEnd({ animated: true })
   }, [])
@@ -128,7 +118,7 @@ const ChatRoom: React.FC<ChatRoomScreenProps> = ({ route, navigation }) => {
   }) => {
     const offsetY = event.nativeEvent.contentOffset.y
     if (offsetY === 0) {
-      loadMoreMessages()
+      //  loadMoreMessages()
     }
   }
   const processMessagesWithSeparators = async (
@@ -170,14 +160,18 @@ const ChatRoom: React.FC<ChatRoomScreenProps> = ({ route, navigation }) => {
   }
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${config.BASE_URL}/chatHub`)
-      .configureLogging(signalR.LogLevel.Information)
+      .withUrl(`${config.BASE_URL}/chatHub`, {
+        transport: signalR.HttpTransportType.WebSockets,
+        skipNegotiation: true,
+        headers: {
+          // Pass any additional headers if necessary
+          userId1: loggedUser?.id?.toString() || '',
+          userId2: receiverId?.toString() || '',
+        },
+      })
       .build()
 
-    connection
-      .start()
-
-      .catch((err) => console.error('Connection failed: ', err))
+    connection.start().catch((err) => console.error('Connection failed: ', err))
 
     connection.on('ReceiveMessage', async (newMessage) => {
       setMessagesData((currentMessages) => [...currentMessages, newMessage])
@@ -186,9 +180,10 @@ const ChatRoom: React.FC<ChatRoomScreenProps> = ({ route, navigation }) => {
         selectedRoom,
         loggedUser?.firstName,
       )
+
       scrollToBottom()
     })
-
+    scrollToBottom()
     setChatHubConnection(connection)
 
     return () => {
@@ -276,11 +271,7 @@ const ChatRoom: React.FC<ChatRoomScreenProps> = ({ route, navigation }) => {
       keyboardVerticalOffset={Platform.select({ ios: 75, android: 10 })}
       style={{ flex: 1, backgroundColor: backgroundColor }}>
       <View style={styles.header}>
-        <BackAction
-          style={{
-            width: 26,
-            height: 26,
-          }}></BackAction>
+        <BackAction></BackAction>
         <TouchableOpacity
           onPress={() =>
             navigate('SelectedPersonInfo', {
@@ -335,10 +326,21 @@ const ChatRoom: React.FC<ChatRoomScreenProps> = ({ route, navigation }) => {
           style={[styles.inputContainer, { backgroundColor: backgroundColor }]}>
           <View style={styles.input}>
             <TextInput
-              placeholder="Type a message..."
+              placeholder={
+                friendRequestStatus !== 'Deleted' &&
+                friendRequestStatus !== 'Pending' &&
+                friendRequestStatus !== 'Declined'
+                  ? 'Type a message...'
+                  : 'You are not friends anymore'
+              }
               value={messageInput}
               onChangeText={setMessageInput}
               placeholderTextColor={textColor}
+              editable={
+                friendRequestStatus !== 'Deleted' &&
+                friendRequestStatus !== 'Declined' &&
+                friendRequestStatus !== 'Pending'
+              }
               style={{
                 color: textColor,
                 flex: 1,

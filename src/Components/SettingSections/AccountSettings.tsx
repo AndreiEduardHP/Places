@@ -11,7 +11,7 @@ import { useFocusEffect } from '@react-navigation/native'
 
 const AccountSection: React.FC = () => {
   const handleNavigation = useHandleNavigation()
-  const { friendRequestsCount, fetchFriendRequests } = useUser()
+  const { friendRequestsCount, fetchFriendRequests, loggedUser } = useUser()
 
   useFocusEffect(
     useCallback(() => {
@@ -66,13 +66,16 @@ const AccountSection: React.FC = () => {
           <Icon name="privacy-tip" size={30} color={textColor}></Icon>
           <Text style={styles.text}>{t('accountSettings.privacy')}</Text>
         </TouchableOpacity>
-        <LineComponent />
-        <TouchableOpacity
-          style={styles.row}
-          onPress={() => handleNavigation('Chat')}>
-          <Icon name="manage-accounts" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>{t('accountSettings.chats')}</Text>
-        </TouchableOpacity>
+        {loggedUser?.role !== 'agency' && <LineComponent />}
+
+        {loggedUser?.role !== 'agency' && (
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => handleNavigation('Chat')}>
+            <Icon name="manage-accounts" size={30} color={textColor}></Icon>
+            <Text style={styles.text}>{t('accountSettings.chats')}</Text>
+          </TouchableOpacity>
+        )}
         <LineComponent />
         <TouchableOpacity
           style={styles.row}

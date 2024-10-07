@@ -28,7 +28,7 @@ const Award: React.FC<AwardProps> = ({
   disabled = false,
   applyTint = false,
 }) => {
-  const { textColor, backgroundColor } = useThemeColor()
+  const { textColor } = useThemeColor()
 
   const styles = StyleSheet.create({
     award: {
@@ -135,11 +135,7 @@ const MyAwardsScreen: React.FC = () => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.containerScroll}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <BackAction
-            style={{
-              width: 26,
-              height: 26,
-            }}></BackAction>
+          <BackAction></BackAction>
           <Text style={styles.text}>{t('profileScreen.myAwards')}</Text>
         </View>
         <Text style={styles.textSecondary}>{t('labels.awardsSubTitle')}</Text>

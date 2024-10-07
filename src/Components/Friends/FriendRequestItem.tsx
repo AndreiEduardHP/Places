@@ -2,10 +2,12 @@ import React from 'react'
 import { View, Text, Button, StyleSheet } from 'react-native'
 import { FriendRequest, useUser } from '../../Context/AuthContext'
 import { formatDateAndTime } from '../../Utils.tsx/Services/FormatDate'
-import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import { Avatar } from '@rneui/base'
-import axios from 'axios'
-import { config } from '../../config/urlConfig'
+import { useNotification } from '../Notification/NotificationProvider'
+import {
+  acceptFriendRequest,
+  declineFriendRequest,
+} from '../../Services/FriendService'
 
 type FriendRequestItemProps = {
   item: FriendRequest
@@ -19,34 +21,23 @@ const FriendRequestItem: React.FC<FriendRequestItemProps> = ({
   textColor,
 }) => {
   const { fetchFriendRequests } = useUser()
-  const declineFriendRequest = async (requestId: number) => {
-    try {
-      const response = await axios.post(
-        `${config.BASE_URL}/api/Friend/declineFriendRequest/${requestId}`,
-      )
-      if (response.status === 200) {
-        alert('Friend request declined.')
-        fetchFriendRequests()
-      }
-    } catch (error) {
-      console.error('Error declining friend request:', error)
-      alert('Failed to decline friend request.')
-    }
+  const { showNotificationMessage } = useNotification()
+  const declineFriend = async (requestId: number) => {
+    const result = await declineFriendRequest(requestId)
+    showNotificationMessage(
+      result?.message ? result.message : 'error',
+      result?.success ? result.success : 'fail',
+    )
+    fetchFriendRequests()
   }
 
-  const acceptFriendRequest = async (requestId: number) => {
-    try {
-      const response = await axios.post(
-        `${config.BASE_URL}/api/Friend/acceptFriendRequest/${requestId}`,
-      )
-      if (response.status === 200) {
-        alert('Friend request accepted.')
-        fetchFriendRequests()
-      }
-    } catch (error) {
-      console.error('Error accepting friend request:', error)
-      alert('Failed to accept friend request.')
-    }
+  const acceptFriend = async (requestId: number) => {
+    const result = await acceptFriendRequest(requestId)
+    showNotificationMessage(
+      result?.message ? result.message : 'error',
+      result?.success ? result.success : 'fail',
+    )
+    fetchFriendRequests()
   }
 
   return (
@@ -57,14 +48,8 @@ const FriendRequestItem: React.FC<FriendRequestItemProps> = ({
       <Text style={{ color: textColor }}>
         {formatDateAndTime(new Date(item.requestDate))}
       </Text>
-      <Button
-        title="Accept"
-        onPress={() => acceptFriendRequest(item.requestId)}
-      />
-      <Button
-        title="Decline"
-        onPress={() => declineFriendRequest(item.requestId)}
-      />
+      <Button title="Accept" onPress={() => acceptFriend(item.requestId)} />
+      <Button title="Decline" onPress={() => declineFriend(item.requestId)} />
     </View>
   )
 }

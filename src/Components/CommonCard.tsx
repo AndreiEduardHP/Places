@@ -8,6 +8,9 @@ import { Card, Title, Paragraph, Button } from 'react-native-paper'
 import LineComponent from './LineComponent'
 import { Text } from '@rneui/themed'
 import { t } from 'i18next'
+import { fetchLocationDetails } from '../Services/LocationDetails'
+import { days } from '../Utils.tsx/Enums/Days'
+import { months } from '../Utils.tsx/Enums/Months'
 
 type EventCardProps = {
   id: number
@@ -49,49 +52,9 @@ const EventCard: React.FC<EventCardProps> = ({
     }
   }, [latitude, longitude, isPersonCard])
 
-  const fetchLocationDetails = async (latitude: number, longitude: number) => {
-    try {
-      const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_API_KEY`,
-      )
-
-      if (response.data.results.length > 0) {
-        const formattedAddress = response.data.results[0].formatted_address
-        return formattedAddress
-      } else {
-        return 'Location details not found'
-      }
-    } catch (error) {
-      console.error('Error fetching location details:', error)
-      return 'Error fetching location details'
-    }
-  }
-
   const formatEventDate = (dateString: string) => {
     const date = new Date(dateString)
-    const days = [
-      'Sunday',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-    ]
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ]
+
     const dayName = days[date.getUTCDay()]
     const day = date.getUTCDate()
     const month = months[date.getUTCMonth()]

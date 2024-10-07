@@ -15,10 +15,9 @@ import i18n from '../TranslationFiles/i18n'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants'
-import * as Location from 'expo-location'
 import { Platform } from 'react-native'
-
 import * as Device from 'expo-device'
+import { getLocation } from '../Services/CurrentLocation'
 
 export interface Profile {
   id: number
@@ -41,6 +40,7 @@ export interface Profile {
   notificationToken: string
   emailVerified: boolean
   description: string
+  role?: string
 }
 
 interface UserContextType {
@@ -150,14 +150,12 @@ async function registerForPushNotificationsAsync() {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  const [currentLocation, setCurrentLocation] = useState<any>(null)
   const [loggedUser, setLoggedUser] = useState<Profile | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([])
   const [friendRequestsCount, setFriendRequestsCount] = useState<number>(0)
   const { showNotificationMessage } = useNotification()
   const handleNavigation = useHandleNavigation()
-  const [loading, setLoading] = useState(true)
   useEffect(() => {
     const checkTokenExpiration = async () => {
       try {
@@ -207,36 +205,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   }
 
-  const getLocation = async () => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        console.error('Permission to access location was denied')
-        return null
-      }
-
-      let location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-      if (location) {
-        return {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        }
-      } else {
-        return null
-      }
-    } catch (error) {
-      console.error('Error getting current location:', error)
-      return null
-    }
-  }
-
   const fetchFriendRequests = async () => {
-    if (loggedUser) {
+    const storedLoggedUser = await AsyncStorage.getItem('loggedUser')
+
+    if (storedLoggedUser) {
+      const parsedLoggedUser = JSON.parse(storedLoggedUser)
       try {
         const response = await axios.get<FriendRequest[]>(
-          `${config.BASE_URL}/api/Friend/pendingFriendRequests/${loggedUser.id}`,
+          `${config.BASE_URL}/api/Friend/pendingFriendRequests/${parsedLoggedUser.id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -330,7 +306,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     notificationToken: string,
   ) => {
     try {
-      const location = await getLocation()
+      const location = await getLocation('lowest')
       if (location) {
         const url = `${config.BASE_URL}/api/userprofile/UpdateUserNotificationToken/${userProfileId}?notificationToken=${notificationToken}&latitude=${location.latitude}&longitude=${location.longitude}`
 

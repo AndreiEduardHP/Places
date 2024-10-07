@@ -5,6 +5,7 @@ import { config } from '../config/urlConfig'
 import ParticipantsList from './ShowEventParticipants'
 import { Button, Icon, ListItem } from '@rneui/base'
 import { t } from 'i18next'
+import { useUser } from '../Context/AuthContext'
 
 interface Participant {
   id: string
@@ -13,6 +14,7 @@ interface Participant {
   interest: string
   description: string
   profilePicture: string
+  friendRequestStatus: string
 }
 
 interface ParticipantsListContainerProps {
@@ -33,6 +35,7 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
   const [participants, setParticipants] = useState<Participant[]>([])
   const [totalParticipants, setTotalParticipants] = useState<number>(0)
   const [modalVisible, setModalVisible] = useState(false)
+  const { loggedUser } = useUser()
 
   const toggleModal = () => {
     setModalVisible(!modalVisible)
@@ -47,7 +50,7 @@ const ParticipantsListContainer: React.FC<ParticipantsListContainerProps> = ({
   const fetchParticipants = async () => {
     try {
       const response = await axios.get(
-        `${config.BASE_URL}/api/userprofileevent/event/${eventId}/userprofiles`,
+        `${config.BASE_URL}/api/userprofileevent/event/${eventId}/userprofiles/${loggedUser?.id}`,
       )
       if (response) {
         setParticipants(response.data.userProfiles)

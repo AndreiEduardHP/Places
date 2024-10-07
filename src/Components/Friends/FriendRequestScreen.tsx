@@ -18,11 +18,7 @@ const FriendRequestScreen = () => {
       {friendRequests.length > 0 ? (
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <BackAction
-              style={{
-                width: 26,
-                height: 26,
-              }}></BackAction>
+            <BackAction></BackAction>
             <Text
               style={{
                 color: textColor,

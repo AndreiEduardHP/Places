@@ -24,13 +24,14 @@ import { useUser } from '../Context/AuthContext'
 import TermsAndConditions from './TermsAndConditions'
 import { ScrollView } from 'react-native-gesture-handler'
 import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
-import { interests } from '../Utils.tsx/Interests/Interests'
+import { interests } from '../Utils.tsx/Enums/Interests'
 import { CheckBox } from '@rneui/base'
 import { PaperProvider, TextInput } from 'react-native-paper'
 import { theme } from './SignUpFrom'
 import { t } from 'i18next'
 import { azureConfigBlob } from '../config/azureBlobConfig'
 import { BlobServiceClient } from '@azure/storage-blob'
+import ImageCarousel from './ImageCarousel/ImageCarousel'
 
 interface EditFormProps {
   latitude?: number
@@ -48,13 +49,15 @@ const EditForm: React.FC<EditFormProps> = ({
   const [date, setDate] = useState(new Date('2024-02-09T00:50:00+00:00'))
   const { loggedUser, refreshData } = useUser()
   const { showNotificationMessage } = useNotification()
+  const [carouselImages, setCarouselImages] = useState<any>()
   const [checkFunctionality, setCheckFunctionality] = useState(false)
   const [formData, setFormData] = useState({
     otherRelevantInformation: '',
     eventName: '',
     eventDescription: '',
-    eventImage: '',
+    eventImage: '' as string | undefined,
     interest: '',
+    eventImages: [] as string[],
     checkFunctionality: checkFunctionality,
     eventTime: new Date(),
     locationLatitude: latitude ? latitude.toString() : '',
@@ -72,7 +75,7 @@ const EditForm: React.FC<EditFormProps> = ({
   const [isPickerVisible, setPickerVisible] = useState(false)
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [selectAllInterests, setSelectAllInterests] = useState(false)
-
+  const [seeAlbumImages, setSeeAlbumImages] = useState(false)
   useEffect(() => {
     const {
       eventName,
@@ -105,7 +108,9 @@ const EditForm: React.FC<EditFormProps> = ({
   const showDatepicker = () => {
     setShowDatePicker(true)
   }
-
+  const seeAlbum = () => {
+    setSeeAlbumImages(!seeAlbumImages)
+  }
   const showTimepicker = () => {
     setShowTimePicker(true)
   }
@@ -116,7 +121,66 @@ const EditForm: React.FC<EditFormProps> = ({
       [name]: value,
     })
   }
+  const uploadImagesToEvent = async (eventId: number, imageUrls: string[]) => {
+    try {
+      // Trimitem lista de imagini către backend
+      const response = await axios.post(
+        `${config.BASE_URL}/api/Event/${eventId}/AddImages`,
+        imageUrls, // Trimitem lista de imagini direct, fără a o înveli într-un obiect
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
 
+      if (response.status === 200) {
+        showNotificationMessage('Images uploaded successfully', 'success')
+      } else {
+        showNotificationMessage('Failed to upload images', 'fail')
+      }
+    } catch (error) {
+      console.error('Error uploading images:', error)
+      showNotificationMessage(
+        'Something went wrong while uploading images',
+        'fail',
+      )
+    }
+  }
+
+  {
+    /* const selectImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== 'granted') {
+      alert('Sorry, we need camera roll permissions to make this work!')
+      return
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.1,
+      //allowsEditing: true,
+      allowsMultipleSelection: true,
+    })
+
+    if (!result.canceled && result.assets) {
+      const image = result.assets[0].uri
+      try {
+        const blobUrl = await uploadImageToBlob(image, formData.eventName)
+        setEventImg(image)
+        handleChange('eventImage', image)
+        showNotificationMessage('Image uploaded successfully', 'success')
+      } catch (error) {
+        showNotificationMessage('Failed to upload image', 'fail')
+      }
+    } else {
+      showNotificationMessage(
+        'Image picking was cancelled or failed',
+        'neutral',
+      )
+    }
+  } */
+  }
   const selectImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
@@ -127,18 +191,42 @@ const EditForm: React.FC<EditFormProps> = ({
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.1,
-      allowsEditing: true,
+      allowsMultipleSelection: true, // Permitem selectarea multiplă de imagini
     })
 
     if (!result.canceled && result.assets) {
-      const image = result.assets[0].uri
       try {
-        const blobUrl = await uploadImageToBlob(image, formData.eventName)
-        setEventImg(image)
-        handleChange('eventImage', blobUrl)
-        showNotificationMessage('Image uploaded successfully', 'success')
+        // Încărcăm toate imaginile selectate în Blob Storage
+        const uploadedImages = []
+        for (let i = 0; i < result.assets.length; i++) {
+          const imageUri = result.assets[i].uri
+          const uploadedBlobUrl = await uploadImageToBlob(
+            imageUri,
+            formData.eventName,
+          )
+          uploadedImages.push(uploadedBlobUrl) // Stocăm URL-urile încărcate în array
+        }
+
+        if (uploadedImages.length > 0) {
+          const mainImage = uploadedImages[0] // Prima imagine
+          const remainingImages = uploadedImages.slice(1) // Restul imaginilor
+
+          // Actualizăm stările asincron într-un mod sincronizat
+          setEventImg(result.assets[0].uri) // Setează imaginea principală în `eventImg`
+          setCarouselImages(result.assets.slice(1).map((asset) => asset.uri))
+          setFormData((prevFormData) => ({
+            ...prevFormData,
+            eventImage: mainImage || '', // Asigurăm că eventImage este un string
+            eventImages: remainingImages.filter(
+              (img) => img !== undefined,
+            ) as string[], // Eliminăm valorile undefined
+          }))
+        }
+
+        showNotificationMessage('Images uploaded successfully', 'success')
       } catch (error) {
-        showNotificationMessage('Failed to upload image', 'fail')
+        console.error('Failed to upload images', error)
+        showNotificationMessage('Failed to upload images', 'fail')
       }
     } else {
       showNotificationMessage(
@@ -187,6 +275,12 @@ const EditForm: React.FC<EditFormProps> = ({
       )
 
       if (response.status === 200) {
+        const eventId = response.data.eventId // Obține ID-ul evenimentului creat cu litere mici
+        console.log('Event ID:', eventId)
+
+        console.log(formData.eventImages)
+        await uploadImagesToEvent(eventId, formData.eventImages)
+
         showNotificationMessage('Image uploaded successfully', 'success')
         setAddNewEvent(false)
         showNotificationMessage('Event added successfully', 'success')
@@ -234,15 +328,22 @@ const EditForm: React.FC<EditFormProps> = ({
     }
     setSelectAllInterests(!selectAllInterests)
   }
+
   return (
     <PaperProvider theme={theme}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={undefined}>
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-          <View style={[styles.container, {}]}>
+          <ScrollView
+            style={[styles.container, {}]}
+            contentContainerStyle={{
+              alignContent: 'center',
+              alignItems: 'center',
+            }}>
             <View style={{ alignItems: 'center' }}>
               <Text style={{ fontSize: 18 }}>
                 {t('eventForm.yourCredits')}: {loggedUser?.credit}
               </Text>
+
               <View
                 style={{
                   justifyContent: 'center',
@@ -374,6 +475,50 @@ const EditForm: React.FC<EditFormProps> = ({
             <Modal
               animationType="slide"
               transparent={true}
+              visible={seeAlbumImages}
+              onRequestClose={() => seeAlbum()}>
+              <View style={styles.centeredView}>
+                <View style={[styles.modalView, { height: 350 }]}>
+                  <Text style={{ fontSize: 24 }}>{t('Event Images')}</Text>
+
+                  <View
+                    style={[
+                      styles.checkboxContainer,
+                      {
+                        borderBottomWidth: 1,
+                        borderBottomColor: 'black',
+                        width: '100%',
+
+                        justifyContent: 'center',
+                      },
+                    ]}>
+                    <ImageCarousel images={carouselImages}></ImageCarousel>
+                  </View>
+
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: 'black',
+                      borderRadius: 10,
+                      width: 221,
+                      marginVertical: 10,
+                      alignItems: 'center',
+                    }}
+                    onPress={() => seeAlbum()}>
+                    <Text
+                      style={{
+                        color: 'white',
+                        fontSize: 22,
+                        padding: 5,
+                      }}>
+                      {t('buttons.close')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+            <Modal
+              animationType="slide"
+              transparent={true}
               visible={isPickerVisible}
               onRequestClose={() => setPickerVisible(false)}>
               <View style={styles.centeredView}>
@@ -500,10 +645,27 @@ const EditForm: React.FC<EditFormProps> = ({
             {eventImg && (
               <Image
                 source={{ uri: eventImg }}
-                style={{ width: 100, height: 100, margin: 5 }}
+                style={{
+                  width: '100%',
+                  height: 250,
+                  margin: 5,
+                  borderRadius: 7,
+                }}
               />
             )}
-
+            <TouchableOpacity
+              onPress={() => {
+                seeAlbum()
+              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  marginTop: 10,
+                  alignItems: 'center',
+                }}>
+                <Text>{t('See the album')}</Text>
+              </View>
+            </TouchableOpacity>
             <View style={{ marginVertical: 0 }}></View>
             <CheckBox
               style={{ margin: 0, padding: 0 }}
@@ -525,11 +687,12 @@ const EditForm: React.FC<EditFormProps> = ({
               onToggle={() => {
                 setTermsAccepted(!termsAccepted)
               }}></TermsAndConditions>
+
             <TouchableOpacity
               style={[
                 styles.touchable,
                 !formComplete ? disabledButtonStyle : enabledButtonStyle,
-                { width: '100%' },
+                { width: '100%', marginBottom: 200 },
               ]}
               onPress={createEvent}
               disabled={
@@ -546,7 +709,7 @@ const EditForm: React.FC<EditFormProps> = ({
                   : t('buttons.save')}
               </Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </PaperProvider>
@@ -555,10 +718,11 @@ const EditForm: React.FC<EditFormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
+    //alignItems: 'center',
     margin: 1,
     paddingHorizontal: 5,
-    flex: 1,
+
+    flexGrow: 1,
   },
   inputInterest: {
     justifyContent: 'center',

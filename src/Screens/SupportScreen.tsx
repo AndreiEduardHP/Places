@@ -21,9 +21,11 @@ const SupportScreen: React.FC = () => {
       backgroundColor: backgroundColor,
     },
     text: {
-      fontSize: 28,
-      fontWeight: '300',
+      fontSize: 22,
+
       color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
     },
     content: {
       justifyContent: 'center',
@@ -53,11 +55,7 @@ const SupportScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <BackAction
-          style={{
-            width: 26,
-            height: 26,
-          }}></BackAction>
+        <BackAction></BackAction>
         <Text style={styles.text}>{t('supportScreen.supportSection')}</Text>
       </View>
       <ScrollView style={styles.container}>

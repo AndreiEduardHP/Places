@@ -15,6 +15,7 @@ import BackAction from '../Components/Back'
 import { Card, Title } from 'react-native-paper'
 import LineComponent from '../Components/LineComponent'
 import { t } from 'i18next'
+import { fetchLocationDetails } from '../Services/LocationDetails'
 
 interface Event {
   id: number
@@ -65,24 +66,6 @@ const JoinedEventsScreen: React.FC = () => {
 
     fetchEvents()
   }, [])
-
-  const fetchLocationDetails = async (latitude: number, longitude: number) => {
-    try {
-      const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I`,
-      )
-
-      if (response.data.results.length > 0) {
-        const formattedAddress = response.data.results[0].formatted_address
-        return formattedAddress
-      } else {
-        return 'Location details not found'
-      }
-    } catch (error) {
-      console.error('Error fetching location details:', error)
-      return 'Error fetching location details'
-    }
-  }
 
   const fetchQRCode = async (eventId: number) => {
     const originalBrightness = await Brightness.getBrightnessAsync()
@@ -195,9 +178,11 @@ const JoinedEventsScreen: React.FC = () => {
       backgroundColor: backgroundColor,
     },
     text: {
-      fontSize: 28,
-      fontWeight: '300',
+      fontSize: 22,
+
       color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
     },
     mapButton: {
       backgroundColor: 'rgba(205,10,30,1)',
@@ -272,7 +257,7 @@ const JoinedEventsScreen: React.FC = () => {
   ) : (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <BackAction style={{ width: 26, height: 26 }} />
+        <BackAction />
         <Text style={styles.text}>{t('myEvents.joinedEvents')}</Text>
       </View>
       <View style={styles.searchInputContainer}>

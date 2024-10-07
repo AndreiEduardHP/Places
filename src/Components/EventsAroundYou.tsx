@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -22,10 +22,14 @@ import { useUser } from '../Context/AuthContext'
 import { CheckBox as C } from '@rneui/base'
 import LineComponent from './LineComponent'
 import { Divider } from 'native-base'
-import { interests } from '../Utils.tsx/Interests/Interests'
+import { interests } from '../Utils.tsx/Enums/Interests'
 import ImageModal from '../Modals/ImageModal'
 import * as Location from 'expo-location'
 import { t } from 'i18next'
+import { fetchLocationDetails } from '../Services/LocationDetails'
+import { getLocation } from '../Services/CurrentLocation'
+import { useFocusEffect } from '@react-navigation/native'
+import ImageCarousel from './ImageCarousel/ImageCarousel'
 
 type Event = {
   id: number
@@ -36,6 +40,9 @@ type Event = {
   locationLatitude: number
   locationLongitude: number
   interest: string
+  eventAlbumImages: {
+    imageUrl: string
+  }[]
 }
 
 const Item: React.FC<Event & { additionalStyles?: object }> = ({
@@ -44,6 +51,7 @@ const Item: React.FC<Event & { additionalStyles?: object }> = ({
   eventImage,
   eventTime,
   locationLatitude,
+  eventAlbumImages,
   interest,
   locationLongitude,
   additionalStyles,
@@ -54,7 +62,7 @@ const Item: React.FC<Event & { additionalStyles?: object }> = ({
   const [isImageModalVisible, setIsImageModalVisible] = useState(false)
   const [imageToDownload, setImageToDownload] = useState<string | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
-
+  const [showAlbumModal, setAlbumModal] = useState(false)
   useEffect(() => {
     const fetchLocation = async () => {
       const address = await fetchLocationDetails(
@@ -66,24 +74,6 @@ const Item: React.FC<Event & { additionalStyles?: object }> = ({
 
     fetchLocation()
   }, [locationLatitude, locationLongitude])
-
-  const fetchLocationDetails = async (latitude: number, longitude: number) => {
-    try {
-      const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I`,
-      )
-
-      if (response.data.results.length > 0) {
-        const formattedAddress = response.data.results[0].formatted_address
-        return formattedAddress
-      } else {
-        return 'Location details not found'
-      }
-    } catch (error) {
-      console.error('Error fetching location details:', error)
-      return 'Error fetching location details'
-    }
-  }
 
   const formatEventDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -223,10 +213,70 @@ const Item: React.FC<Event & { additionalStyles?: object }> = ({
         />
       </TouchableOpacity>
       <Card.Content>
-        <Title style={{ color: textColor }}>Event name: {eventName}</Title>
-        <Paragraph style={{ color: textColor, marginBottom: 10 }}>
-          Event description: {eventDescription}
-        </Paragraph>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View>
+            <Title style={{ color: textColor }}>Event name: {eventName}</Title>
+            <Paragraph style={{ color: textColor, marginBottom: 10 }}>
+              Event description: {eventDescription}
+            </Paragraph>
+          </View>
+          {eventAlbumImages && eventAlbumImages.length > 0 ? (
+            <TouchableOpacity
+              onPress={() => setAlbumModal(true)}
+              style={{ alignContent: 'center', justifyContent: 'center' }}>
+              <MaterialIcons name="collections" size={30} color={textColor} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showAlbumModal}
+          onRequestClose={() => setAlbumModal(false)}>
+          <View
+            style={{
+              width: '100%',
+              height: '90%',
+
+              justifyContent: 'center',
+            }}>
+            <View
+              style={{
+                alignItems: 'center',
+                margin: 5,
+                borderRadius: 7,
+                backgroundColor: 'white',
+              }}>
+              <Text
+                style={{ fontSize: 24, color: 'black', marginVertical: 10 }}>
+                {t('Event Images')}
+              </Text>
+
+              <ImageCarousel
+                images={eventAlbumImages.map(
+                  (image) => image.imageUrl,
+                )}></ImageCarousel>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'black',
+                  borderRadius: 10,
+                  width: 221,
+                  marginVertical: 10,
+                  alignItems: 'center',
+                }}
+                onPress={() => setAlbumModal(false)}>
+                <Text
+                  style={{
+                    color: 'white',
+                    fontSize: 22,
+                    padding: 5,
+                  }}>
+                  {t('buttons.close')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
         <LineComponent />
         <View style={styles.infoContainer}>
           <MaterialIcons
@@ -289,7 +339,7 @@ export const haversineDistance = (
   const lat2 = coords2.latitude
   const lon2 = coords2.longitude
 
-  const R = 6371 // Radius of the Earth in km
+  const R = 6371
 
   const x1 = lat2 - lat1
   const dLat = toRad(x1)
@@ -321,40 +371,33 @@ const EventsAroundYou: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<any>(null)
 
   useEffect(() => {
-    getLocation()
+    fetchLocation()
   }, [distance, selectedIndex])
+  const fetchLocation = useCallback(async () => {
+    const location = await getLocation('lowest')
+    if (location) {
+      setCurrentLocation(location)
+    }
+  }, [])
   useEffect(() => {
     if (currentLocation) {
       fetchEvents()
     }
   }, [currentLocation, distance])
 
+  useFocusEffect(
+    useCallback(() => {
+      if (currentLocation) {
+        fetchEvents()
+      }
+    }, [currentLocation, distance]),
+  )
+
   const toggleInterest = (interest: string) => {
     if (selectedInterests.includes(interest)) {
       setSelectedInterests(selectedInterests.filter((i) => i !== interest))
     } else {
       setSelectedInterests([...selectedInterests, interest])
-    }
-  }
-  const getLocation = async () => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        console.error('Permission to access location was denied')
-        return
-      }
-
-      let location = await await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-      if (location) {
-        setCurrentLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        })
-      }
-    } catch (error) {
-      console.error('Error getting current location:', error)
     }
   }
 
@@ -401,6 +444,7 @@ const EventsAroundYou: React.FC = () => {
       eventTime={item.eventTime}
       locationLatitude={item.locationLatitude}
       locationLongitude={item.locationLongitude}
+      eventAlbumImages={item.eventAlbumImages}
       additionalStyles={
         index === 0
           ? { marginTop: 10 }

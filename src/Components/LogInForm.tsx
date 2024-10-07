@@ -10,14 +10,15 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Platform,
+  ActivityIndicator,
 } from 'react-native'
 import axios from 'axios'
 import { t } from 'i18next'
 import { validatePhoneNumber } from '../Utils.tsx/EmailValidation'
 import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-
-import { signInWithCredential, PhoneAuthProvider } from 'firebase/auth'
+import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
+import { signInWithCredential, PhoneAuthProvider, getAuth } from 'firebase/auth'
 import LoadingComponent from './Loading/Loading'
 import { useNotification } from './Notification/NotificationProvider'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -25,8 +26,7 @@ import { config } from '../config/urlConfig'
 import SegmentedCodeInput from './SegmentedInput'
 import { Menu, Pressable } from 'native-base'
 import getCountryCode from '../Utils.tsx/GetCountryCode'
-import { firebaseConfig } from '../Utils.tsx/Firebase'
-import auth from '@react-native-firebase/auth'
+import { auth, app, firebaseConfig } from '../Utils.tsx/Firebase'
 
 const countries = [
   { label: 'United States', value: 'usa' },
@@ -45,7 +45,7 @@ const countryData: Record<
 
 const LogInForm: React.FC = () => {
   const { handleLogin } = useUser()
-  // const [code, setCode] = useState('')
+  const [code, setCode] = useState('')
   const recaptchaVerifier = useRef<any>(null)
   const [verificationId, setVerificationId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -56,12 +56,13 @@ const LogInForm: React.FC = () => {
   const [phonePrefix, setPhonePrefix] = useState(countryData.ro.prefix)
   const [phoneNumber, setPhoneNumber] = useState<string>('')
   const isFormComplete = validatePhoneNumber(phoneNumber)
+  const [isLoadingButton, setIsLoadingButton] = useState(false)
   // const phonePrefix = '+4'
   // If null, no SMS has been sent
   const [confirm, setConfirm] = useState<any>(null)
 
   // verification code (OTP - One-Time-Passcode)
-  const [code, setCode] = useState('')
+  // const [code, setCode] = useState('')
   const { showNotificationMessage } = useNotification()
 
   useEffect(() => {
@@ -104,6 +105,7 @@ const LogInForm: React.FC = () => {
   }
 
   const sendVerification = async () => {
+    setIsLoadingButton(true)
     try {
       const response = await axios.get(
         `${config.BASE_URL}/api/userprofile/checkifphonenumberexists?phoneNumber=${0 + phoneNumber}`,
@@ -111,39 +113,42 @@ const LogInForm: React.FC = () => {
 
       if (response.status == 200) {
         try {
-          //     const phoneProvider = new PhoneAuthProvider(auth)
-          //     const verificationId = await phoneProvider.verifyPhoneNumber(
-          //      phonePrefix + phoneNumber,
-          //      recaptchaVerifier.current,
-          //    )
-          signInWithPhoneNumber(phonePrefix + phoneNumber)
+          const phoneProvider = new PhoneAuthProvider(auth)
+          const verificationId = await phoneProvider.verifyPhoneNumber(
+            phonePrefix + phoneNumber,
+            recaptchaVerifier.current,
+          )
+          //  signInWithPhoneNumber(phonePrefix + phoneNumber)
           setVerificationId(verificationId)
-          //    return verificationId
+          setIsLoadingButton(false)
+          return verificationId
         } catch (error) {
           showNotificationMessage('Send code error', 'fail')
+          setIsLoadingButton(false)
           throw new Error('Failed to send verification code')
         }
       } else if (response.status === 204) {
         showNotificationMessage('Phone number not found', 'neutral')
+        setIsLoadingButton(false)
       }
     } catch (error) {
       showNotificationMessage('Error', 'fail')
+      setIsLoadingButton(false)
     }
   }
-  async function signInWithPhoneNumber(phoneNumber: string) {
-    const confirmation = await auth().signInWithPhoneNumber(phoneNumber)
-    setConfirm(confirmation)
-  }
+  //  async function signInWithPhoneNumber(phoneNumber: string) {
+  //   const confirmation = await auth().signInWithPhoneNumber(phoneNumber)
+  //     setConfirm(confirmation)
+  // }
 
-  async function confirmCode() {
-    try {
-      await confirm.confirm(code)
-    } catch (error) {
-      console.log('Invalid code.')
-    }
-  }
-  {
-    /*   
+  // async function confirmCode() {
+  //  try {
+  //   await confirm.confirm(code)
+  // } catch (error) {
+  //   console.log('Invalid code.')
+  // }
+  // }
+
   const confirmCode = async () => {
     if (!verificationId) {
       showNotificationMessage('Verification error', 'fail')
@@ -161,8 +166,8 @@ const LogInForm: React.FC = () => {
       setIsLoading(false)
       return false
     }
-  }*/
   }
+
   const formatPhoneNumber = (phoneNumber: string | any[]) => {
     const lastThreeDigits = phoneNumber.slice(-3)
     const maskedPart = '******'
@@ -216,6 +221,10 @@ const LogInForm: React.FC = () => {
             width: '100%',
             zIndex: 1,
           }}>
+          <FirebaseRecaptchaVerifierModal
+            ref={recaptchaVerifier}
+            firebaseConfig={firebaseConfig}
+          />
           {!verificationId && (
             <View>
               <Text
@@ -290,6 +299,7 @@ const LogInForm: React.FC = () => {
 
               <TouchableOpacity
                 onPress={sendVerification}
+                // onPress={() => handleLogin(0 + phoneNumber)}
                 disabled={isFormComplete}>
                 <LinearGradient
                   colors={['#5151C6', '#888BF4']}
@@ -301,7 +311,11 @@ const LogInForm: React.FC = () => {
                       ? styles.disabledButtonStyle
                       : styles.enabledButtonStyle,
                   ]}>
-                  <Text style={[styles.text, {}]}>{t('buttons.logIn')}</Text>
+                  {isLoadingButton ? (
+                    <ActivityIndicator size="large" color={'white'} />
+                  ) : (
+                    <Text style={styles.text}>{t('buttons.logIn')}</Text>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
               <View style={{ alignItems: 'center', marginVertical: 10 }}>

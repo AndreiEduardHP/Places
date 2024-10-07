@@ -31,7 +31,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import axios from 'axios'
 import { Card, Title } from 'react-native-paper'
 import LineComponent from './LineComponent'
-import { interests } from '../Utils.tsx/Interests/Interests'
+import { interests } from '../Utils.tsx/Enums/Interests'
 import { haversineDistance } from './EventsAroundYou'
 import { Divider } from 'native-base'
 import { ChatRoomProps } from '../Navigation/Types'
@@ -40,26 +40,8 @@ import { t } from 'i18next'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import FriendRequestModal from './Friends/FriendRequestModal'
 import { useFocusEffect } from '@react-navigation/native'
-
-type Person = {
-  friendRequestStatus: string
-  areFriends: boolean
-  id: string
-  userName: string
-  firstName: string
-  lastName: string
-  phoneNumber: string
-  notificationToken: string
-  email: string
-  interest: string
-  profilePicture: string
-  username: string
-  description: string
-  city: string
-  currentLatitude: number
-  currentLongitude: number
-  currentLocationId: string
-}
+import { getLocation } from '../Services/CurrentLocation'
+import { Person } from '../Interfaces/IUserData'
 
 type ItemProps = {
   friendRequestStatus: string
@@ -496,39 +478,20 @@ const PeopleCard: React.FC = () => {
     useState(false)
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
   const { friendRequestsCount } = useUser()
-  const openFriendRequestModal = (person: Person) => {
-    setSelectedPerson(person)
-    setIsFriendRequestModalVisible(true)
-  }
 
   const closeFriendRequestModal = () => {
     setIsFriendRequestModalVisible(false)
     setSelectedPerson(null)
   }
-  const getLocation = useCallback(async () => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        console.error('Permission to access location was denied')
-        return
-      }
-
-      let location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-      if (location) {
-        setCurrentLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        })
-      }
-    } catch (error) {
-      console.error('Error getting current location:', error)
+  const fetchLocation = useCallback(async () => {
+    const location = await getLocation('lowest')
+    if (location) {
+      setCurrentLocation(location)
     }
   }, [])
 
   useEffect(() => {
-    getLocation()
+    fetchLocation()
   }, [refreshTrigger, distance, getLocation])
 
   const fetchData = useCallback(async () => {
@@ -602,12 +565,12 @@ const PeopleCard: React.FC = () => {
       fetchData()
     }
   }, [currentLocation, fetchData])
+
   useFocusEffect(
     useCallback(() => {
       if (currentLocation) {
         fetchData()
       }
-
       return () => {}
     }, [currentLocation]),
   )
@@ -745,6 +708,8 @@ const PeopleCard: React.FC = () => {
       const requestBody = {
         SenderId: loggedUser?.id,
         ReceiverId: personId,
+        Latitude: currentLocation.latitude,
+        Longitude: currentLocation.longitude,
       }
 
       await axios.post(

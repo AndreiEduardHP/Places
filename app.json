@@ -4,11 +4,11 @@
     "slug": "places",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo1.png",
     "userInterfaceStyle": "light",
     "scheme": "places",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/logo1.png",
       "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
@@ -39,7 +39,7 @@
     "android": {
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/favicon.png",
+        "foregroundImage": "./assets/logo1.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.andreihp.places",
@@ -58,7 +58,7 @@
       "runtimeVersion": "1.0.0"
     },
     "web": {
-      "favicon": "./assets/splash.png"
+      "favicon": "./assets/logo1.png"
     },
     "extra": {
       "eas": {

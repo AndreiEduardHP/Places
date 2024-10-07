@@ -18,7 +18,7 @@ import { Text } from '@rneui/themed'
 import { CheckBox } from '@rneui/base'
 import { DefaultTheme, PaperProvider, TextInput } from 'react-native-paper'
 import { validateEmail } from '../Utils.tsx/EmailValidation'
-import { interests } from '../Utils.tsx/Interests/Interests'
+import { interests } from '../Utils.tsx/Enums/Interests'
 import { t } from 'i18next'
 
 interface UserProfileDto {
@@ -27,6 +27,7 @@ interface UserProfileDto {
   LastName?: string
   Username?: string
   PhoneNumber?: string
+
   Email?: string
   City?: string
   Interest?: string

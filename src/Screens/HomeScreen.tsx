@@ -5,12 +5,20 @@ import FooterNavbar from '../Components/FooterNavbar'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import SvgComponent from '../Components/SVG/Logo'
 import { LinearGradient } from 'expo-linear-gradient'
+import ImageCarousel from '../Components/ImageCarousel/ImageCarousel'
+import LineComponent from '../Components/LineComponent'
 
 const HomeScreen: React.FC = () => {
   const { backgroundColor, textColor } = useThemeColor()
+  const images = [
+    'https://media.timeout.com/images/103926031/image.jpg',
+    'https://www.goalcast.com/wp-content/uploads/2016/10/business-wallpaper-HD7.jpg',
+
+    'https://bernardmarr.com/wp-content/uploads/2022/03/The-6-Best-Examples-Of-Purposeful-Businesses.jpg',
+  ]
 
   const styles = StyleSheet.create({
-    container: { backgroundColor: backgroundColor, flex: 1 },
+    container: { backgroundColor: backgroundColor, flexGrow: 1 },
     headerContainer: {
       marginTop: -30,
     },
@@ -120,6 +128,15 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.featuresText}>{t('homeScreen.connect')}</Text>
           <Text style={styles.featuresText}>{t('homeScreen.access')}</Text>
           <Text style={styles.featuresText}>{t('homeScreen.stay')}</Text>
+          <View style={{ marginBottom: 10 }}>
+            <LineComponent></LineComponent>
+          </View>
+
+          <ImageCarousel images={images} />
+          <View style={{ marginTop: 10 }}>
+            <LineComponent></LineComponent>
+          </View>
+          <View style={{ padding: 40 }}></View>
         </View>
       </ScrollView>
 

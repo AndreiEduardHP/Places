@@ -170,10 +170,15 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={() => handleNavigation('Chat')}>
+      <TouchableOpacity
+        onPress={() =>
+          handleNavigation(
+            loggedUser?.role !== 'agency' ? 'Chat' : 'EventsCreatedByMe',
+          )
+        }>
         <View>
           <Icon
-            name="chat"
+            name={loggedUser?.role !== 'agency' ? 'chat' : 'event'}
             size={35}
             color={currentRoute === 'Chat' ? '#00B0EF' : 'white'}
           />

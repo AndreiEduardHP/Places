@@ -4,33 +4,15 @@ import ChatList from '../../Components/Chat/ChatList'
 import axios from 'axios'
 import { config } from '../../config/urlConfig'
 import { useUser } from '../../Context/AuthContext'
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import {
+  RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
-
-interface Message {
-  id: number
-  text: string
-  senderId: number
-  chatId: number
-  timestamp: string
-}
-
-interface UserProfile {
-  id: number
-  firstName: string
-  lastName: string
-  notificationToken: string
-  profilePicture: string
-  friendRequestStatus: string
-  areFriends: boolean
-  username: string
-  description: string
-  phoneNumber: string
-  email: string
-  interest: string
-  city: string
-  currentLocationId: number
-}
+import { IChat, Message } from '../../Interfaces/IChat'
+import { UserProfile } from '../../Interfaces/IUserData'
 
 interface ChatProfile {
   chatId: number
@@ -42,28 +24,6 @@ interface ChatProfile {
   unreadMessagesCount: number
 }
 
-interface Chat {
-  id: number
-  contact: string
-  imageUri: string
-  receiverId: number
-  chatId: number
-  notificationToken: string
-  friendRequestStatus: string
-  areFriends: boolean
-  username: string
-  firstName: string
-  lastName: string
-  profilePicture: string
-  phoneNumber: string
-  email: string
-  description: string
-  interest: string
-  city: string
-  currentLocationId: number
-  unreadMessagesCount: number
-}
-
 export interface ChatRouteParams {
   data?: number | null
   chatId?: number | null
@@ -71,7 +31,7 @@ export interface ChatRouteParams {
 }
 
 const Chat: React.FC = () => {
-  const [chats, setChats] = useState<Chat[]>([])
+  const [chats, setChats] = useState<IChat[]>([])
   const { loggedUser } = useUser()
   const numberOfMessages = 20
   const route = useRoute<RouteProp<{ params: ChatRouteParams }, 'params'>>()
@@ -80,11 +40,10 @@ const Chat: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const handleNavigation = useHandleNavigation()
   const [loading, setLoading] = useState<boolean>(true)
-  const [refreshData, setRefreshData] = useState(false)
 
-  useEffect(() => {
+  useFocusEffect(() => {
     fetchChats()
-  }, [loggedUser, chatId, refreshData])
+  })
 
   const fetchChats = async () => {
     if (!loggedUser) return
@@ -93,7 +52,7 @@ const Chat: React.FC = () => {
       const response = await axios.get<ChatProfile[]>(
         `${config.BASE_URL}/api/chats?userId=${loggedUser.id}&numberOfMessages=${numberOfMessages}`,
       )
-      const chatData: Chat[] = response.data.map((chatProfile) => {
+      const chatData: IChat[] = response.data.map((chatProfile) => {
         return {
           id: chatProfile.chatId,
           contact: `${chatProfile.secondUser.firstName} ${chatProfile.secondUser.lastName.charAt(0)}`,
@@ -136,7 +95,6 @@ const Chat: React.FC = () => {
       setError('Error fetching user profiles:')
     } finally {
       setLoading(false)
-      setRefreshData(false)
     }
   }
 
@@ -147,7 +105,7 @@ const Chat: React.FC = () => {
     }
   }
 
-  const navigateToChatRoom = (chat: Chat) => {
+  const navigateToChatRoom = (chat: IChat) => {
     handleNavigation('ChatRoom', {
       selectedRoom: chat.chatId,
       contact: chat.contact,
@@ -177,7 +135,6 @@ const Chat: React.FC = () => {
         fetchChats={fetchChats}
         error={error}
         loading={loading}
-        refreshData={setRefreshData}
       />
     </View>
   )

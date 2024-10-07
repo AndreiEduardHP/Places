@@ -7,7 +7,6 @@ import {
   Animated,
   TouchableOpacity,
   Image,
-  Linking,
   ImageBackground,
 } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'

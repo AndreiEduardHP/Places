@@ -84,7 +84,7 @@ const EditForm: React.FC<EditFormProps> = ({
     if (!result.canceled && result.assets) {
       const image = result.assets[0]
       const blobUrl = await uploadImageToBlob(image.uri)
-      setEditedEventImage(blobUrl)
+      setEditedEventImage(image.uri)
       setEditedEventImageSave(blobUrl)
     } else {
       Alert.alert('Error', 'Image picking was cancelled or failed')

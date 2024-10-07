@@ -21,6 +21,7 @@ interface Participant {
   interest: string
   description: string
   profilePicture: string
+  friendRequestStatus: string
 }
 
 interface ParticipantsListProps {
