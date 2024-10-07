@@ -1,15 +1,13 @@
 import React from 'react'
-import { useTranslation } from 'react-i18next'
-import { View, Text, StyleSheet, Share } from 'react-native'
-
+import { View, Text, StyleSheet } from 'react-native'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import LineComponent from '../LineComponent'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
+import { t } from 'i18next'
 
 const EventSection: React.FC = () => {
-  const { t } = useTranslation()
   const { textColor, backgroundColorGrey } = useThemeColor()
   const handleNavigation = useHandleNavigation()
 
@@ -28,7 +26,7 @@ const EventSection: React.FC = () => {
     },
     content: {
       paddingHorizontal: 18,
-      paddingVertical: 10,
+      paddingVertical: 0,
       width: '100%',
     },
     textContent: {
@@ -37,7 +35,7 @@ const EventSection: React.FC = () => {
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 10,
+      paddingVertical: 8,
     },
   })
 

@@ -1,5 +1,4 @@
 import React from 'react'
-import { ViewStyle } from 'react-native'
 import Svg, { LinearGradient, Text, Defs, Stop, TSpan } from 'react-native-svg'
 
 interface GradientStop {
@@ -20,11 +19,10 @@ const GradientText: React.FC<GradientTextProps> = ({
   gradientStops,
   svgStyle,
 }) => {
-  // Calculate the SVG dimensions
-  const lineHeight = fontSize * 1.2 // Adjust line height as needed
+  const lineHeight = fontSize * 1.2
   const height = textLines.length * lineHeight
   const maxWidth =
-    Math.max(...textLines.map((line) => line.length)) * fontSize * 0.6 // Approximate width of each character
+    Math.max(...textLines.map((line) => line.length)) * fontSize * 0.6
 
   return (
     <Svg

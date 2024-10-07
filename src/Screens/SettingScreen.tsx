@@ -1,11 +1,7 @@
-import React, { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import React, { useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
-
-import { useNotification } from '../Components/Notification/NotificationProvider'
-
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import ProfileSection from '../Components/SettingSections/ProfileSection'
 import InformationSection from '../Components/SettingSections/Information'
@@ -13,15 +9,16 @@ import AccountSection from '../Components/SettingSections/AccountSettings'
 import EventSection from '../Components/SettingSections/EventSection'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-import { Appbar } from 'react-native-paper'
-import { useNavigation } from '@react-navigation/native'
 import BackAction from '../Components/Back'
+import { t } from 'i18next'
 
 const SettingScreen: React.FC = () => {
-  const { t } = useTranslation()
   const { backgroundColor, textColor } = useThemeColor()
   const handleNavigation = useHandleNavigation()
+  const { refreshData } = useUser()
+  useEffect(() => {
+    refreshData()
+  }, [])
 
   const styles = StyleSheet.create({
     containerScroll: {
@@ -32,10 +29,11 @@ const SettingScreen: React.FC = () => {
       backgroundColor: backgroundColor,
     },
     text: {
-      fontSize: 32,
-      fontWeight: '300',
-      //  marginHorizontal: 20,
+      fontSize: 22,
+
       color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
     },
     content: {
       justifyContent: 'center',
@@ -69,12 +67,9 @@ const SettingScreen: React.FC = () => {
         <View
           style={{
             flexDirection: 'row',
-            // justifyContent: 'center',
             alignItems: 'center',
           }}>
-          <BackAction
-            style={{ backgroundColor: 'white', width: 26, height: 26 }}
-          />
+          <BackAction />
           <Text style={styles.text}>{t('settingsScreen.settings')}</Text>
         </View>
 
@@ -90,54 +85,6 @@ const SettingScreen: React.FC = () => {
       <FooterNavbar currentRoute={'SettingScreen'}></FooterNavbar>
     </View>
   )
-  {
-    /*  
-   <KeyboardAvoidingView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>{t('Settings')}</Text>
-        <View style={styles.content}>
-          {loggedUser ? (
-            <>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}>
-                <Text style={styles.text}>Change theme:</Text>
-                <DarkMode />
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}>
-                <Text style={[styles.text, {}]}>Change language:</Text>
-                <RNPickerSelect
-                  onValueChange={(value: any) => changeLanguagePicker(value)}
-                  items={[
-                    { label: 'English', value: 'en' },
-                    { label: 'Română', value: 'ro' },
-                  ]}
-                  style={{
-                    inputIOS: styles.dropdown,
-                    inputAndroid: styles.dropdown,
-                  }}
-                  useNativeAndroidPickerStyle={false}
-                />
-              </View>
-              <View>
-                <SupportTicket onSubmit={handleTicketSubmit} />
-              </View>
-            </>
-          ) : (
-            <Text style={styles.noUserText}>{t('No user is logged in')}</Text>
-          )}
-        </View>
-      </ScrollView>
-      <FooterNavbar currentRoute={'SettingScreen'} />
-    </KeyboardAvoidingView>
-  */
-  }
 }
 
 export default SettingScreen

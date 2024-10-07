@@ -1,13 +1,22 @@
 import axios from 'axios'
-import React, { useEffect, useState } from 'react'
-import { Keyboard, SafeAreaView, View } from 'react-native'
+import { t } from 'i18next'
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+} from 'react'
+import { Keyboard, View } from 'react-native'
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
+import { map } from '../../config/mapConfig'
 
 interface Location {
   latitude: number
   longitude: number
   title?: string
 }
+
 interface GooglePlacesInputProps {
   onLocationSelected: (location: Location) => void
   onInputChange: (isEmpty: boolean) => void
@@ -15,17 +24,24 @@ interface GooglePlacesInputProps {
   userCurrentLongitude: number
 }
 
-const GooglePlacesInput: React.FC<GooglePlacesInputProps> = ({
-  onLocationSelected,
-  onInputChange,
-  userCurrentLatitude,
-  userCurrentLongitude,
-}) => {
+const GooglePlacesInput: React.ForwardRefRenderFunction<
+  any,
+  GooglePlacesInputProps
+> = (
+  {
+    onLocationSelected,
+    onInputChange,
+    userCurrentLatitude,
+    userCurrentLongitude,
+  },
+  ref,
+) => {
   const [countryCode, setCountryCode] = useState<string>('')
+  const inputRef = useRef<any>(null)
 
   useEffect(() => {
     const getCountryCode = async () => {
-      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${userCurrentLatitude},${userCurrentLongitude}&key=AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I`
+      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${userCurrentLatitude},${userCurrentLongitude}&key=${map.key}`
 
       try {
         const response = await axios.get(geocodeUrl)
@@ -47,12 +63,20 @@ const GooglePlacesInput: React.FC<GooglePlacesInputProps> = ({
     getCountryCode()
   }, [])
 
+  useImperativeHandle(ref, () => ({
+    focusInput: () => {
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
+    },
+  }))
+
   return (
     <View style={{ flex: -221, zIndex: 20 }}>
       <GooglePlacesAutocomplete
-        placeholder="Search location"
+        ref={inputRef}
+        placeholder={t('labels.addEventLocation')}
         onPress={(data, details = null) => {
-          2
           if (details) {
             onLocationSelected({
               latitude: details.geometry.location.lat,
@@ -63,7 +87,7 @@ const GooglePlacesInput: React.FC<GooglePlacesInputProps> = ({
           }
         }}
         query={{
-          key: 'AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I',
+          key: map.key,
           language: 'en',
           components: countryCode ? `country:${countryCode}` : '',
         }}
@@ -95,4 +119,4 @@ const GooglePlacesInput: React.FC<GooglePlacesInputProps> = ({
   )
 }
 
-export default GooglePlacesInput
+export default forwardRef(GooglePlacesInput)

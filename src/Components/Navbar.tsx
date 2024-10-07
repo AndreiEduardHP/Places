@@ -1,44 +1,20 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef } from 'react'
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
   Platform,
   StatusBar,
 } from 'react-native'
-import { useTranslation } from 'react-i18next'
-import { t } from 'i18next'
-import { useDarkMode } from '../Context/DarkModeContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import {
-  darkModeBackGroundColorActive,
-  darkModeBackGroundColorNotActive,
-} from '../Utils.tsx/ComponentColors.tsx/BackGroundColor'
 import SvgComponent from './SVG/Logo'
 import { useUser } from '../Context/AuthContext'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
-interface NavbarProps {
-  title: string
-}
-
-const Navbar: React.FC<NavbarProps> = ({ title }) => {
-  const { i18n } = useTranslation()
-  const [expanded, setExpanded] = useState(false)
+const Navbar = () => {
   const navbarHeight = useRef(new Animated.Value(42)).current
-  const [showButtonsAbout, setShowButtonsAbout] = useState(false)
-
-  const buttonsOpacity = useRef(new Animated.Value(0)).current
-  const { isDarkMode } = useDarkMode()
-  const { textColor } = useThemeColor()
-
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng)
-  }
-
   const handleNavigation = useHandleNavigation()
   const { loggedUser } = useUser()
   const { backgroundColor } = useThemeColor()
@@ -49,27 +25,31 @@ const Navbar: React.FC<NavbarProps> = ({ title }) => {
         <View
           style={{
             backgroundColor: backgroundColor,
-            //  position: 'absolute',
             width: '100%',
             zIndex: 2000,
           }}>
           <View style={styles.safeArea}>
-            <Animated.View
+            <View
               style={[
                 styles.container,
                 {
                   height: navbarHeight,
-                  borderBottomLeftRadius: 30, // Add bottom left radius
-                  borderBottomRightRadius: 30, // Add bottom right radius
+                  borderBottomLeftRadius: 30,
+                  borderBottomRightRadius: 30,
                 },
               ]}>
               <View style={styles.titleContainer}>
                 <TouchableOpacity
-                  onPress={() => handleNavigation('DefaultScreen')}>
+                  onPress={() => handleNavigation('HomeScreen')}>
                   <SvgComponent />
                 </TouchableOpacity>
               </View>
-            </Animated.View>
+              <TouchableOpacity
+                onPress={() => handleNavigation('SettingScreen')}
+                style={{ paddingHorizontal: 10 }}>
+                <Icon name="menu" size={35} color={'white'} />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       ) : (
@@ -84,6 +64,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: '#2A272A',
+    alignItems: 'center',
   },
   safeArea: {
     width: '100%',

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -15,17 +15,21 @@ import LoadingComponent from './Loading/Loading'
 import { remoteImages } from '../AzureImages/Images'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import { useTranslation } from 'react-i18next'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { Card, Title, Paragraph } from 'react-native-paper'
-import { SearchBar, Button, ButtonGroup } from '@rneui/base'
-import { Picker } from '@react-native-picker/picker'
+import { SearchBar, Button, ButtonGroup, Skeleton } from '@rneui/base'
 import { useUser } from '../Context/AuthContext'
 import { CheckBox as C } from '@rneui/base'
-
 import LineComponent from './LineComponent'
-import { Checkbox } from 'native-base'
-import { interests } from '../Utils.tsx/Interests/Interests'
+import { Divider } from 'native-base'
+import { interests } from '../Utils.tsx/Enums/Interests'
+import ImageModal from '../Modals/ImageModal'
+import * as Location from 'expo-location'
+import { t } from 'i18next'
+import { fetchLocationDetails } from '../Services/LocationDetails'
+import { getLocation } from '../Services/CurrentLocation'
+import { useFocusEffect } from '@react-navigation/native'
+import ImageCarousel from './ImageCarousel/ImageCarousel'
 
 type Event = {
   id: number
@@ -36,22 +40,29 @@ type Event = {
   locationLatitude: number
   locationLongitude: number
   interest: string
+  eventAlbumImages: {
+    imageUrl: string
+  }[]
 }
 
-const Item: React.FC<Event> = ({
+const Item: React.FC<Event & { additionalStyles?: object }> = ({
   eventName,
   eventDescription,
   eventImage,
   eventTime,
   locationLatitude,
+  eventAlbumImages,
   interest,
   locationLongitude,
+  additionalStyles,
 }) => {
   const [locationAddress, setLocationAddress] = useState<string>('')
   const navigate = useHandleNavigation()
   const { textColor, backgroundColor } = useThemeColor()
-  const { t } = useTranslation()
-
+  const [isImageModalVisible, setIsImageModalVisible] = useState(false)
+  const [imageToDownload, setImageToDownload] = useState<string | null>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [showAlbumModal, setAlbumModal] = useState(false)
   useEffect(() => {
     const fetchLocation = async () => {
       const address = await fetchLocationDetails(
@@ -63,24 +74,6 @@ const Item: React.FC<Event> = ({
 
     fetchLocation()
   }, [locationLatitude, locationLongitude])
-
-  const fetchLocationDetails = async (latitude: number, longitude: number) => {
-    try {
-      const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I`,
-      )
-
-      if (response.data.results.length > 0) {
-        const formattedAddress = response.data.results[0].formatted_address
-        return formattedAddress
-      } else {
-        return 'Location details not found'
-      }
-    } catch (error) {
-      console.error('Error fetching location details:', error)
-      return 'Error fetching location details'
-    }
-  }
 
   const formatEventDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -116,6 +109,12 @@ const Item: React.FC<Event> = ({
 
     return `${dayName} ${day} ${month} ${year} ${hours}:${minutes}`
   }
+
+  const handleImageClick = () => {
+    setImageToDownload(eventImage)
+    setIsImageModalVisible(true)
+  }
+
   const styles = StyleSheet.create({
     title: {
       marginLeft: 10,
@@ -139,8 +138,10 @@ const Item: React.FC<Event> = ({
     },
     card: {
       backgroundColor:
-        textColor == 'white' ? 'rgba(48, 51, 55,1)' : 'rgba(122,212,112,1)',
-      margin: 10,
+        textColor == 'white' ? 'rgba(48, 51, 55,1)' : 'rgba(252,252,255,1)',
+      marginHorizontal: 10,
+      marginBottom: 20,
+      ...additionalStyles,
     },
     infoContainer: {
       flexDirection: 'row',
@@ -161,22 +162,121 @@ const Item: React.FC<Event> = ({
       textAlign: 'left',
       paddingRight: 15,
     },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalImage: {
+      width: 300,
+      height: 300,
+      marginBottom: 20,
+    },
+    closeModalButton: {
+      backgroundColor: '#00B0EF',
+      padding: 10,
+      borderRadius: 5,
+    },
+    closeModalButtonText: {
+      color: 'white',
+      textAlign: 'center',
+      fontSize: 16,
+    },
+    imageContainer: {
+      //  justifyContent: 'center',
+      //  alignItems: 'center',
+    },
   })
 
   return (
     <Card style={styles.card}>
-      <Card.Cover
-        source={
-          eventImage && eventImage !== ''
-            ? { uri: ImageConfig.IMAGE_CONFIG + eventImage }
-            : { uri: remoteImages.partyImage }
-        }
-      />
+      <TouchableOpacity onPress={handleImageClick}>
+        {!isLoaded && (
+          <Skeleton
+            animation="wave"
+            style={{
+              position: 'absolute',
+              zIndex: 1,
+              width: '100%',
+              height: '100%',
+            }}
+          />
+        )}
+        <Card.Cover
+          source={
+            eventImage && eventImage !== '' && eventImage !== ' '
+              ? { uri: eventImage }
+              : { uri: remoteImages.partyImage }
+          }
+          onLoadEnd={() => setIsLoaded(true)}
+        />
+      </TouchableOpacity>
       <Card.Content>
-        <Title style={{ color: textColor }}>Event name: {eventName}</Title>
-        <Paragraph style={{ color: textColor, marginBottom: 10 }}>
-          Event description: {eventDescription}
-        </Paragraph>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View>
+            <Title style={{ color: textColor }}>Event name: {eventName}</Title>
+            <Paragraph style={{ color: textColor, marginBottom: 10 }}>
+              Event description: {eventDescription}
+            </Paragraph>
+          </View>
+          {eventAlbumImages && eventAlbumImages.length > 0 ? (
+            <TouchableOpacity
+              onPress={() => setAlbumModal(true)}
+              style={{ alignContent: 'center', justifyContent: 'center' }}>
+              <MaterialIcons name="collections" size={30} color={textColor} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showAlbumModal}
+          onRequestClose={() => setAlbumModal(false)}>
+          <View
+            style={{
+              width: '100%',
+              height: '90%',
+
+              justifyContent: 'center',
+            }}>
+            <View
+              style={{
+                alignItems: 'center',
+                margin: 5,
+                borderRadius: 7,
+                backgroundColor: 'white',
+              }}>
+              <Text
+                style={{ fontSize: 24, color: 'black', marginVertical: 10 }}>
+                {t('Event Images')}
+              </Text>
+
+              <ImageCarousel
+                images={eventAlbumImages.map(
+                  (image) => image.imageUrl,
+                )}></ImageCarousel>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'black',
+                  borderRadius: 10,
+                  width: 221,
+                  marginVertical: 10,
+                  alignItems: 'center',
+                }}
+                onPress={() => setAlbumModal(false)}>
+                <Text
+                  style={{
+                    color: 'white',
+                    fontSize: 22,
+                    padding: 5,
+                  }}>
+                  {t('buttons.close')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
         <LineComponent />
         <View style={styles.infoContainer}>
           <MaterialIcons
@@ -217,11 +317,16 @@ const Item: React.FC<Event> = ({
           {t('eventsAroundYou.seeLocationOnMap')}
         </Button>
       </Card.Actions>
+      <ImageModal
+        visible={isImageModalVisible}
+        imageUrl={eventImage}
+        onClose={() => setIsImageModalVisible(false)}
+      />
     </Card>
   )
 }
 
-const haversineDistance = (
+export const haversineDistance = (
   coords1: { latitude: any; longitude: any },
   coords2: { latitude: any; longitude: any },
 ) => {
@@ -234,7 +339,7 @@ const haversineDistance = (
   const lat2 = coords2.latitude
   const lon2 = coords2.longitude
 
-  const R = 6371 // Radius of the Earth in km
+  const R = 6371
 
   const x1 = lat2 - lat1
   const dLat = toRad(x1)
@@ -255,18 +360,38 @@ const haversineDistance = (
 const EventsAroundYou: React.FC = () => {
   const [eventData, setEventData] = useState<Event[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('') // State for search query
-  const [distance, setDistance] = useState(5) // State for distance filter
+  const [searchQuery, setSearchQuery] = useState('')
+  const [distance, setDistance] = useState(5)
   const { textColor } = useThemeColor()
-  const { loggedUser } = useUser()
+  const { loggedUser, refreshData } = useUser()
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [isInterestModalVisible, setIsInterestModalVisible] = useState(false)
+  const [currentLocation, setCurrentLocation] = useState<any>(null)
 
   useEffect(() => {
-    fetchEvents()
-  }, [distance]) // Fetch events when the distance changes
+    fetchLocation()
+  }, [distance, selectedIndex])
+  const fetchLocation = useCallback(async () => {
+    const location = await getLocation('lowest')
+    if (location) {
+      setCurrentLocation(location)
+    }
+  }, [])
+  useEffect(() => {
+    if (currentLocation) {
+      fetchEvents()
+    }
+  }, [currentLocation, distance])
+
+  useFocusEffect(
+    useCallback(() => {
+      if (currentLocation) {
+        fetchEvents()
+      }
+    }, [currentLocation, distance]),
+  )
 
   const toggleInterest = (interest: string) => {
     if (selectedInterests.includes(interest)) {
@@ -288,27 +413,28 @@ const EventsAroundYou: React.FC = () => {
             latitude: event.locationLatitude,
             longitude: event.locationLongitude,
           }
-          if (loggedUser) {
-            const userCoords = {
-              latitude: loggedUser.currentLatitude,
-              longitude: loggedUser.currentLongitude,
-            }
-            const distanceBetween = haversineDistance(userCoords, eventCoords)
-            setIsLoading(false)
-            return distanceBetween <= distance
+
+          const userCoords = {
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
           }
+
+          const distanceBetween = haversineDistance(userCoords, eventCoords)
+
+          return distanceBetween <= distance
         },
       )
-
+      setIsLoading(false)
       setEventData(filteredEvents)
     } catch (error) {
       console.error('Error fetching events:', error)
+      setIsLoading(false)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const renderItem = ({ item }: { item: Event }) => (
+  const renderItem = ({ item, index }: { item: Event; index: number }) => (
     <Item
       eventName={item.eventName}
       eventDescription={item.eventDescription}
@@ -318,16 +444,22 @@ const EventsAroundYou: React.FC = () => {
       eventTime={item.eventTime}
       locationLatitude={item.locationLatitude}
       locationLongitude={item.locationLongitude}
+      eventAlbumImages={item.eventAlbumImages}
+      additionalStyles={
+        index === 0
+          ? { marginTop: 10 }
+          : index === filteredData.length - 1
+            ? { marginBottom: 40 }
+            : {}
+      }
     />
   )
 
-  const { t } = useTranslation()
-
   const styles = StyleSheet.create({
     title: {
-      marginLeft: 10,
-      marginTop: 10,
-      fontSize: 32,
+      //  marginLeft: 10,
+      //  marginTop: 10,
+      fontSize: 23,
       paddingLeft: 10,
       color: textColor,
       letterSpacing: -0.6,
@@ -387,7 +519,7 @@ const EventsAroundYou: React.FC = () => {
     },
     modalContent: {
       backgroundColor: 'white',
-      padding: 20,
+      padding: 0,
       borderRadius: 10,
       width: '100%',
       maxHeight: '80%',
@@ -403,10 +535,6 @@ const EventsAroundYou: React.FC = () => {
     },
   })
 
-  // Filter data based on search query
-  // const filteredData = eventData.filter((event) =>
-  //   event.eventName.toLowerCase().includes(searchQuery.toLowerCase()),
-  //  )
   const filteredData = eventData.filter((event) => {
     const matchesSearchQuery = event.eventName
       .toLowerCase()
@@ -418,41 +546,67 @@ const EventsAroundYou: React.FC = () => {
       )
     return matchesSearchQuery && matchesInterests
   })
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1 }}>
-        <LoadingComponent />
-        <View style={{}}>
-          <SearchBar
-            lightTheme={textColor == 'white' ? false : true}
-            containerStyle={{ backgroundColor: 'transparent' }}
-            placeholder={t('eventsAroundYou.searchPlaceholder')}
-            placeholderTextColor={textColor}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          <Text style={styles.title}>
-            {t('eventsAroundYou.eventsAroundYou')}
-          </Text>
-        </View>
-      </View>
-    )
-  }
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{}}>
-        <View>
+      {isLoading ? (
+        <View style={{ flex: 1 }}>
+          <LoadingComponent />
+          <View>
+            <SearchBar
+              containerStyle={{
+                backgroundColor: 'transparent',
+
+                paddingVertical: 5,
+                borderTopWidth: 0,
+                borderBottomWidth: 0,
+              }}
+              inputContainerStyle={{
+                backgroundColor:
+                  textColor === 'white'
+                    ? 'rgba(35,35,35,1)'
+                    : 'rgba(225,225,225,1)',
+                height: 34,
+              }}
+              placeholder={t('eventsAroundYou.searchPlaceholder')}
+              placeholderTextColor={textColor}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            <Text style={styles.title}>
+              {t('eventsAroundYou.eventsAroundYou')}
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <View style={{ flex: 1 }}>
           <SearchBar
-            lightTheme={textColor == 'white' ? false : true}
-            containerStyle={{ backgroundColor: 'transparent' }}
+            containerStyle={{
+              backgroundColor: 'transparent',
+              paddingVertical: 5,
+
+              borderTopWidth: 0,
+              borderBottomWidth: 0,
+            }}
+            inputContainerStyle={{
+              backgroundColor:
+                textColor === 'white'
+                  ? 'rgba(35,35,35,1)'
+                  : 'rgba(225,225,225,1)',
+              height: 34,
+            }}
+            inputStyle={{ color: textColor }}
             placeholder={t('eventsAroundYou.searchPlaceholder')}
             placeholderTextColor={textColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           <View
-            style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
             <Text style={styles.title}>
               {t('eventsAroundYou.eventsAroundYou')}
             </Text>
@@ -461,77 +615,97 @@ const EventsAroundYou: React.FC = () => {
                 name="filter-list"
                 size={26}
                 color={textColor}
-                style={{
-                  marginRight: 20,
-                  marginTop: 14,
-                }}
+                style={{ marginRight: 20 }}
               />
             </TouchableOpacity>
           </View>
-        </View>
-        <Modal
-          transparent={true}
-          visible={isModalVisible}
-          onRequestClose={() => setIsModalVisible(false)}
-          animationType="slide">
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={{ color: 'black', fontSize: 28, fontWeight: '300' }}>
-                Select the radius within which events should be displayed.
-              </Text>
-              <ButtonGroup
-                selectedButtonStyle={{ backgroundColor: 'black' }}
-                buttons={['10Km', '50Km', 'All']}
-                selectedIndex={selectedIndex}
-                onPress={(value) => {
-                  setSelectedIndex(value)
-                  setDistance(
-                    value == 0
-                      ? 10
-                      : value == 1
-                        ? 50
-                        : value == 2
-                          ? 100000000000
-                          : 999999,
-                  )
-                  //         setIsModalVisible(false)
-                }}
-                containerStyle={{ marginBottom: 20 }}
-              />
-              <Text style={{ color: 'black', fontSize: 22, fontWeight: '300' }}>
-                Select interests:
-              </Text>
-              <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                {interests.map((interest) => (
-                  <C
-                    key={interest}
-                    title={interest}
-                    checked={selectedInterests.includes(interest)}
-                    onPress={() => toggleInterest(interest)}
-                    containerStyle={{
-                      justifyContent: 'space-between',
-                      width: 250,
-                    }}
-                  />
-                ))}
-              </ScrollView>
-              <Button
-                onPress={() => setIsModalVisible(false)}
-                buttonStyle={{ backgroundColor: 'black' }}>
-                <Text style={styles.modalOption}>Close</Text>
-              </Button>
-            </View>
-          </View>
-        </Modal>
-      </View>
 
-      <FlatList
-        data={filteredData}
-        windowSize={4}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        horizontal={false}
-      />
+          {filteredData.length === 0 ? (
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: 1,
+              }}>
+              <Text style={{ color: textColor, fontSize: 32 }}>
+                {t('labels.noEventsAroundYou')}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredData}
+              windowSize={4}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id.toString()}
+              horizontal={false}
+            />
+          )}
+        </View>
+      )}
+      <Modal
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
+        animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: 'black',
+                  fontSize: 24,
+                  marginVertical: 10,
+                  fontWeight: '400',
+                },
+              ]}>
+              {t('labels.selectInterest')}
+            </Text>
+            <Divider />
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+              {interests.map((interest) => (
+                <C
+                  key={interest}
+                  title={interest}
+                  checked={selectedInterests.includes(interest)}
+                  onPress={() => toggleInterest(interest)}
+                  containerStyle={{
+                    justifyContent: 'space-between',
+                    width: 250,
+                    margin: 0,
+                    marginTop: 10,
+                    padding: 0,
+                  }}
+                />
+              ))}
+            </ScrollView>
+            <Text
+              style={{
+                color: 'black',
+                fontSize: 16,
+                fontWeight: '500',
+                padding: 10,
+              }}>
+              {t('labels.selectRadiusEvents')}
+            </Text>
+            <ButtonGroup
+              selectedButtonStyle={{ backgroundColor: 'black' }}
+              buttons={['10Km', '50Km', 'All']}
+              selectedIndex={selectedIndex}
+              onPress={(value) => {
+                setSelectedIndex(value)
+                setDistance(value === 0 ? 10 : value === 1 ? 50 : 100000000000)
+              }}
+              containerStyle={{ marginBottom: 10 }}
+            />
+            <Button
+              onPress={() => setIsModalVisible(false)}
+              buttonStyle={{ backgroundColor: 'black', margin: 10 }}>
+              <Text style={styles.modalOption}>{t('buttons.close')}</Text>
+            </Button>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }

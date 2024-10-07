@@ -73,7 +73,8 @@
       "seeQR": "Vezi QR",
       "joinedEvents": "Evenimente la care participi",
       "noQrAvailable": "Niciun QR disponibil",
-      "searchPlaceholder": "Cauta eveniment"
+      "searchPlaceholder": "Caută eveniment",
+      "eventsCreatedByMe": "Evenimente create de mine"
     },
     "updateUser": {
       "firstName": "Prenume",
@@ -83,7 +84,8 @@
       "email": "Email",
       "city": "Oraș",
       "interest": "Interes",
-      "updateProfile": "Actualizează Profil"
+      "updateProfile": "Actualizează Profil",
+      "yourInformation": "Informatiile tale"
     },
     "accountPreferenceScreen": {
       "accountPreference": "Preferințe Cont"
@@ -137,10 +139,12 @@
       "selectDateAndTime": "Selectează Data și Ora",
       "selectDate": "Selectează o Dată:",
       "selectTime": "Selectează o Oră:",
+      "selectedInterest": "Interese selectate",
       "selectedDate": "Dată și oră selectate:",
       "yourCredits": "Creditele tale",
       "otherRelevantInformation": "Alte informatii relevante",
-      "minusCredit": "Un credit va fi dedus din contul tău la crearea evenimentului."
+      "minusCredit": "Un credit va fi dedus din contul tău la crearea evenimentului.",
+      "selectAllInterests": "Selecteaza toate interesele"
     },
     "editEventForm": {
       "eventName": "Nume Eveniment",
@@ -186,7 +190,39 @@
       "email": "Email",
       "interest": "Interes",
       "phoneNumber": "Număr de Telefon",
-      "username": "Nume de Utilizator"
+      "username": "Nume de Utilizator",
+      "noPeopleAroundYou": "Nu sunt persoane in jurul tau",
+      "noEventsAroundYou": "Nu sunt evenimente in jurul tau",
+      "yourFriendRequests": "Cereri de prietenie",
+      "yourConnections": "Conexiunile tale",
+      "awardsSubTitle": "Premii pe care ești aproape să le obții sau pe care deja le-ai câștigat.",
+      "shareTheApp": "Distribuie aplicația",
+      "createdEvents": "Evenimente create",
+      "joinedEvents": "Evenimente la care te-ai alăturat",
+      "accountCreated": "Cont creat > o lună",
+      "emailVerified": "Email verificat",
+      "emailNotVerified": "Email-ul nu este verificat",
+      "of": "din",
+      "profileVisibility": "Vizibilitate Profil",
+      "profileVisibilitySubTitle": "Poți seta statutul de confidențialitate pentru profilul tău",
+      "routeDistance": "Distanța traseului",
+      "estimatedTimeWithCar": "Timp estimat cu mașina",
+      "addEvent": "Adaugă eveniment",
+      "addEventLocation": "Caută locație pentru un nou eveniment",
+      "addNewEvent": "Adaugă eveniment nou",
+      "message": "Mesaj",
+      "selectInterest": "Selectează interese",
+      "selectRadiusPeople": "Selectați acoperirea pentru persoane",
+      "selectRadiusEvents": "Selectați acoperirea pentru evenimente",
+      "moreFilters": "Mai multe filtre",
+      "deleteEventConfirmation": "Ești sigur că vrei să ștergi acest eveniment?",
+      "yourOffers": "Ofertele tale",
+      "notEvenHiddenOnes": "Nici măcar ascunse",
+      "creditsReceived": "Credite Primite",
+      "unlimitedDiscounts": "Reduceri nelimitate. Fără taxe.",
+      "price": "Preț",
+      "navigateToLocation": "Navighează la locație",
+      "checkFunctionality": "Activează funcționalitatea de verificare pentru acest eveniment?"
     },
     "buttons": {
       "signUp": "Înregistrare",
@@ -197,7 +233,11 @@
       "confirm": "Confirmă",
       "upload": "Încarcă",
       "logOut": "Deconectare",
-      "deleteAccount": "Șterge Contul"
+      "delete": "Șterge",
+      "deleteAccount": "Șterge Contul",
+      "changeEventImage": "Schimba imaginea Evenimentului",
+      "checkUser": "Verifica Utilizatorul",
+      "proceedToPay": "Continuă cu plata"
     },
     "map": {
       "unJoinEvent": "Iesi din eveniment",
@@ -210,7 +250,11 @@
       "eventName": "Nume Eveniment",
       "currentLocation": "Locatia mea",
       "editEventDetails": "Modifică detaliile evenimentului",
-      "showParticipantListPreference": "Nu vreau să apar in lista participantilor"
+      "showParticipantListPreference": "Nu vreau să apar in lista participantilor",
+      "confirmUnjoinEvent": "Esti sigur ca vrei sa iesi din eveniment?",
+      "yes": "Da",
+      "no": "Nu",
+      "confirmJoinEvent": "Esti sigur ca vrei sa participi la eveniment?"
     },
     "openInGoogleMaps": "Deschide in Google Maps",
     "this line is translated": "Această linie este tradusă",

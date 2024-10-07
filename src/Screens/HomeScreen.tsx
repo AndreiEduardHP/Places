@@ -1,71 +1,24 @@
 import { t } from 'i18next'
-import React, { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
-  ImageBackground,
-} from 'react-native'
-
-import { Profile, useUser } from '../Context/AuthContext'
+import React from 'react'
+import { View, Text, Image, StyleSheet, ScrollView } from 'react-native'
 import FooterNavbar from '../Components/FooterNavbar'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
-import * as Notifications from 'expo-notifications'
 import SvgComponent from '../Components/SVG/Logo'
 import { LinearGradient } from 'expo-linear-gradient'
-import SVGComponentPRO from '../Components/SVG/Shapes/ConnectPro'
-import Svg, {
-  Defs,
-  Stop,
-  TSpan,
-  Text as T,
-  LinearGradient as L,
-} from 'react-native-svg'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useHandleNavigation } from '../Navigation/NavigationUtil'
+import ImageCarousel from '../Components/ImageCarousel/ImageCarousel'
+import LineComponent from '../Components/LineComponent'
 
 const HomeScreen: React.FC = () => {
-  const { t } = useTranslation()
-  const {
-    loggedUser,
-    handleLogin,
-    updateNotificationToken,
-    refreshData,
-    handleLogout,
-  } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
-  const handleNavigation = useHandleNavigation()
-  const checkLoggedInStatus = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token')
-      if (token) {
-        const userProfileString = await AsyncStorage.getItem('loggedUser')
-        if (userProfileString) {
-          const userProfile: Profile = JSON.parse(userProfileString)
-          const token = (await Notifications.getExpoPushTokenAsync()).data
-          updateNotificationToken(userProfile.id, token)
-          handleLogin(userProfile.phoneNumber)
-          refreshData()
-        } else {
-          handleLogout()
-          handleNavigation('DefaultScreen')
-        }
-      } else {
-        handleLogout()
-        handleNavigation('DefaultScreen')
-      }
-    } catch (error) {
-      console.error('Error checking logged in status:', error)
-    }
-  }
-  useEffect(() => {
-    checkLoggedInStatus()
-  }, [])
+  const images = [
+    'https://media.timeout.com/images/103926031/image.jpg',
+    'https://www.goalcast.com/wp-content/uploads/2016/10/business-wallpaper-HD7.jpg',
+
+    'https://bernardmarr.com/wp-content/uploads/2022/03/The-6-Best-Examples-Of-Purposeful-Businesses.jpg',
+  ]
+
   const styles = StyleSheet.create({
-    container: { backgroundColor: backgroundColor, flex: 1 },
+    container: { backgroundColor: backgroundColor, flexGrow: 1 },
     headerContainer: {
       marginTop: -30,
     },
@@ -90,47 +43,47 @@ const HomeScreen: React.FC = () => {
 
       fontSize: 34,
 
-      letterSpacing: -0.51,
-      fontWeight: '300',
+      //  letterSpacing: -0.51,
+      fontWeight: '500',
       fontFamily: '',
-      color: textColor,
+      color: '#00B0EF',
     },
     contentContainer: {
       width: '100%',
-      marginTop: 40,
+      marginTop: 30,
       paddingHorizontal: 10,
     },
     image: {
       width: '100%',
-      height: 250,
+      height: 210,
       borderBottomLeftRadius: 100,
       borderTopRightRadius: 150,
     },
     title: {
       //  fontFamily: 'Cochin',
-      fontSize: 38,
+      fontSize: 29,
       textAlign: 'center',
-      fontWeight: '400',
-      marginBottom: 10,
-      color: 'white',
+      fontWeight: '300',
+      marginBottom: 4,
+      color: textColor,
     },
     description: {
-      fontSize: 16,
+      fontSize: 14,
       color: textColor,
       lineHeight: 24,
-      marginBottom: 20,
+      marginBottom: 4,
     },
     featuresTitle: {
-      fontSize: 28,
-      color: 'white',
+      fontSize: 26,
+      color: textColor,
       // fontFamily: 'Cochin',
       fontWeight: '400',
-      marginBottom: 10,
+      marginBottom: 8,
     },
     featuresText: {
-      fontSize: 16,
+      fontSize: 14,
       color: textColor,
-      marginBottom: 5,
+      marginBottom: 4,
     },
     backgroundImage: {
       flex: 1,
@@ -153,11 +106,8 @@ const HomeScreen: React.FC = () => {
           end={{ x: 0, y: 0 }}
           style={styles.headerContainer}>
           <View style={styles.headerContainer1}>
-            <View>
-              <Text style={[styles.headerTextAbout]}>{t('about')}</Text>
-            </View>
             <View style={{ paddingTop: 9 }}>
-              <SvgComponent></SvgComponent>
+              <SvgComponent width={200} height={50}></SvgComponent>
             </View>
           </View>
         </LinearGradient>
@@ -165,7 +115,6 @@ const HomeScreen: React.FC = () => {
           style={{
             marginTop: -30,
             zIndex: -1,
-            // alignItems: 'center',
             width: 222,
             backgroundColor: 'white',
           }}></View>
@@ -179,6 +128,15 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.featuresText}>{t('homeScreen.connect')}</Text>
           <Text style={styles.featuresText}>{t('homeScreen.access')}</Text>
           <Text style={styles.featuresText}>{t('homeScreen.stay')}</Text>
+          <View style={{ marginBottom: 10 }}>
+            <LineComponent></LineComponent>
+          </View>
+
+          <ImageCarousel images={images} />
+          <View style={{ marginTop: 10 }}>
+            <LineComponent></LineComponent>
+          </View>
+          <View style={{ padding: 40 }}></View>
         </View>
       </ScrollView>
 

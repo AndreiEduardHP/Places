@@ -73,7 +73,8 @@
       "seeQR": "See QR",
       "joinedEvents": "Joined Events",
       "noQrAvailable": "No QR available",
-      "searchPlaceholder": "Search event"
+      "searchPlaceholder": "Search event",
+      "eventsCreatedByMe": "Events created by Me"
     },
     "updateUser": {
       "firstName": "First Name",
@@ -83,7 +84,8 @@
       "email": "Email",
       "city": "City",
       "interest": "Interest",
-      "updateProfile": "Update Profile"
+      "updateProfile": "Update Profile",
+      "yourInformation": "Your Infromation"
     },
     "accountPreferenceScreen": {
       "accountPreference": "Account Preference"
@@ -150,9 +152,11 @@
       "selectDate": "Select a Date:",
       "selectTime": "Select a Time:",
       "selectedDate": "Selected date and time:",
+      "selectedInterest": "Selected interest",
       "yourCredits": "Your credits",
       "otherRelevantInformation": "Other relevant information",
-      "minusCredit": "One credit will be deducted from your account when creating the event."
+      "minusCredit": "One credit will be deducted from your account when creating the event.",
+      "selectAllInterests": "Select All Interests"
     },
     "editEventForm": {
       "eventName": "Event Name",
@@ -189,7 +193,11 @@
       "confirm": "Confirm",
       "upload": "Upload",
       "logOut": "Log Out",
-      "deleteAccount": "Delete Account"
+      "delete": "Șterge",
+      "deleteAccount": "Delete Account",
+      "changeEventImage": "Change event Image",
+      "checkUser": "Verifica Utilizatorul",
+      "proceedToPay": "Proceed to Pay"
     },
     "labels": {
       "city": "City",
@@ -197,7 +205,39 @@
       "email": "Email",
       "interest": "Interest",
       "phoneNumber": "Phone Number",
-      "username": "Username"
+      "username": "Username",
+      "noPeopleAroundYou": "No people around you",
+      "noEventsAroundYou": "No events around you",
+      "yourFriendRequests": "Your friend Requests",
+      "yourConnections": "Your Connections",
+      "awardsSubTitle": "Awards you're close to earning or ones you already achived.",
+      "shareTheApp": "Share the app",
+      "createdEvents": "Created events",
+      "joinedEvents": "Joined Events",
+      "accountCreated": "Account created > one month",
+      "emailVerified": "Email verified",
+      "emailNotVerified": "Email not verified",
+      "of": "of",
+      "profileVisibility": "Profile Visibility",
+      "profileVisibilitySubTitle": "You can set the Confidentiality status for your profile",
+      "routeDistance": "Route Distance",
+      "estimatedTimeWithCar": "Estimated time with car",
+      "addEvent": "Add event",
+      "addEventLocation": "Search location for New Event",
+      "addNewEvent": "Add new event",
+      "message": "Message",
+      "selectInterest": "Select Interest",
+      "selectRadiusPeople": "Select coverage for people",
+      "selectRadiusEvents": "Select coverage for events",
+      "moreFilters": "More Filters",
+      "deleteEventConfirmation": "Are you sure you want to delete this event?",
+      "yourOffers": "Your Offers",
+      "notEvenHiddenOnes": "Not even hidden ones",
+      "creditsReceived": "Credits Received",
+      "unlimitedDiscounts": "Unlimited discounts. No fees.",
+      "price": "Price",
+      "navigateToLocation": "Navigate to location",
+      "checkFunctionality": "Enable check functionality for this event?"
     },
     "map": {
       "unJoinEvent": "Unjoin event",
@@ -210,7 +250,11 @@
       "eventName": "Event Name",
       "currentLocation": "My location",
       "editEventDetails": "Edit Event Details",
-      "showParticipantListPreference": "Do not show me in participants list"
+      "showParticipantListPreference": "Do not show me in participants list",
+      "confirmUnjoinEvent": "Are you sure you want to unjoin this event?",
+      "yes": "Yes",
+      "no": "No",
+      "confirmJoinEvent": "Esti sigur ca vrei sa participi la eveniment?"
     },
     "openInGoogleMaps": "Open in Google Maps",
     "this line is translated": "This line is translated",

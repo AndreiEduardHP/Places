@@ -1,25 +1,21 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   TextStyle,
-  useColorScheme,
-  ViewStyle,
   Platform,
 } from 'react-native'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import { useDarkMode } from '../Context/DarkModeContext'
-import {
-  darkModeBackGroundColorActive,
-  darkModeBackGroundColorNotActive,
-} from '../Utils.tsx/ComponentColors.tsx/BackGroundColor'
 import Icon from 'react-native-vector-icons/MaterialIcons'
-import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
-import { useTranslation } from 'react-i18next'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { SpeedDial } from '@rneui/base'
+import { config } from '../config/urlConfig'
+import axios from 'axios'
+import * as Notifications from 'expo-notifications'
+import { useFocusEffect } from '@react-navigation/native'
+import { Profile, useUser } from '../Context/AuthContext'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 type FooterNavProps = {
   style?: TextStyle
@@ -29,23 +25,57 @@ type FooterNavProps = {
 const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
   const handleNavigation = useHandleNavigation()
   const { isDarkMode } = useDarkMode()
-  const { textColor } = useThemeColor()
-  const colorScheme = useColorScheme()
-  const [open, setOpen] = React.useState(false)
-  const { t } = useTranslation()
-  const iconTintColor = isDarkMode
-    ? colorScheme === 'dark'
-      ? 'white'
-      : 'black'
-    : 'white'
+  const { loggedUser } = useUser()
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0)
+  const fetchUnreadMessagesCount = async (userId: number) => {
+    try {
+      const response = await axios.get(
+        `${config.BASE_URL}/api/chats/unreadMessagesCount`,
+        {
+          params: { userId },
+        },
+      )
+      setUnreadMessagesCount(response.data.unreadMessagesCount)
+    } catch (error) {
+      console.error('Error fetching unread messages count:', error)
+    }
+  }
 
-  const getMenuItemStyle = (route: string): ViewStyle => ({
-    flexDirection: 'column',
-    alignItems: 'center' as const,
-    padding: 10,
-    borderRadius: 50,
-    backgroundColor: currentRoute === route ? '#00B0EF' : 'transparent',
-  })
+  useFocusEffect(
+    React.useCallback(() => {
+      if (loggedUser?.id) {
+        fetchUnreadMessagesCount(loggedUser.id)
+      }
+    }, [loggedUser?.id]),
+  )
+  useEffect(() => {
+    const initialize = async () => {
+      let userId = loggedUser?.id
+      if (!userId) {
+        const userProfileString = await AsyncStorage.getItem('loggedUser')
+        if (userProfileString) {
+          const userProfile: Profile = JSON.parse(userProfileString)
+          userId = userProfile.id
+        }
+      }
+
+      if (userId) {
+        fetchUnreadMessagesCount(userId)
+
+        const subscription = Notifications.addNotificationReceivedListener(
+          () => {
+            fetchUnreadMessagesCount(userId)
+          },
+        )
+
+        return () => {
+          subscription.remove()
+        }
+      }
+    }
+
+    initialize()
+  }, [loggedUser])
 
   const styles = StyleSheet.create({
     container: {
@@ -56,8 +86,6 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
       paddingHorizontal: 50,
       paddingVertical: Platform.OS === 'ios' ? 14 : 10,
       marginVertical: Platform.OS === 'ios' ? 0 : -6,
-      //  position: 'absolute',
-      //   bottom: 0,
       width: '100%',
       zIndex: 2,
       borderTopLeftRadius: 20,
@@ -67,6 +95,22 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
       shadowOpacity: 0.8,
       shadowRadius: 2,
       elevation: 5,
+    },
+    unreadBadge: {
+      backgroundColor: 'red',
+      borderRadius: 50,
+      width: 20,
+      height: 20,
+      right: -9,
+      top: -7,
+      position: 'absolute',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    unreadText: {
+      color: 'white',
+      fontSize: 16,
+      textAlign: 'center',
     },
     icon: {},
     selectedIcon: {
@@ -118,12 +162,6 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
         />
       </TouchableOpacity>
 
-      {/* <TouchableOpacity
-        onPress={() => handleNavigation('MapScreen')}
-        style={getMenuItemStyle('MapScreen')}>
-        <Icon name="map" size={30} color={textColor} />
-      </TouchableOpacity>*/}
-
       <View style={styles.centralButton}>
         <TouchableOpacity
           onPress={() => handleNavigation('NewConnectionScreen')}
@@ -132,21 +170,35 @@ const FooterNavbar = ({ style, currentRoute }: FooterNavProps) => {
         </TouchableOpacity>
       </View>
 
-      {/* <TouchableOpacity
-        onPress={() => handleNavigation('NewConnectionScreen')}
-        style={getMenuItemStyle('NewConnectionScreen')}>
-        <Icon name="search" size={30} color={textColor} />
-      </TouchableOpacity> */}
-
       <TouchableOpacity
-        onPress={() => handleNavigation('SettingScreen')}
-        //style={getMenuItemStyle('SettingScreen')}
-      >
-        <Icon
-          name="settings"
-          size={35}
-          color={currentRoute === 'SettingScreen' ? '#00B0EF' : 'white'}
-        />
+        onPress={() =>
+          handleNavigation(
+            loggedUser?.role !== 'agency' ? 'Chat' : 'EventsCreatedByMe',
+          )
+        }>
+        <View>
+          <Icon
+            name={loggedUser?.role !== 'agency' ? 'chat' : 'event'}
+            size={35}
+            color={currentRoute === 'Chat' ? '#00B0EF' : 'white'}
+          />
+
+          {unreadMessagesCount > 0 && (
+            <View
+              style={{
+                borderRadius: 50,
+                width: 20,
+                height: 20,
+                right: -2,
+                top: 1,
+                position: 'absolute',
+              }}>
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadText}>{unreadMessagesCount}</Text>
+              </View>
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
       <View style={styles.curve} />
     </View>

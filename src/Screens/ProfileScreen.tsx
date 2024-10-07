@@ -1,8 +1,6 @@
 import { t } from 'i18next'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native'
-
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
@@ -10,12 +8,10 @@ import ProfileSection from '../Components/SettingSections/ProfileSection'
 import ProfileDetails from '../Components/SettingSections/ProfileDetails'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import BackAction from '../Components/Back'
 
 const ProfileScreen: React.FC = () => {
   const { loggedUser } = useUser()
-  const { t } = useTranslation()
   const { backgroundColor, textColor } = useThemeColor()
   const handleNavigation = useHandleNavigation()
 
@@ -34,10 +30,11 @@ const ProfileScreen: React.FC = () => {
       alignItems: 'center',
     },
     text: {
-      fontSize: 32,
-      fontWeight: '300',
-      //  marginHorizontal: 20,
+      fontSize: 22,
+
       color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
     },
 
     profilePic: {
@@ -171,22 +168,29 @@ const ProfileScreen: React.FC = () => {
     },
     {
       icon: 'interests',
-      label: t('labels.interest'),
+      label: 'Interest',
       value: loggedUser?.interest,
+    },
+    {
+      icon: 'description',
+      label: 'Description',
+      value: loggedUser?.description,
     },
     {
       icon: 'phone-callback',
       label: t('labels.phoneNumber'),
       value: loggedUser?.phoneNumber,
     },
-    { icon: 'badge', label: t('labels.username'), value: loggedUser?.username },
+    {
+      icon: 'badge',
+      label: t('labels.username'),
+      value: loggedUser?.firstName + ' ' + loggedUser?.lastName.charAt(0),
+    },
   ]
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <BackAction
-          style={{ backgroundColor: 'white', width: 26, height: 26 }}
-        />
+        <BackAction />
         <Text style={styles.text}>{t('profileScreen.accountDetails')}</Text>
       </View>
       <ScrollView style={styles.container}>
@@ -201,7 +205,7 @@ const ProfileScreen: React.FC = () => {
               {
                 icon: 'military-tech',
                 label: t('profileScreen.myAwards'),
-                value: '2',
+                value: '',
               },
             ]}></ProfileDetails>
         </TouchableOpacity>
@@ -210,197 +214,6 @@ const ProfileScreen: React.FC = () => {
       <FooterNavbar currentRoute={''}></FooterNavbar>
     </View>
   )
-  {
-    /* <>
-      <ScrollView style={styles.container}>
-        <ImageBackground
-          source={require('../../assets/menu-bg.jpg')}
-          resizeMode="cover"
-          imageStyle={{ opacity: 0.85 }}>
-          <View style={styles.header}>
-            <LinearGradient
-              colors={
-                loggedUser?.themeColor === 'dark'
-                  ? generateBlackGradientColors(10)
-                  : generateWhiteGradientColors(10)
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.item}>
-              <View
-                style={{
-                  flexDirection: 'row',
-
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '100%',
-                  paddingLeft: 50,
-                }}>
-                <Image
-                  source={
-                    loggedUser?.profilePicture !== ''
-                      ? { uri: imageUri }
-                      : require('../../assets/DefaultUserIcon.png')
-                  }
-                  style={styles.profilePic}
-                />
-                <TouchableOpacity
-                  onPress={() => {
-                    selectImage()
-                  }}
-                  style={styles.editIconLogo}>
-                  <View style={{ flexDirection: 'row' }}>
-                    <Image
-                      style={{
-                        width: 24,
-                        height: 24,
-                        marginRight: 5,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        tintColor: 'white',
-                      }}
-                      source={require('../../assets/Icons/edit.png')}
-                    />
-                    <Text style={styles.editIcon}>Edit</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </LinearGradient>
-
-            <View style={{ flexDirection: 'row' }}>
-              <Greeting style={styles.name} />
-              <Text style={styles.name}>
-                {loggedUser?.firstName} {loggedUser?.lastName}
-              </Text>
-            </View>
-            <View></View>
-            <Text style={[styles.title, { marginTop: 5, fontSize: 18 }]}>
-              Interests: {loggedUser?.interest}
-            </Text>
-            <View style={{ flexDirection: 'row' }}>
-              <Image
-                style={{
-                  width: 24,
-                  height: 24,
-                  marginRight: 5,
-                  marginTop: 2,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  tintColor: 'white',
-                }}
-                source={require('../../assets/Icons/phone-call.png')}
-              />
-              <Text style={styles.phone}> {loggedUser?.phoneNumber}</Text>
-            </View>
-            <View style={{ flexDirection: 'row' }}>
-              <Image
-                style={{
-                  width: 24,
-                  height: 24,
-                  marginRight: 5,
-                  marginTop: 2,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  tintColor: 'white',
-                }}
-                source={require('../../assets/Icons/email.png')}
-              />
-              <Text style={styles.email}> {loggedUser?.email}</Text>
-            </View>
-          </View>
-
-          <View style={styles.walletContainer}>
-            <View style={{ flexDirection: 'row' }}>
-              <Text style={styles.walletText}>Credits: </Text>
-              <Text style={styles.walletTextsum}>
-                {loggedUser?.credit !== null ? loggedUser?.credit : 0}
-              </Text>
-            </View>
-
-            <TouchableOpacity onPress={() => handleNavigation('Chat')}>
-              <Text style={styles.ordersText}>
-                Connections: {connectionsCount}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handleNavigation('FriendRequestScreen')}>
-            <Text style={styles.buttonText}>
-              {' '}
-              Friend Requests: {friendRequestsCount}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handleNavigation('PaymentScreen')}>
-            <Text style={styles.buttonText}>Payment</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Tell Your Friend</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handleNavigation('EditUserProfileScreen')}>
-            <Text style={styles.buttonText}>Edit Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Settings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              handleLogout()
-              handleNavigation('DefaultScreen')
-            }}
-            style={styles.logoutButton}>
-            <View style={{ flexDirection: 'row' }}>
-              <Image
-                style={{
-                  width: 24,
-                  height: 24,
-                  marginRight: 5,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  tintColor: 'white',
-                }}
-                source={require('../../assets/Icons/logout.png')}
-              />
-              <Text style={styles.logoutButtonText}>Log out</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              handleLogout()
-              handleNavigation('DefaultScreen')
-            }}
-            style={styles.deleteAccountButton}>
-            <View style={{ flexDirection: 'row' }}>
-              <Image
-                style={{
-                  width: 24,
-                  height: 24,
-                  marginRight: 5,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  tintColor: 'white',
-                }}
-                source={require('../../assets/Icons/delete.png')}
-              />
-              <Text style={styles.deleteAccountButtonText}>Delete account</Text>
-            </View>
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ color: 'white', margin: 10 }}>
-                powered by google
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </ImageBackground>
-      </ScrollView>
-      <View>
-        <FooterNavbar currentRoute={'ProfileScreen'} />
-      </View>
-    </> */
-  }
 }
 
 export default ProfileScreen

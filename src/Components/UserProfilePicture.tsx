@@ -1,35 +1,56 @@
-// UserProfilePicture.js
-import React from 'react'
-import { Image, StyleSheet } from 'react-native'
+import React, { useState } from 'react'
+import { Image, StyleSheet, View } from 'react-native'
 import { useUser } from '../Context/AuthContext'
+import { Skeleton } from '@rneui/base'
 
 interface Props {
   width: number
   height: number
+  resizeMode: boolean
 }
 
-const UserProfilePicture: React.FC<Props> = ({ width, height }) => {
+const UserProfilePicture: React.FC<Props> = ({ width, height, resizeMode }) => {
   const { loggedUser } = useUser()
-  const imageUri = `data:image/jpeg;base64,${loggedUser?.profilePicture}`
+  const [loading, setLoading] = useState(true)
 
   const styles = StyleSheet.create({
-    profilePic: {
+    profilePicContainer: {
       width: width,
       height: height,
-      marginVertical: 5,
-      borderRadius: 100,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    profilePic: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 50,
+    },
+    activityIndicator: {
+      position: 'absolute',
+      zIndex: 1,
     },
   })
 
   return (
-    <Image
-      source={
-        loggedUser?.profilePicture
-          ? { uri: imageUri }
-          : require('../../assets/DefaultUserIcon.png')
-      }
-      style={styles.profilePic}
-    />
+    <View style={styles.profilePicContainer}>
+      {loading && (
+        <Skeleton
+          animation="wave"
+          style={[styles.profilePic, styles.activityIndicator]}
+        />
+      )}
+      <Image
+        source={
+          loggedUser?.profilePicture
+            ? { uri: loggedUser?.profilePicture }
+            : require('../../assets/DefaultUserIcon.png')
+        }
+        style={styles.profilePic}
+        resizeMode={resizeMode ? 'contain' : 'cover'}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+      />
+    </View>
   )
 }
 

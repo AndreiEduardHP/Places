@@ -1,21 +1,34 @@
 import { t } from 'i18next'
-import React, { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import { View, Text, StyleSheet } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet } from 'react-native'
+
 import { useUser } from '../Context/AuthContext'
 import FooterNavbar from '../Components/FooterNavbar'
 import PeopleCard from '../Components/PeopleCard'
 import EventsAroundYou from '../Components/EventsAroundYou'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { Tab } from '@rneui/base'
+import * as TaskManager from 'expo-task-manager'
+import * as Location from 'expo-location'
+
+const LOCATION_TASK_NAME = 'background-location-task'
+
+TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+  console.log('sdadasdas')
+  if (error) {
+    console.error('Location task error:', error)
+    return
+  }
+  if (data) {
+    const { locations } = data as any
+    console.log('Received new locations in background', locations)
+  }
+})
 
 const NewConnectionScreen: React.FC = () => {
-  const { t } = useTranslation()
-  const { loggedUser, refreshData } = useUser()
+  const { refreshData, loggedUser } = useUser()
   const { backgroundColor, textColor } = useThemeColor()
-  const [index, setIndex] = React.useState(0)
+  const [index, setIndex] = useState(loggedUser?.role !== 'agency' ? 0 : 1)
 
   const styles = StyleSheet.create({
     container: {
@@ -44,65 +57,63 @@ const NewConnectionScreen: React.FC = () => {
       fontWeight: '400',
       fontFamily: '',
     },
-    gradientOverlay: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      height: 30, // Adjust the height as needed
-      bottom: 0,
-    },
   })
+  const startLocationUpdates = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync()
+    if (status !== 'granted') {
+      console.log('Permission to access location was denied')
+      return
+    }
+
+    let backgroundStatus = await Location.requestBackgroundPermissionsAsync()
+    if (backgroundStatus.status !== 'granted') {
+      console.log('Permission to access location in background was denied')
+      return
+    }
+    //  console.log(status + ' ' + backgroundStatus.status)
+    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+      accuracy: Location.Accuracy.Balanced,
+      timeInterval: 100,
+      showsBackgroundLocationIndicator: true,
+
+      deferredUpdatesInterval: 100,
+    })
+  }
 
   useEffect(() => {
-    console.log('aici sunt in new' + loggedUser?.phoneNumber)
     refreshData()
+    console.log(loggedUser?.role)
+    startLocationUpdates()
   }, [])
+  const handleTabChange = (newIndex: number) => {
+    setIndex(newIndex)
+  }
 
   return (
     <View style={styles.container}>
-      {loggedUser ? (
-        <View style={{ flex: 1 }}>
-          <View
-            style={{
-              backgroundColor: backgroundColor,
-            }}>
-            <Text style={styles.titleDear}>
-              {t('newConnectionScreen.dear')} {loggedUser.lastName}{' '}
-              {loggedUser.firstName}
-            </Text>
-          </View>
-          <Tab value={index} onChange={setIndex}>
+      <View style={{ flex: 1 }}>
+        {loggedUser?.role !== 'agency' && (
+          <Tab
+            value={index}
+            indicatorStyle={{
+              height: 2,
+              width: '50%',
+            }}
+            onChange={handleTabChange}
+            style={{ marginHorizontal: 10 }}>
             <Tab.Item titleStyle={styles.tabItem}>People</Tab.Item>
             <Tab.Item titleStyle={styles.tabItem}>Events</Tab.Item>
           </Tab>
-          {index === 0 && (
-            <View style={{ flex: 1 }}>
-              <PeopleCard />
-              <LinearGradient
-                colors={[
-                  textColor === 'white'
-                    ? 'rgba(0,0,0,1)'
-                    : 'rgba(255,255,255,0.2)',
-                  'transparent',
-                ]}
-                start={{ x: 0, y: 1 }}
-                end={{ x: 0, y: 0 }}
-                style={styles.gradientOverlay}
-              />
-            </View>
-          )}
+        )}
+        {index === 0 && (
+          <View style={{ flex: 1 }}>
+            <PeopleCard />
+          </View>
+        )}
 
-          {index === 1 && <EventsAroundYou />}
-          {/*   <LinearGradient
-            colors={['rgba(0,0,0,1)', 'transparent']}
-            start={{ x: 0.5, y: 1 }}
-            end={{ x: 0.5, y: 0 }}
-            style={styles.gradientOverlay}
-          />  */}
-        </View>
-      ) : (
-        <Text>{t('noUserIsLoggedIn')}</Text>
-      )}
+        {index === 1 && <EventsAroundYou />}
+      </View>
+
       <View style={styles.footer}>
         <FooterNavbar currentRoute={'NewConnectionScreen'} />
       </View>

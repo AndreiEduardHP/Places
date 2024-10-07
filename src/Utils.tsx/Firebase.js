@@ -1,21 +1,27 @@
-// firebase.js
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getReactNativePersistence } from 'firebase/auth'
+import {
+  getAuth,
+  initializeAuth,
+  getReactNativePersistence,
+} from 'firebase/auth'
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage'
 
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: 'AIzaSyDK6l7L56LB6nkpTnqE_GK_-FqPE55QVUE',
-  authDomain: 'places-a28da.firebaseapp.com',
-  projectId: 'places-a28da',
-  storageBucket: 'places-a28da.appspot.com',
-  messagingSenderId: '471105680442',
-  appId: '1:471105680442:web:844ff5c1f250a6e9e4b103',
-  measurementId: 'G-98XG6SNW8N',
+  apiKey: 'AIzaSyD02RRQZ1NHEst3CQvAm7Zfs-0oBwE4OFk',
+  authDomain: 'places-4a48f.firebaseapp.com',
+  projectId: 'places-4a48f',
+  storageBucket: 'places-4a48f.appspot.com',
+  messagingSenderId: '824380825967',
+  appId: '1:824380825967:web:95640b31fadd881bd9489a',
+  measurementId: 'G-DW392XXEVJ',
 }
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig)
-const auth = getAuth(app, {
+
+// Initialize Firebase Auth with persistence using AsyncStorage
+const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage),
 })
 

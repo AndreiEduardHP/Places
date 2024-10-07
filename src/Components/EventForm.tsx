@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import {
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
   Text,
@@ -20,16 +19,19 @@ import {
 } from '../Utils.tsx/ComponentColors.tsx/ButtonsColor'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as ImagePicker from 'expo-image-picker'
-import { ImageConfig } from '../config/imageConfig'
 import { useNotification } from './Notification/NotificationProvider'
 import { useUser } from '../Context/AuthContext'
 import TermsAndConditions from './TermsAndConditions'
 import { ScrollView } from 'react-native-gesture-handler'
 import { formatDateAndTime } from '../Utils.tsx/Services/FormatDate'
-import { useTranslation } from 'react-i18next'
-import Checkbox from 'expo-checkbox'
-import { interests } from '../Utils.tsx/Interests/Interests'
+import { interests } from '../Utils.tsx/Enums/Interests'
 import { CheckBox } from '@rneui/base'
+import { PaperProvider, TextInput } from 'react-native-paper'
+import { theme } from './SignUpFrom'
+import { t } from 'i18next'
+import { azureConfigBlob } from '../config/azureBlobConfig'
+import { BlobServiceClient } from '@azure/storage-blob'
+import ImageCarousel from './ImageCarousel/ImageCarousel'
 
 interface EditFormProps {
   latitude?: number
@@ -47,13 +49,15 @@ const EditForm: React.FC<EditFormProps> = ({
   const [date, setDate] = useState(new Date('2024-02-09T00:50:00+00:00'))
   const { loggedUser, refreshData } = useUser()
   const { showNotificationMessage } = useNotification()
+  const [carouselImages, setCarouselImages] = useState<any>()
   const [checkFunctionality, setCheckFunctionality] = useState(false)
   const [formData, setFormData] = useState({
     otherRelevantInformation: '',
     eventName: '',
     eventDescription: '',
-    eventImage: '',
+    eventImage: '' as string | undefined,
     interest: '',
+    eventImages: [] as string[],
     checkFunctionality: checkFunctionality,
     eventTime: new Date(),
     locationLatitude: latitude ? latitude.toString() : '',
@@ -65,14 +69,13 @@ const EditForm: React.FC<EditFormProps> = ({
   const [eventImg, setEventImg] = useState<any>()
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
-  const { t } = useTranslation()
-
   const [formComplete, setFormComplete] = useState<boolean>(false)
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false)
 
   const [isPickerVisible, setPickerVisible] = useState(false)
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
-
+  const [selectAllInterests, setSelectAllInterests] = useState(false)
+  const [seeAlbumImages, setSeeAlbumImages] = useState(false)
   useEffect(() => {
     const {
       eventName,
@@ -105,7 +108,9 @@ const EditForm: React.FC<EditFormProps> = ({
   const showDatepicker = () => {
     setShowDatePicker(true)
   }
-
+  const seeAlbum = () => {
+    setSeeAlbumImages(!seeAlbumImages)
+  }
   const showTimepicker = () => {
     setShowTimePicker(true)
   }
@@ -116,7 +121,66 @@ const EditForm: React.FC<EditFormProps> = ({
       [name]: value,
     })
   }
+  const uploadImagesToEvent = async (eventId: number, imageUrls: string[]) => {
+    try {
+      // Trimitem lista de imagini către backend
+      const response = await axios.post(
+        `${config.BASE_URL}/api/Event/${eventId}/AddImages`,
+        imageUrls, // Trimitem lista de imagini direct, fără a o înveli într-un obiect
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
 
+      if (response.status === 200) {
+        showNotificationMessage('Images uploaded successfully', 'success')
+      } else {
+        showNotificationMessage('Failed to upload images', 'fail')
+      }
+    } catch (error) {
+      console.error('Error uploading images:', error)
+      showNotificationMessage(
+        'Something went wrong while uploading images',
+        'fail',
+      )
+    }
+  }
+
+  {
+    /* const selectImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== 'granted') {
+      alert('Sorry, we need camera roll permissions to make this work!')
+      return
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.1,
+      //allowsEditing: true,
+      allowsMultipleSelection: true,
+    })
+
+    if (!result.canceled && result.assets) {
+      const image = result.assets[0].uri
+      try {
+        const blobUrl = await uploadImageToBlob(image, formData.eventName)
+        setEventImg(image)
+        handleChange('eventImage', image)
+        showNotificationMessage('Image uploaded successfully', 'success')
+      } catch (error) {
+        showNotificationMessage('Failed to upload image', 'fail')
+      }
+    } else {
+      showNotificationMessage(
+        'Image picking was cancelled or failed',
+        'neutral',
+      )
+    }
+  } */
+  }
   const selectImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
@@ -126,15 +190,44 @@ const EditForm: React.FC<EditFormProps> = ({
 
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-      base64: true,
+      quality: 0.1,
+      allowsMultipleSelection: true, // Permitem selectarea multiplă de imagini
     })
 
     if (!result.canceled && result.assets) {
-      const image = result.assets[0]
-      await setEventImg(image.base64)
+      try {
+        // Încărcăm toate imaginile selectate în Blob Storage
+        const uploadedImages = []
+        for (let i = 0; i < result.assets.length; i++) {
+          const imageUri = result.assets[i].uri
+          const uploadedBlobUrl = await uploadImageToBlob(
+            imageUri,
+            formData.eventName,
+          )
+          uploadedImages.push(uploadedBlobUrl) // Stocăm URL-urile încărcate în array
+        }
 
-      await handleChange('eventImage', image.base64)
+        if (uploadedImages.length > 0) {
+          const mainImage = uploadedImages[0] // Prima imagine
+          const remainingImages = uploadedImages.slice(1) // Restul imaginilor
+
+          // Actualizăm stările asincron într-un mod sincronizat
+          setEventImg(result.assets[0].uri) // Setează imaginea principală în `eventImg`
+          setCarouselImages(result.assets.slice(1).map((asset) => asset.uri))
+          setFormData((prevFormData) => ({
+            ...prevFormData,
+            eventImage: mainImage || '', // Asigurăm că eventImage este un string
+            eventImages: remainingImages.filter(
+              (img) => img !== undefined,
+            ) as string[], // Eliminăm valorile undefined
+          }))
+        }
+
+        showNotificationMessage('Images uploaded successfully', 'success')
+      } catch (error) {
+        console.error('Failed to upload images', error)
+        showNotificationMessage('Failed to upload images', 'fail')
+      }
     } else {
       showNotificationMessage(
         'Image picking was cancelled or failed',
@@ -142,12 +235,36 @@ const EditForm: React.FC<EditFormProps> = ({
       )
     }
   }
+  const uploadImageToBlob = async (imageUri: string, eventName: string) => {
+    try {
+      const blobServiceClient = new BlobServiceClient(
+        `https://${azureConfigBlob.accountName}.blob.core.windows.net?${azureConfigBlob.sasToken}`,
+      )
+
+      const containerClient = blobServiceClient.getContainerClient(
+        azureConfigBlob.containerName,
+      )
+
+      const blobName = `${eventName}-${Date.now()}.jpg`
+
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName)
+
+      const response = await fetch(imageUri)
+      const blob = await response.blob()
+
+      blockBlobClient.uploadData(blob)
+
+      return blockBlobClient.url
+    } catch (error) {
+      console.error('Error uploading image to Blob Storage:', error)
+    }
+  }
 
   const createEvent = async () => {
     formData.eventTime = date
     formData.checkFunctionality = checkFunctionality
     formData.interest = selectedInterests.join(',')
-    console.log(formData.interest)
+
     try {
       const response = await axios.post(
         `${config.BASE_URL}/api/Event`,
@@ -158,14 +275,19 @@ const EditForm: React.FC<EditFormProps> = ({
       )
 
       if (response.status === 200) {
+        const eventId = response.data.eventId // Obține ID-ul evenimentului creat cu litere mici
+        console.log('Event ID:', eventId)
+
+        console.log(formData.eventImages)
+        await uploadImagesToEvent(eventId, formData.eventImages)
+
         showNotificationMessage('Image uploaded successfully', 'success')
         setAddNewEvent(false)
         showNotificationMessage('Event added successfully', 'success')
 
-        // Deduct credit after event creation
         try {
           await axios.post(
-            `${config.BASE_URL}/api/UserProfile/DeductCredit/${loggedUser?.id}`, // Assuming you have the userId available
+            `${config.BASE_URL}/api/UserProfile/DeductCredit/${loggedUser?.id}`,
             {},
             {
               headers: {},
@@ -198,271 +320,419 @@ const EditForm: React.FC<EditFormProps> = ({
       setSelectedInterests([...selectedInterests, interest])
     }
   }
+  const handleSelectAllInterests = () => {
+    if (selectAllInterests) {
+      setSelectedInterests([])
+    } else {
+      setSelectedInterests(interests)
+    }
+    setSelectAllInterests(!selectAllInterests)
+  }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={undefined}>
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <View style={[styles.container, {}]}>
-          <View style={{ alignItems: 'center' }}>
-            <Text style={{ fontSize: 22 }}>
-              {t('eventForm.yourCredits')}: {loggedUser?.credit}.
-            </Text>
+    <PaperProvider theme={theme}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={undefined}>
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+          <ScrollView
+            style={[styles.container, {}]}
+            contentContainerStyle={{
+              alignContent: 'center',
+              alignItems: 'center',
+            }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 18 }}>
+                {t('eventForm.yourCredits')}: {loggedUser?.credit}
+              </Text>
+
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Text
+                  style={{
+                    textAlign: 'center',
+                    fontSize: 14,
+                  }}>
+                  {t('eventForm.minusCredit')}
+                </Text>
+              </View>
+            </View>
+
+            <TextInput
+              mode="outlined"
+              label={t('updateUser.lastName')}
+              placeholderTextColor={theme.colors.text}
+              textColor={theme.colors.text}
+              cursorColor={theme.colors.text}
+              outlineColor={theme.colors.text}
+              selectionColor={theme.colors.text}
+              placeholder={t('eventForm.eventName')}
+              value={formData.eventName}
+              onChangeText={(text) => handleChange('eventName', text)}
+              style={styles.input}
+              contentStyle={{ backgroundColor: 'transparent' }}
+            />
+            <TextInput
+              mode="outlined"
+              label={t('eventForm.eventDescription')}
+              placeholder={t('eventForm.eventDescription')}
+              value={formData.eventDescription}
+              onChangeText={(text) => handleChange('eventDescription', text)}
+              style={styles.input}
+              multiline={true}
+              numberOfLines={Platform.OS === 'ios' ? 4 : 3}
+            />
+            <TextInput
+              mode="outlined"
+              label={t('eventForm.otherRelevantInformation')}
+              placeholder={t('eventForm.otherRelevantInformation')}
+              value={formData.otherRelevantInformation}
+              multiline={true}
+              numberOfLines={Platform.OS === 'ios' ? 4 : 3}
+              onChangeText={(text) =>
+                handleChange('otherRelevantInformation', text)
+              }
+              style={styles.input}
+            />
+
+            <TextInput
+              mode="outlined"
+              label={t('eventForm.eventMaxParticipants')}
+              placeholder={t('eventForm.eventMaxParticipants')}
+              value={formData.maxParticipants}
+              onChangeText={(text) => handleChange('maxParticipants', text)}
+              style={styles.input}
+              keyboardType="numeric"
+            />
+
             <View
               style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                //    marginTop: 5,
+                flexDirection: 'row',
+                backgroundColor: 'grey',
+                borderRadius: 10,
+                marginTop: 5,
               }}>
-              <Text
-                style={{
-                  textAlign: 'center',
-                  fontSize: 16,
-                }}>
-                {t('eventForm.minusCredit')}
-              </Text>
-            </View>
-          </View>
-
-          <TextInput
-            placeholder={t('eventForm.eventName')}
-            value={formData.eventName}
-            onChangeText={(text) => handleChange('eventName', text)}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder={t('eventForm.eventDescription')}
-            value={formData.eventDescription}
-            onChangeText={(text) => handleChange('eventDescription', text)}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder={t('eventForm.otherRelevantInformation')}
-            value={formData.otherRelevantInformation}
-            onChangeText={(text) =>
-              handleChange('otherRelevantInformation', text)
-            }
-            style={styles.input}
-          />
-
-          <TextInput
-            placeholder={t('eventForm.eventMaxParticipants')}
-            value={formData.maxParticipants}
-            onChangeText={(text) => handleChange('maxParticipants', text)}
-            style={styles.input}
-            keyboardType="numeric"
-          />
-          <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: 'grey',
-              borderRadius: 10,
-            }}>
-            <View style={{ backgroundColor: 'black', borderRadius: 10 }}>
-              <TouchableOpacity
-                onPress={showDatepicker}
-                style={styles.datePicker}>
-                <Text style={{ color: 'white' }}>
-                  {' '}
-                  {t('eventForm.selectDateAndTime')}
-                </Text>
-              </TouchableOpacity>
-              <View style={{}}>
-                {showDatePicker && (
-                  <View style={[{ flexDirection: 'row' }]}>
-                    <Text style={{ color: 'white', padding: 10, fontSize: 16 }}>
-                      {t('eventForm.selectDate')}
-                    </Text>
-                    <DateTimePicker
-                      value={date}
-                      mode="date"
-                      is24Hour={true}
-                      accentColor="white"
-                      themeVariant="dark"
-                      textColor="white"
-                      minimumDate={new Date()}
-                      onChange={onDateChange}
-                    />
-                  </View>
-                )}
-              </View>
-              <View>
-                {showTimePicker && (
-                  <View style={[{ flexDirection: 'row' }]}>
-                    <Text style={{ color: 'white', padding: 10, fontSize: 16 }}>
-                      {t('eventForm.selectTime')}
-                    </Text>
-                    <DateTimePicker
-                      value={date}
-                      mode="time"
-                      accentColor="white"
-                      themeVariant="dark"
-                      textColor="white"
-                      is24Hour={true}
-                      onChange={onTimeChange}
-                    />
-                  </View>
-                )}
-              </View>
-            </View>
-          </View>
-          {formData.eventTime ? (
-            <Text>
-              {t('eventForm.selectedDate')}
-              {formatDateAndTime(date)}
-            </Text>
-          ) : (
-            <Text> {date.toLocaleString()} </Text>
-          )}
-
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={isPickerVisible}
-            onRequestClose={() => setPickerVisible(false)}>
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-                <Text style={{ fontSize: 24, marginBottom: 20 }}>
-                  {t('signUpScreen.selectMinimumOneInterest')}
-                </Text>
-                <ScrollView>
-                  {interests.map((interest, index) => (
-                    <View key={index} style={styles.checkboxContainer}>
-                      <CheckBox
-                        checked={selectedInterests.includes(interest)}
-                        onPress={() => handleSelectInterest(interest)}
-                        //  style={styles.checkbox}
-                        title={interest}
-                      />
-                    </View>
-                  ))}
-                </ScrollView>
+              <View style={{ backgroundColor: 'black', borderRadius: 10 }}>
                 <TouchableOpacity
-                  style={{
-                    backgroundColor: 'black',
-                    borderRadius: 10,
-                    width: 80,
-                    alignItems: 'center',
-                  }}
-                  onPress={() => setPickerVisible(false)}>
-                  <Text
-                    style={{
-                      color: 'white',
-                      fontSize: 18,
-                      padding: 5,
-                    }}>
-                    {t('buttons.save')}
+                  onPress={showDatepicker}
+                  style={styles.datePicker}>
+                  <Text style={{ color: 'white' }}>
+                    {' '}
+                    {t('eventForm.selectDateAndTime')}
                   </Text>
                 </TouchableOpacity>
+                <View style={{}}>
+                  {showDatePicker && (
+                    <View style={[{ flexDirection: 'row' }]}>
+                      <Text
+                        style={{ color: 'white', padding: 10, fontSize: 16 }}>
+                        {t('eventForm.selectDate')}
+                      </Text>
+                      <DateTimePicker
+                        value={date}
+                        mode="date"
+                        is24Hour={true}
+                        accentColor="white"
+                        themeVariant="dark"
+                        textColor="white"
+                        minimumDate={new Date()}
+                        onChange={onDateChange}
+                      />
+                    </View>
+                  )}
+                </View>
+                <View>
+                  {showTimePicker && (
+                    <View style={[{ flexDirection: 'row' }]}>
+                      <Text
+                        style={{ color: 'white', padding: 10, fontSize: 16 }}>
+                        {t('eventForm.selectTime')}
+                      </Text>
+                      <DateTimePicker
+                        value={date}
+                        mode="time"
+                        accentColor="white"
+                        themeVariant="dark"
+                        textColor="white"
+                        is24Hour={true}
+                        onChange={onTimeChange}
+                      />
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
-          </Modal>
+            {formData.eventTime ? (
+              <Text>
+                {t('eventForm.selectedDate')}
+                {formatDateAndTime(date)}
+              </Text>
+            ) : (
+              <Text> {date.toLocaleString()} </Text>
+            )}
 
-          <TouchableWithoutFeedback
-            style={[styles.inputInterest, { marginTop: 10 }]}
-            onPress={() => setPickerVisible(true)}>
-            <View>
-              <Text numberOfLines={4} style={{ color: 'black', fontSize: 22 }}>
-                Selected interest:
-                <Text style={{ fontWeight: 300, fontSize: 18 }}>
-                  {' '}
-                  {selectedInterests || 'Select Interest'}
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={seeAlbumImages}
+              onRequestClose={() => seeAlbum()}>
+              <View style={styles.centeredView}>
+                <View style={[styles.modalView, { height: 350 }]}>
+                  <Text style={{ fontSize: 24 }}>{t('Event Images')}</Text>
+
+                  <View
+                    style={[
+                      styles.checkboxContainer,
+                      {
+                        borderBottomWidth: 1,
+                        borderBottomColor: 'black',
+                        width: '100%',
+
+                        justifyContent: 'center',
+                      },
+                    ]}>
+                    <ImageCarousel images={carouselImages}></ImageCarousel>
+                  </View>
+
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: 'black',
+                      borderRadius: 10,
+                      width: 221,
+                      marginVertical: 10,
+                      alignItems: 'center',
+                    }}
+                    onPress={() => seeAlbum()}>
+                    <Text
+                      style={{
+                        color: 'white',
+                        fontSize: 22,
+                        padding: 5,
+                      }}>
+                      {t('buttons.close')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isPickerVisible}
+              onRequestClose={() => setPickerVisible(false)}>
+              <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <Text style={{ fontSize: 24 }}>
+                    {t('signUpScreen.selectMinimumOneInterest')}
+                  </Text>
+
+                  <View
+                    style={[
+                      styles.checkboxContainer,
+                      {
+                        borderBottomWidth: 1,
+                        borderBottomColor: 'black',
+                        width: '100%',
+
+                        justifyContent: 'center',
+                      },
+                    ]}>
+                    <CheckBox
+                      containerStyle={{
+                        marginVertical: 10,
+                        padding: 0,
+                        marginLeft: 0,
+                        marginRight: 0,
+                      }}
+                      checked={selectAllInterests}
+                      onPress={handleSelectAllInterests}
+                      title={t('eventForm.selectAllInterests')}
+                    />
+                  </View>
+
+                  <ScrollView>
+                    {interests.map((interest, index) => (
+                      <View key={index} style={styles.checkboxContainer}>
+                        <CheckBox
+                          containerStyle={{
+                            marginTop: 10,
+                            padding: 0,
+                            marginLeft: 0,
+                            marginRight: 0,
+                            marginBottom: 0,
+                          }}
+                          checked={selectedInterests.includes(interest)}
+                          onPress={() => handleSelectInterest(interest)}
+                          title={interest}
+                        />
+                      </View>
+                    ))}
+                  </ScrollView>
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: 'black',
+                      borderRadius: 10,
+                      width: 221,
+                      marginVertical: 10,
+                      alignItems: 'center',
+                    }}
+                    onPress={() => setPickerVisible(false)}>
+                    <Text
+                      style={{
+                        color: 'white',
+                        fontSize: 22,
+                        padding: 5,
+                      }}>
+                      {t('buttons.save')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            <TouchableWithoutFeedback onPress={() => setPickerVisible(true)}>
+              <View>
+                <Text
+                  numberOfLines={2}
+                  style={{ color: 'black', fontSize: 18 }}>
+                  {t('eventForm.selectedInterest')}
+                  <Text style={{ fontWeight: 300, fontSize: 18 }}>
+                    {' '}
+                    {selectedInterests || 'Select Interest'}
+                  </Text>
                 </Text>
-              </Text>
+              </View>
+            </TouchableWithoutFeedback>
+            <View style={{ alignItems: 'center' }}>
+              {selectedInterests.length > 0 ? (
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '500',
+                    marginTop: 2,
+                    paddingHorizontal: 0,
+                    color: 'black',
+                  }}>
+                  {t('signUpScreen.noteSelections')}
+                </Text>
+              ) : null}
             </View>
-          </TouchableWithoutFeedback>
-          <View style={{ alignItems: 'center' }}>
-            {selectedInterests.length > 0 ? (
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '500',
-                  marginTop: 5,
-                  paddingHorizontal: 10,
-                  color: 'black',
-                }}>
-                {t('signUpScreen.noteSelections')}
-              </Text>
-            ) : null}
-          </View>
 
-          <TouchableOpacity
-            onPress={() => {
-              selectImage()
-            }}>
-            <View style={{ flexDirection: 'row', marginTop: 20 }}>
-              <Image
+            <TouchableOpacity
+              onPress={() => {
+                selectImage()
+              }}>
+              <View
                 style={{
-                  width: 24,
-                  height: 24,
-                  marginRight: 5,
+                  flexDirection: 'row',
+                  marginTop: 10,
                   alignItems: 'center',
-                  justifyContent: 'center',
+                }}>
+                <Image
+                  style={{
+                    width: 24,
+                    height: 24,
+                    marginRight: 5,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  source={require('../../assets/Icons/edit.png')}
+                />
+                <Text>{t('buttons.upload')}</Text>
+              </View>
+            </TouchableOpacity>
+            {eventImg && (
+              <Image
+                source={{ uri: eventImg }}
+                style={{
+                  width: '100%',
+                  height: 250,
+                  margin: 5,
+                  borderRadius: 7,
                 }}
-                source={require('../../assets/Icons/edit.png')}
               />
-              <Text>{t('buttons.upload')}</Text>
-            </View>
-          </TouchableOpacity>
-          {eventImg && (
-            <Image
-              source={{ uri: ImageConfig.IMAGE_CONFIG + eventImg }}
-              style={{ width: 100, height: 100 }}
+            )}
+            <TouchableOpacity
+              onPress={() => {
+                seeAlbum()
+              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  marginTop: 10,
+                  alignItems: 'center',
+                }}>
+                <Text>{t('See the album')}</Text>
+              </View>
+            </TouchableOpacity>
+            <View style={{ marginVertical: 0 }}></View>
+            <CheckBox
+              style={{ margin: 0, padding: 0 }}
+              containerStyle={{
+                marginTop: 10,
+                padding: 0,
+                marginLeft: 10,
+                marginRight: 10,
+                marginBottom: 0,
+              }}
+              center
+              textStyle={{ fontWeight: 500, margin: 0, padding: 0 }}
+              title={t('labels.checkFunctionality')}
+              checked={checkFunctionality}
+              onPress={() => setCheckFunctionality(!checkFunctionality)}
             />
-          )}
-          <View style={{ marginVertical: 10 }}></View>
-          <CheckBox
-            center
-            title="Enable check functionality for this event?"
-            checked={checkFunctionality}
-            onPress={() => setCheckFunctionality(!checkFunctionality)}
-          />
-          <TermsAndConditions
-            accepted={termsAccepted}
-            onToggle={() => {
-              setTermsAccepted(!termsAccepted)
-            }}></TermsAndConditions>
-          <TouchableOpacity
-            style={[
-              styles.touchable,
-              !formComplete ? disabledButtonStyle : enabledButtonStyle,
-              { width: 165 },
-            ]}
-            onPress={createEvent}
-            disabled={
-              loggedUser?.credit === null ||
-              undefined ||
-              loggedUser?.credit === 0 ||
-              !formComplete
-            }>
-            <Text style={styles.text}>
-              {loggedUser?.credit === null ||
-              loggedUser?.credit === undefined ||
-              loggedUser?.credit === 0
-                ? t('eventForm.notEnoughCredit')
-                : t('buttons.save')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+            <TermsAndConditions
+              accepted={termsAccepted}
+              onToggle={() => {
+                setTermsAccepted(!termsAccepted)
+              }}></TermsAndConditions>
+
+            <TouchableOpacity
+              style={[
+                styles.touchable,
+                !formComplete ? disabledButtonStyle : enabledButtonStyle,
+                { width: '100%', marginBottom: 200 },
+              ]}
+              onPress={createEvent}
+              disabled={
+                loggedUser?.credit === null ||
+                undefined ||
+                loggedUser?.credit === 0 ||
+                !formComplete
+              }>
+              <Text style={styles.text}>
+                {loggedUser?.credit === null ||
+                loggedUser?.credit === undefined ||
+                loggedUser?.credit === 0
+                  ? t('eventForm.notEnoughCredit')
+                  : t('buttons.save')}
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </PaperProvider>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    margin: 4,
-    flex: 1,
+    //alignItems: 'center',
+    margin: 1,
+    paddingHorizontal: 5,
+
+    flexGrow: 1,
   },
   inputInterest: {
     justifyContent: 'center',
     width: 375,
-    height: 40,
-    margin: 4,
-    borderRadius: 30,
+    height: 220,
+    // margin: 4,
+    //  borderRadius: 30,
     borderColor: 'black',
-    borderWidth: 1,
-    paddingHorizontal: 15,
+    // borderWidth: 1,
+    // paddingHorizontal: 15,
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -495,13 +765,14 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    width: 250,
-    margin: 5,
-    height: 35,
-    borderRadius: 10,
-    borderColor: 'gray',
-    borderWidth: 1,
-    paddingHorizontal: 10,
+    width: '100%',
+    marginTop: 4,
+    backgroundColor: 'white',
+    // height: 35,
+    //  borderRadius: 10,
+    //  borderColor: 'gray',
+    //  borderWidth: 1,
+    // paddingHorizontal: 10,
   },
   datePicker: {
     width: 250,
@@ -519,7 +790,7 @@ const styles = StyleSheet.create({
 
     backgroundColor: 'blue',
     paddingHorizontal: 20,
-    paddingVertical: 5,
+    paddingVertical: 10,
   },
   text: {
     color: 'white',

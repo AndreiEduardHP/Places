@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { Alert, Button, View, Text } from 'react-native'
+import { Alert, View } from 'react-native'
 import Stepper from 'react-native-stepper-ui'
 import TermsAndConditions from '../Components/TermsAndConditions'
 import EventDetails from '../Components/MapRelated/EventDetailsDrawer'
 import { MapMarkerDetail } from '../Interfaces/IUserData'
-import SvgComponent from '../Components/SVG/Logo'
-
+import { Text } from '@rneui/themed'
 interface StepperHorizontalProps {
   selectedMarker: MapMarkerDetail | null
   drawerVisible: boolean
@@ -47,7 +46,8 @@ const StepperHorizontal: React.FC<StepperHorizontalProps> = ({
   }
 
   const content = [
-    <View style={{ height: 100, justifyContent: 'center' }}>
+    <View
+      style={{ height: 100, justifyContent: 'center', alignItems: 'center' }}>
       <TermsAndConditions
         accepted={termsAccepted}
         onToggle={handleAcceptanceToggle}

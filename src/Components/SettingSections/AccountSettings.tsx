@@ -1,18 +1,23 @@
-import React, { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import { View, Text, StyleSheet, Share } from 'react-native'
-
+import React, { useCallback } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
 import { useUser } from '../../Context/AuthContext'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import LineComponent from '../LineComponent'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
+import { t } from 'i18next'
+import { useFocusEffect } from '@react-navigation/native'
 
 const AccountSection: React.FC = () => {
-  const { t } = useTranslation()
   const handleNavigation = useHandleNavigation()
-  const { friendRequestsCount } = useUser()
+  const { friendRequestsCount, fetchFriendRequests, loggedUser } = useUser()
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchFriendRequests()
+    }, []),
+  )
 
   const { textColor, backgroundColorGrey } = useThemeColor()
 
@@ -31,7 +36,7 @@ const AccountSection: React.FC = () => {
     },
     content: {
       paddingHorizontal: 18,
-      paddingVertical: 10,
+      paddingVertical: 0,
       width: '100%',
     },
     textContent: {
@@ -40,7 +45,7 @@ const AccountSection: React.FC = () => {
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 10,
+      paddingVertical: 8,
     },
   })
 
@@ -61,13 +66,16 @@ const AccountSection: React.FC = () => {
           <Icon name="privacy-tip" size={30} color={textColor}></Icon>
           <Text style={styles.text}>{t('accountSettings.privacy')}</Text>
         </TouchableOpacity>
-        <LineComponent />
-        <TouchableOpacity
-          style={styles.row}
-          onPress={() => handleNavigation('Chat')}>
-          <Icon name="manage-accounts" size={30} color={textColor}></Icon>
-          <Text style={styles.text}>{t('accountSettings.chats')}</Text>
-        </TouchableOpacity>
+        {loggedUser?.role !== 'agency' && <LineComponent />}
+
+        {loggedUser?.role !== 'agency' && (
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => handleNavigation('Chat')}>
+            <Icon name="manage-accounts" size={30} color={textColor}></Icon>
+            <Text style={styles.text}>{t('accountSettings.chats')}</Text>
+          </TouchableOpacity>
+        )}
         <LineComponent />
         <TouchableOpacity
           style={styles.row}

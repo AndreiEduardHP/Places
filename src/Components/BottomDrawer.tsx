@@ -3,18 +3,14 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Text,
   Animated,
   Platform,
   PanResponder,
-  KeyboardAvoidingView,
   Dimensions,
 } from 'react-native'
-import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
-import { ScrollView } from 'react-native-gesture-handler'
-import { Container } from 'native-base'
 import { StatusBar } from 'react-native'
+import { Text } from '@rneui/themed'
 
 interface BottomDrawerProps {
   children: React.ReactNode
@@ -38,9 +34,7 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
       : 40
   const usableScreenHeight = screenHeight - statusBarHeight
   const [currentHeight, setCurrentHeight] = useState(usableScreenHeight)
-  const { backgroundColor, textColor, backgroundColorGrey } = useThemeColor()
-  console.log('uh' + usableScreenHeight)
-  console.log('ch' + currentHeight)
+
   useEffect(() => {
     if (visible) {
       animatedHeight.setValue(usableScreenHeight)
@@ -51,8 +45,6 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
       duration: 500,
       useNativeDriver: false,
     }).start()
-
-    // Reset to initial height when drawer becomes visible
   }, [visible, translateY, animatedHeight])
 
   const panResponder = useRef(
@@ -62,12 +54,10 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
       onPanResponderRelease: (e, gestureState) => {
         let nextHeight = currentHeight
 
-        // Allow dragging down to set height to 100
         if (gestureState.dy > 100 && currentHeight > 100) {
           nextHeight = 201
         }
 
-        // Set initial height if drawer dragged up
         if (gestureState.dy < -100 && currentHeight) {
           nextHeight = currentHeight
         }
@@ -93,6 +83,8 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
       justifyContent: 'space-between',
       borderBottomColor: 'black',
       borderBottomWidth: 1,
+      paddingVertical: 10,
+      alignItems: 'center',
     },
     drawerContainer: {
       ...Platform.select({ ios: { position: 'absolute' } }),
@@ -106,18 +98,12 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
 
       borderTopRightRadius: 20,
       ...Platform.select({
-        ios: {
-          //   shadowColor: 'black',
-          //   shadowOffset: { width: 0, height: -5 },
-          //   shadowOpacity: 1,
-          //  shadowRadius: 1,
-        },
+        ios: {},
       }),
-      // overflow: 'hidden',
     },
     closeButton: {
       alignSelf: 'flex-end',
-      padding: 16,
+      paddingHorizontal: 16,
     },
     closeImage: {
       width: 26,
@@ -125,8 +111,8 @@ const BottomDrawer: React.FC<BottomDrawerProps> = ({
     },
     title: {
       marginLeft: 20,
-      marginTop: 20,
       fontSize: 18,
+      fontWeight: '500',
     },
   })
   return (

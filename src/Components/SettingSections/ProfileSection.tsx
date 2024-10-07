@@ -1,12 +1,12 @@
-import React from 'react'
-import { useTranslation } from 'react-i18next'
+import React, { useState } from 'react'
 import {
   View,
   Text,
   StyleSheet,
-  KeyboardAvoidingView,
   Image,
   TouchableOpacity,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native'
 
 import { useUser } from '../../Context/AuthContext'
@@ -17,6 +17,8 @@ import * as ImagePicker from 'expo-image-picker'
 import axios from 'axios'
 import { config } from '../../config/urlConfig'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import { BlobServiceClient } from '@azure/storage-blob'
+import { azureConfigBlob } from '../../config/azureBlobConfig'
 
 interface ProfileSectionProps {
   showEditIcon: boolean
@@ -27,30 +29,42 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   showEditIcon,
   showTouchIcon,
 }) => {
-  const { t } = useTranslation()
   const { loggedUser, refreshData } = useUser()
   const { textColor, backgroundColorGrey } = useThemeColor()
   const { showNotificationMessage } = useNotification()
 
+  const [isModalVisible, setModalVisible] = useState(false)
+
   const styles = StyleSheet.create({
-    editIcon: { paddingTop: 5, alignItems: 'center', color: textColor },
+    editIcon: { paddingTop: 3, alignItems: 'center', color: textColor },
     editIconLogo: { alignItems: 'center' },
     container: {
       flexDirection: 'row',
       backgroundColor: backgroundColorGrey,
       borderRadius: 10,
       marginHorizontal: 10,
-      // marginTop: 0,
     },
     text: {
       color: textColor,
     },
     content: {
-      paddingHorizontal: 20,
-      paddingVertical: 5,
+      paddingHorizontal: 15,
+      paddingVertical: 0,
     },
     textContent: {
       justifyContent: 'center',
+      alignContent: 'center',
+    },
+    modalBackground: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    enlargedImage: {
+      width: 222,
+      height: 222,
+      resizeMode: 'contain',
     },
   })
 
@@ -63,27 +77,28 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
+      quality: 0.1,
+      aspect: [1, 1],
+
+      allowsEditing: true,
+      base64: true,
     })
 
     if (!result.canceled && result.assets) {
-      const image = result.assets[0]
-      uploadImage(loggedUser?.id, image)
+      const image = result.assets[0].uri
+
+      await uploadImage(loggedUser?.id, image)
     } else {
       showNotificationMessage('Image picking was cancelled or failed', 'fail')
     }
   }
+
   const uploadImage = async (userProfileId: any, imageFile: any) => {
     try {
+      const blobUrl = await uploadImageToBlob(imageFile, userProfileId)
       const formData = new FormData()
       formData.append('userProfileId', userProfileId)
-      const file = {
-        uri: imageFile.uri,
-        name: imageFile.fileName,
-        type: imageFile.type,
-      }
-
-      formData.append('imageFile', file as any)
+      formData.append('imageFile', blobUrl as any)
 
       const response = await axios.post(
         `${config.BASE_URL}/api/UserProfile/UpdateUserImage/${userProfileId}`,
@@ -95,20 +110,67 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         },
       )
 
-      if (response.status === 200) {
+      if (response.status === 204) {
         showNotificationMessage('Image upload succesfully', 'success')
         refreshData()
       } else {
         showNotificationMessage('Image upload failed', 'fail')
       }
-    } catch (error) {
-      console.error('Network error:', error)
+    } catch (error: any) {
+      if (error.response) {
+        console.error(
+          'Server error:',
+          error.response.status,
+          error.response.data,
+        )
+        showNotificationMessage(
+          `Server error: ${error.response.status} - ${error.response.data}`,
+          'fail',
+        )
+      } else if (error.request) {
+        console.error('Network error, no response received:', error.request)
+        showNotificationMessage(
+          'Network error: No response received from server',
+          'fail',
+        )
+      } else {
+        console.error('Error setting up the request:', error.message)
+        showNotificationMessage(`Error: ${error.message}`, 'fail')
+      }
     }
   }
+
+  const uploadImageToBlob = async (imageUri: string, userProfileId: string) => {
+    try {
+      const blobServiceClient = new BlobServiceClient(
+        `https://${azureConfigBlob.accountName}.blob.core.windows.net?${azureConfigBlob.sasToken}`,
+      )
+
+      const containerClient = blobServiceClient.getContainerClient(
+        azureConfigBlob.containerName,
+      )
+
+      const blobName = `${userProfileId}-${Date.now()}.jpg`
+
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName)
+
+      const response = await fetch(imageUri)
+      const blob = await response.blob()
+
+      blockBlobClient.uploadData(blob)
+
+      return blockBlobClient.url
+    } catch (error) {
+      console.error('Error uploading image to Blob Storage:', error)
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <UserProfilePicture width={60} height={60} />
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <UserProfilePicture width={60} height={60} resizeMode={false} />
+        </TouchableOpacity>
         {showEditIcon && (
           <TouchableOpacity
             onPress={() => {
@@ -121,7 +183,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   width: 18,
                   height: 18,
                   marginRight: 5,
-                  marginTop: 4,
+                  marginVertical: 3,
                   alignItems: 'center',
                   justifyContent: 'center',
                   tintColor: textColor,
@@ -150,6 +212,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           <MaterialIcons name="arrow-forward-ios" size={22} color={textColor} />
         </View>
       )}
+      <Modal visible={isModalVisible} transparent={true}>
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={styles.modalBackground}>
+            <UserProfilePicture width={400} height={400} resizeMode={true} />
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   )
 }

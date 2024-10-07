@@ -1,5 +1,4 @@
 import React from 'react'
-import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet, Share } from 'react-native'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
@@ -10,10 +9,9 @@ import axios from 'axios'
 import { config } from '../../config/urlConfig'
 import { useUser } from '../../Context/AuthContext'
 import { useNotification } from '../Notification/NotificationProvider'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import { t } from 'i18next'
 
 const InformationSection: React.FC = () => {
-  const { t } = useTranslation()
   const { textColor, backgroundColorGrey } = useThemeColor()
   const { showNotificationMessage } = useNotification()
   const { loggedUser, refreshData } = useUser()
@@ -34,7 +32,7 @@ const InformationSection: React.FC = () => {
     },
     content: {
       paddingHorizontal: 18,
-      paddingVertical: 10,
+      paddingVertical: 0,
       width: '100%',
     },
     textContent: {
@@ -43,16 +41,17 @@ const InformationSection: React.FC = () => {
     row: {
       flexDirection: 'row',
       alignItems: 'center',
+      paddingVertical: 8,
     },
   })
 
   const increaseSharesCount = async () => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `${config.BASE_URL}/api/userprofile/shares/${loggedUser?.id}`,
       )
       refreshData()
-      showNotificationMessage('link was sent succesfully', 'success')
+      showNotificationMessage('Link was sent succesfully', 'success')
     } catch (err) {
       showNotificationMessage('Something went wrong', 'fail')
     }

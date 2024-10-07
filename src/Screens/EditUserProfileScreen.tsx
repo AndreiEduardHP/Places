@@ -1,5 +1,5 @@
 import { t } from 'i18next'
-import React, { useState } from 'react'
+import React from 'react'
 
 import {
   View,
@@ -26,10 +26,11 @@ const EditUserProfileScreen: React.FC = () => {
       backgroundColor: backgroundColor,
     },
     text: {
-      fontSize: 27,
-      //   marginTop: 5,
-      //  marginLeft: 10,
+      fontSize: 22,
+
       color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
     },
   })
   return (
@@ -39,12 +40,7 @@ const EditUserProfileScreen: React.FC = () => {
       keyboardVerticalOffset={25}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <BackAction
-            style={{
-              backgroundColor: 'white',
-              width: 26,
-              height: 26,
-            }}></BackAction>
+          <BackAction></BackAction>
           <Text style={styles.text}>
             {t('editUserProfileScreen.editUserProfile')}
           </Text>

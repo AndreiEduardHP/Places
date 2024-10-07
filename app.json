@@ -4,15 +4,17 @@
     "slug": "places",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.jpg",
+    "icon": "./assets/logo1.png",
     "userInterfaceStyle": "light",
     "scheme": "places",
     "splash": {
-      "image": "./assets/logo.jpg",
+      "image": "./assets/logo1.png",
       "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
       [
         "expo-image-picker",
 
@@ -27,27 +29,36 @@
       "bundleIdentifier": "com.andreihp.places",
       "runtimeVersion": {
         "policy": "appVersion"
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need access to your location to provide personalized services based on your location.",
+        "NSLocationAlwaysUsageDescription": "We need access to your location even when the app is in the background to provide continuous location-based services.",
+        "UIBackgroundModes": ["location", "fetch", "remote-notification"]
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.jpg",
+        "foregroundImage": "./assets/logo1.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.andreihp.places",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.DETECT_SCREEN_CAPTURE",
-
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE"
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
       ],
       "runtimeVersion": "1.0.0"
     },
     "web": {
-      "favicon": "./assets/logo.jpg"
+      "favicon": "./assets/logo1.png"
     },
     "extra": {
       "eas": {

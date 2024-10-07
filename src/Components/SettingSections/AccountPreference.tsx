@@ -1,7 +1,5 @@
 import React from 'react'
-import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet } from 'react-native'
-
 import { useUser } from '../../Context/AuthContext'
 import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
@@ -11,13 +9,12 @@ import DarkMode from '../SwitchDarkMode'
 import { useNotification } from '../Notification/NotificationProvider'
 import { config } from '../../config/urlConfig'
 import axios from 'axios'
-import RNPickerSelect from 'react-native-picker-select'
 import i18n from '../../TranslationFiles/i18n'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
-import BackAction from '../Back'
+import { Box, CheckIcon, Select } from 'native-base'
+import { t } from 'i18next'
 
 const AccountPreference: React.FC = () => {
-  const { t } = useTranslation()
   const { loggedUser, refreshData, handleLogout } = useUser()
   const { showNotificationMessage } = useNotification()
   const handleNavigation = useHandleNavigation()
@@ -43,7 +40,7 @@ const AccountPreference: React.FC = () => {
     },
     content: {
       paddingHorizontal: 18,
-      paddingVertical: 10,
+      paddingVertical: 0,
       width: '100%',
     },
     textContent: {
@@ -52,16 +49,14 @@ const AccountPreference: React.FC = () => {
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 10,
+      paddingVertical: 8,
     },
     dropdown: {
-      paddingVertical: 8,
+      paddingVertical: 3,
       paddingHorizontal: 10,
-      borderWidth: 1,
-      borderColor: 'gray',
       borderRadius: 10,
       color: textColor,
-      paddingRight: 30,
+      marginLeft: 20,
     },
   })
 
@@ -70,6 +65,7 @@ const AccountPreference: React.FC = () => {
 
     const requestBody = {
       LanguagePreference: lng,
+      Description: loggedUser?.description,
     }
 
     try {
@@ -112,19 +108,30 @@ const AccountPreference: React.FC = () => {
               {t('accountPreference.changeLanguage')}
             </Text>
           </View>
-          <View>
-            <RNPickerSelect
-              onValueChange={(value: any) => changeLanguagePicker(value)}
-              items={[
-                { label: 'English', value: 'en' },
-                { label: 'Română', value: 'ro' },
-              ]}
-              style={{
-                inputIOS: styles.dropdown,
-                inputAndroid: styles.dropdown,
-              }}
-              useNativeAndroidPickerStyle={false}
-            />
+          <View style={{ flex: 1 }}>
+            <Box w="150" alignSelf="flex-end" style={styles.dropdown}>
+              <Select
+                selectedValue={loggedUser?.languagePreference}
+                minWidth="140"
+                color={textColor}
+                accessibilityLabel="Choose your prefernce"
+                placeholder="Choose your preference"
+                _selectedItem={{
+                  bg: '#00B0EF',
+                  borderRadius: 10,
+                  endIcon: <CheckIcon size="5" />,
+                }}
+                _light={{
+                  borderColor:
+                    loggedUser?.themeColor === 'light' ? 'black' : 'white',
+                  borderWidth: 1,
+                }}
+                mt={1}
+                onValueChange={(itemValue) => changeLanguagePicker(itemValue)}>
+                <Select.Item color={'white'} label="Română" value="ro" />
+                <Select.Item color={'white'} label="English" value="en" />
+              </Select>
+            </Box>
           </View>
         </View>
         <LineComponent />

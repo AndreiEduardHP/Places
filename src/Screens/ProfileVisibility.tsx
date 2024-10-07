@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import { useTranslation } from 'react-i18next'
+import { View, Text, StyleSheet } from 'react-native'
 import { Select, Box, CheckIcon } from 'native-base'
 import FooterNavbar from '../Components/FooterNavbar'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
@@ -9,9 +8,9 @@ import { useUser } from '../Context/AuthContext'
 import axios from 'axios'
 import { useNotification } from '../Components/Notification/NotificationProvider'
 import BackAction from '../Components/Back'
+import { t } from 'i18next'
 
 const ProfileVisibilityScreen: React.FC = () => {
-  const { t } = useTranslation()
   const { loggedUser, refreshData } = useUser()
   const { showNotificationMessage } = useNotification()
   const { backgroundColor, textColor } = useThemeColor()
@@ -25,6 +24,7 @@ const ProfileVisibilityScreen: React.FC = () => {
     const apiUrl = `${config.BASE_URL}/api/UserProfilePreference/${loggedUser?.id}/preferences`
     const requestBody = {
       ProfileVisibility: status,
+      Description: loggedUser?.description,
     }
 
     try {
@@ -53,10 +53,11 @@ const ProfileVisibilityScreen: React.FC = () => {
       backgroundColor: backgroundColor,
     },
     text: {
-      fontSize: 32,
-      fontWeight: '300',
-      //  marginHorizontal: 20,
+      fontSize: 22,
+
       color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
     },
     content: {
       justifyContent: 'center',
@@ -89,18 +90,13 @@ const ProfileVisibilityScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <BackAction
-          style={{
-            backgroundColor: 'white',
-            width: 26,
-            height: 26,
-          }}></BackAction>
+        <BackAction></BackAction>
 
-        <Text style={styles.text}>Profile Visibility</Text>
+        <Text style={styles.text}>{t('labels.profileVisibility')}</Text>
       </View>
       <Text style={{ color: textColor, marginLeft: 20, marginTop: 10 }}>
         {' '}
-        You can set the Confidentiality status for your profile
+        {t('labels.profileVisibilitySubTitle')}
       </Text>
       <View style={{ flex: 1 }}>
         <Box w="90%" alignSelf="center" style={styles.dropdown}>
@@ -111,7 +107,8 @@ const ProfileVisibilityScreen: React.FC = () => {
             accessibilityLabel="Choose Visibility"
             placeholder="Choose Visibility"
             _selectedItem={{
-              bg: 'teal.600',
+              bg: '#00B0EF',
+              borderRadius: 10,
               endIcon: <CheckIcon size="5" />,
             }}
             mt={1}

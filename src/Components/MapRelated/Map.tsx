@@ -1,19 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Marker } from 'react-native-maps'
 import MapView from 'react-native-map-clustering'
-import * as Location from 'expo-location'
 import MapViewDirections from 'react-native-maps-directions'
 import {
   View,
   Linking,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Keyboard,
-  TextInput,
   Text,
-  Button,
-  FlatList,
+  Image,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native'
@@ -27,15 +23,21 @@ import { useNotification } from '../Notification/NotificationProvider'
 import UserLocationMarker from './UserLocationMarkerComponent'
 import SavedMarker from './SavedMarkerComponent'
 import EventDetails from './EventDetailsDrawer'
-import { MapMarker, MapMarkerDetail } from '../../Interfaces/IUserData'
+import {
+  MapMarker,
+  MapMarkerDetail,
+  MapMarkerDetailConnection,
+} from '../../Interfaces/IUserData'
 import GooglePlacesInput from './GoogleAutocomplete'
 import { RouteProp, useRoute } from '@react-navigation/native'
 import { RootStackParamList } from '../../Navigation/Types'
-import Stepper from 'react-native-stepper-ui'
 import StepperHorizontal from '../../Screens/Stepper'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { t } from 'i18next'
-import { useThemeColor } from '../../Utils.tsx/ComponentColors.tsx/DarkModeColors'
+import SearchEvent from './SearchEvent'
+import { getLocation } from '../../Services/CurrentLocation'
+import { map } from '../../config/mapConfig'
+import ConnectionMarker from './ConnectionMarker'
 
 const CustomeMap: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<MapMarker | null>(null)
@@ -43,7 +45,6 @@ const CustomeMap: React.FC = () => {
   const [selectedMarker, setSelectedMarker] = useState<MapMarkerDetail | null>(
     null,
   )
-  const apiKey = 'AIzaSyAjpd8EvSYVtI-6tta5IXQYaIJp5PdCS8I'
   const [routeDistance, setRouteDistance] = useState<number | null>(null)
   const [routeDuration, setRouteDuration] = useState<number | null>(null)
   const [drawerVisible, setDrawerVisible] = useState(false)
@@ -57,49 +58,45 @@ const CustomeMap: React.FC = () => {
   const [refreshParticipantsTrigger, setRefreshParticipantsTrigger] =
     useState(false)
   const [optionVisible, setOptionVisible] = useState(false)
-
   const { loggedUser } = useUser()
   const route = useRoute<RouteProp<RootStackParamList, 'MapScreen'>>()
   const [savedMarkers, setSavedMarkers] = useState<MapMarkerDetail[]>([])
+  const [connectionMarkers, setConnectionMarkers] = useState<
+    MapMarkerDetailConnection[]
+  >([])
   const [isChecked, setChecked] = useState(false)
   const { showNotificationMessage } = useNotification()
-  const { backgroundColor } = useThemeColor()
-
-  const getLocation = async () => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        console.error('Permission to access location was denied')
-        return
-      }
-
-      let location = await await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-      if (location) {
-        setCurrentLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          key: 'currentLocation',
-        })
-      }
-    } catch (error) {
-      console.error('Error getting current location:', error)
-    }
-  }
+  const [searchLocation, setSearchLocation] = useState<boolean>(true)
+  const [searchEvent, setSearchEvent] = useState<boolean>(false)
+  const [focusInput, setFocusInput] = useState(false)
+  const savedMarkersMemoized = useMemo(() => savedMarkers, [savedMarkers])
+  const [selectedMarkerKey, setSelectedMarkerKey] = useState<string | null>(
+    null,
+  ) // State to control which marker should show callout
+  const googlePlacesRef = useRef<any>(null)
+  console.log(loggedUser?.role)
   useEffect(() => {
-    getLocation()
+    fetchLocation()
   }, [])
-
+  const fetchLocation = useCallback(async () => {
+    const location = await getLocation()
+    if (location) {
+      setCurrentLocation({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        key: 'currentLocation',
+      })
+    }
+  }, [])
   useEffect(() => {
     fetchEvents()
+    fetchConnections()
   }, [selectedMarker])
 
   const fetchEvents = async () => {
     try {
       const response = await axios.get(`${config.BASE_URL}/api/Event`)
 
-      // Transform eventData into savedMarkers
       const newMarkers: MapMarkerDetail[] = response.data.map((res: any) => ({
         latitude: res.locationLatitude,
         longitude: res.locationLongitude,
@@ -109,10 +106,41 @@ const CustomeMap: React.FC = () => {
         eventImage: res.eventImage,
         maxParticipants: res.maxParticipants,
         createdByUserId: res.createdByUserId,
+        otherRelevantInformation: res.otherRelevantInformation,
+        imageAlbumUrls: res.eventAlbumImages.map(
+          (image: any) => image.imageUrl,
+        ),
       }))
 
       setSavedMarkers(newMarkers)
+      console.log(savedMarkers)
       setMarkers([])
+    } catch (error) {
+      console.error('Error fetching events:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  const fetchConnections = async () => {
+    try {
+      const response = await axios.get(
+        `${config.BASE_URL}/api/Friend/acceptedFriendRequests/${loggedUser?.id}`,
+      )
+
+      const newMarkers: MapMarkerDetailConnection[] = response.data.map(
+        (res: any) => ({
+          latitude: res.latitude,
+          longitude: res.longitude,
+          key: res.requestId.toString(),
+          senderName: res.senderName,
+          senderPicture: res.senderPicture,
+          profile: res.profile,
+          status: res.status,
+        }),
+      )
+      setConnectionMarkers(newMarkers)
+
+      // setMarkers([])
     } catch (error) {
       console.error('Error fetching events:', error)
     } finally {
@@ -133,8 +161,8 @@ const CustomeMap: React.FC = () => {
       mapRef.current.animateToRegion({
         latitude: targetLatitude,
         longitude: targetLongitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
+        latitudeDelta: 0.11,
+        longitudeDelta: 0.11,
       })
     } else if (
       isMapReady &&
@@ -147,8 +175,8 @@ const CustomeMap: React.FC = () => {
       mapRef.current.animateToRegion({
         latitude: currentLocation.latitude,
         longitude: currentLocation.longitude,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
+        latitudeDelta: 0.25,
+        longitudeDelta: 0.25,
       })
     }
   }, [
@@ -160,8 +188,6 @@ const CustomeMap: React.FC = () => {
   ])
 
   const handleMapPress = async (e: any) => {
-    // Check if there is already a marker at the pressed coordinates
-
     const isExistingMarker = markers.some(
       (marker) =>
         marker.latitude === e.nativeEvent.coordinate.latitude &&
@@ -174,11 +200,9 @@ const CustomeMap: React.FC = () => {
     )
 
     if (isExistingMarker || isExistingHardcodedMarker) {
-      // Don't add a marker if there is already one at the pressed coordinates
       return
     }
 
-    // Check if the pressed location matches the current location
     if (
       currentLocation &&
       e.nativeEvent.coordinate.latitude === currentLocation.latitude &&
@@ -204,7 +228,12 @@ const CustomeMap: React.FC = () => {
   }
   const handleMarkerPress = (marker: MapMarkerDetail) => {
     setSelectedMarker(marker)
-
+    setSelectedMarkerKey(marker.key)
+    //  setDrawerVisible(true)
+    //  userHasJoinedEvent(marker.key, loggedUser?.id)
+  }
+  const handleCalloutPress = (marker: MapMarkerDetail) => {
+    setSelectedMarker(marker)
     setDrawerVisible(true)
     userHasJoinedEvent(marker.key, loggedUser?.id)
   }
@@ -389,154 +418,324 @@ const CustomeMap: React.FC = () => {
       showNotificationMessage('Failed to update coordinates', 'fail')
     }
   }
+  const handleEventSelect = (event: {
+    locationLatitude: any
+    locationLongitude: any
+    maxParticipants: any
+    createdByUserId: any
+    eventName: any
+    eventImage: any
+    eventDescription: any
+    otherRelevantInformation: any
+    id: { toString: () => any }
+  }) => {
+    const selectedLocation = {
+      latitude: event.locationLatitude,
+      longitude: event.locationLongitude,
+      key: event.id.toString(),
+      eventName: event.eventName,
+      eventImage: event.eventImage,
+      eventDescription: event.eventDescription,
+      otherRelevantInformation: event.otherRelevantInformation,
+      maxParticipants: event.maxParticipants,
+      createdByUserId: event.createdByUserId,
+    }
 
+    setSearchEvent(false)
+    //   setSearchEvent(false)
+
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          latitudeDelta: 0.0011,
+          longitudeDelta: 0.0011,
+        },
+        1000,
+      )
+    }
+    handleMarkerPress(selectedLocation)
+  }
   if (isLoading) {
     return <LoadingComponent />
   }
 
   return (
     <>
-      <MapView
-        ref={mapRef}
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
-        initialRegion={{
-          latitude: currentLocation?.latitude || 0,
-          longitude: currentLocation?.longitude || 0,
-          latitudeDelta: 0.1,
-          longitudeDelta: 0.1,
-        }}
-        showsTraffic={true}
-        userInterfaceStyle={
-          loggedUser?.themeColor === 'dark' ? 'dark' : 'light'
-        }
-        onLongPress={handleMapPress}
-        onPress={() => Keyboard.dismiss()}
-        onMapReady={() => setIsMapReady(true)}>
-        {markers.map((marker) => (
-          <Marker
-            key={marker.key}
-            coordinate={{
-              latitude: marker.latitude,
-              longitude: marker.longitude,
-            }}
-            draggable={true}
-            onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
-            title={marker.eventName}
-            description={`${t('map.description')}: ${marker.latitude} ${marker.longitude}`}
-            onPress={() => handleMarkerPress(marker)}
-          />
-        ))}
-        {currentLocation && (
-          <UserLocationMarker
-            coordinate={{
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
-            }}></UserLocationMarker>
-        )}
-        {savedMarkers.map((marker) => (
-          <SavedMarker
-            key={marker.key}
-            coordinate={{
-              latitude: marker.latitude,
-              longitude: marker.longitude,
-            }}
-            draggable={true}
-            onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
-            title={marker.eventName}
-            description={`${t('map.description')}: ${marker.eventDescription}`}
-            eventName={marker.eventName}
-            eventDescription={marker.eventDescription}
-            createdByUserId={marker.createdByUserId}
-            onPress={() => handleMarkerPress(marker)}
-          />
-        ))}
+        behavior={Platform.OS === 'ios' ? undefined : 'height'}>
+        <MapView
+          ref={mapRef}
+          style={{ flex: 1 }}
+          googleRenderer={'LEGACY'}
+          initialRegion={{
+            latitude: currentLocation?.latitude || 0,
+            longitude: currentLocation?.longitude || 0,
+            latitudeDelta: 0.1,
+            longitudeDelta: 0.1,
+          }}
+          showsTraffic={true}
+          userInterfaceStyle={
+            loggedUser?.themeColor === 'dark' ? 'dark' : 'light'
+          }
+          onLongPress={handleMapPress}
+          onPress={() => {
+            Keyboard.dismiss()
+          }}
+          onMapReady={() => setIsMapReady(true)}>
+          {markers.map((marker, index) => (
+            <Marker
+              key={`marker-${marker.key}-${index}`}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              draggable={true}
+              onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
+              title={marker.eventName}
+              description={`${t('map.description')}: ${marker.latitude} ${marker.longitude}`}
+              onPress={() => handleMarkerPress(marker)}
+            />
+          ))}
+          {currentLocation && (
+            <UserLocationMarker
+              coordinate={{
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+              }}></UserLocationMarker>
+          )}
+          {savedMarkersMemoized.map((marker, index) => (
+            <SavedMarker
+              key={`savedMarker-${marker.key}-${index}`}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              draggable={marker.createdByUserId === loggedUser?.id}
+              onDragEnd={(e) => handleMarkerDragEnd(marker, e)}
+              title={marker.eventName}
+              description={`${t('map.description')}: ${marker.eventDescription}`}
+              eventName={marker.eventName}
+              eventDescription={marker.eventDescription}
+              createdByUserId={marker.createdByUserId}
+              onPress={() => handleMarkerPress(marker)}
+              onPressCallOut={() => handleCalloutPress(marker)}
+              eventImage={marker.eventImage}
+              showCallout={selectedMarker?.key === marker.key}
+              deselectRoute={deselectRoute}
+            />
+          ))}
+          {connectionMarkers.map((marker, index) => (
+            <ConnectionMarker
+              key={`connectionMarker-${marker.requestId}-${index}`}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              draggable={true}
+              title={marker.senderName}
+              description={`${t('Nume')}: ${marker.senderName}`}
+              latitude={marker.latitude}
+              longitude={marker.longitude}
+              senderName={marker.senderName}
+              senderPicture={marker.senderPicture}
+              personData={{
+                friendRequestStatus: marker.status,
+                areFriends: true,
+                id: marker.profile.id,
+                username: marker.profile.username,
+                firstName: marker.profile.firstName,
+                lastName: marker.profile.lastName,
+                phoneNumber: marker.profile.phoneNumber,
+                description: marker.profile.description,
+                email: marker.profile.email,
+                interest: marker.profile.interest,
+                profilePicture: marker.senderPicture,
+                city: marker.profile.city,
+                currentLocationId: 0,
+                notificationToken: marker.profile.notificationToken,
+              }}
+              status={marker.status}
+            />
+          ))}
 
-        {currentLocation && selectedMarker && (
-          <MapViewDirections
-            origin={{
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
-            }}
-            destination={{
-              latitude: selectedMarker.latitude,
-              longitude: selectedMarker.longitude,
-            }}
-            apikey={apiKey}
-            strokeWidth={3}
-            strokeColor="#00B0EF"
-            onReady={(result) => {
-              setRouteDistance(result.distance)
-              setRouteDuration(result.duration)
-            }}
-          />
+          {currentLocation && selectedMarker && (
+            <MapViewDirections
+              origin={{
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+              }}
+              destination={{
+                latitude: selectedMarker.latitude,
+                longitude: selectedMarker.longitude,
+              }}
+              apikey={map.key}
+              strokeWidth={3}
+              strokeColor="#00B0EF"
+              onReady={(result) => {
+                setRouteDistance(result.distance)
+                setRouteDuration(result.duration)
+              }}
+            />
+          )}
+        </MapView>
+        {searchLocation && (
+          <View
+            style={{
+              position: 'absolute',
+              width: '98%',
+              left: '1%',
+              zIndex: 2,
+              backgroundColor: 'white',
+              shadowColor: 'black',
+              shadowOffset: { width: 2, height: 2 },
+              shadowOpacity: 0.5,
+              shadowRadius: 4,
+              elevation: 4,
+              padding: 1,
+              borderRadius: 8,
+              top: '1%',
+            }}>
+            <GooglePlacesInput
+              ref={googlePlacesRef}
+              onLocationSelected={handleNewLocationSelected}
+              onInputChange={handleInputChange}
+              userCurrentLatitude={currentLocation?.latitude ?? 0}
+              userCurrentLongitude={currentLocation?.longitude ?? 0}
+            />
+          </View>
         )}
-      </MapView>
-      <View
-        style={{
-          position: 'absolute',
-          width: '98%',
-          left: '1%',
-          zIndex: 2,
-          backgroundColor: 'white',
-          shadowColor: 'black',
-          shadowOffset: { width: 2, height: 2 },
-          shadowOpacity: 0.5,
-          shadowRadius: 4,
-          elevation: 4,
-          padding: 1,
-          borderRadius: 8,
-          top: '1%',
-        }}>
-        <GooglePlacesInput
-          onLocationSelected={handleNewLocationSelected}
-          onInputChange={handleInputChange}
-          userCurrentLatitude={currentLocation?.latitude ?? 0}
-          userCurrentLongitude={currentLocation?.longitude ?? 0}
-        />
-      </View>
-      {optionVisible && isInputEmpty && (
-        <View style={styles.optionContainer}>
-          <TouchableOpacity onPress={() => handleOptionSelect('add')}>
-            <Text style={{ color: 'white' }}>Add Event</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleOptionSelect('navigate')}>
-            <Text style={{ color: 'white' }}>Navigate to Location</Text>
+        {optionVisible && isInputEmpty && (
+          <View style={styles.optionContainer}>
+            <TouchableOpacity onPress={() => handleOptionSelect('add')}>
+              <Text style={{ color: 'white' }}>{t('labels.addEvent')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleOptionSelect('navigate')}>
+              <Text style={{ color: 'white' }}>
+                {t('labels.navigateToLocation')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {searchEvent && (
+          <View
+            style={{
+              position: 'absolute',
+              width: '98%',
+              left: '1%',
+              zIndex: 2,
+              backgroundColor: 'white',
+              shadowColor: 'black',
+              shadowOffset: { width: 2, height: 2 },
+              shadowOpacity: 0.5,
+              shadowRadius: 4,
+              elevation: 4,
+              padding: 1,
+              borderRadius: 8,
+              top: '1%',
+            }}>
+            <SearchEvent
+              focusInput={focusInput}
+              onEventSelect={handleEventSelect}
+            />
+          </View>
+        )}
+
+        <View
+          style={{
+            position: 'absolute',
+            width: 'auto',
+            right: '3%',
+            shadowColor: 'black',
+            shadowOffset: { width: 2, height: 2 },
+            shadowOpacity: 0.4,
+            shadowRadius: 4,
+            elevation: 4,
+            bottom: '8%',
+          }}>
+          <TouchableOpacity
+            style={{
+              paddingTop: 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => {
+              mapRef.current.animateToRegion(
+                {
+                  latitude: currentLocation?.latitude,
+                  longitude: currentLocation?.longitude,
+                  latitudeDelta: 0.03,
+                  longitudeDelta: 0.03,
+                },
+                1000,
+              )
+            }}>
+            <Icon name="explore" size={70} color={'#00B0EF'}></Icon>
           </TouchableOpacity>
         </View>
-      )}
-      <View
-        style={{
-          position: 'absolute',
-          width: 'auto',
-          right: '3%',
-          shadowColor: 'black',
-          shadowOffset: { width: 2, height: 2 },
-          shadowOpacity: 0.5,
-          shadowRadius: 4,
-          elevation: 4,
-          bottom: '8%',
-        }}>
-        <TouchableOpacity
-          style={{
-            paddingTop: 4,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          onPress={() => {
-            mapRef.current.animateToRegion(
-              {
-                latitude: currentLocation?.latitude,
-                longitude: currentLocation?.longitude,
-                latitudeDelta: 0.03,
-                longitudeDelta: 0.03,
-              },
-              1000,
-            )
-          }}>
-          <Icon name="explore" size={70} color={'#00B0EF'}></Icon>
-        </TouchableOpacity>
-      </View>
+        {loggedUser?.role !== 'agency' && (
+          <View
+            style={{
+              position: 'absolute',
+              width: 'auto',
+              left: '3%',
+              shadowColor: 'black',
+              shadowOffset: { width: 2, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
 
+              elevation: 4,
+              bottom: '8%',
+            }}>
+            <TouchableOpacity
+              style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              onPress={() => {
+                setSearchLocation(false)
+                setSearchEvent(true)
+                setFocusInput(true)
+              }}>
+              <Image
+                source={require('../../../assets/Icons/search.png')}
+                style={{ width: 40, height: 40, tintColor: '#00B0EF' }}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+        <View
+          style={{
+            position: 'absolute',
+            width: 'auto',
+            left: '3%',
+            shadowColor: 'black',
+            shadowOffset: { width: 2, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 4,
+            bottom: loggedUser?.role !== 'agency' ? '14%' : '8%',
+          }}>
+          <TouchableOpacity
+            style={{
+              paddingTop: 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => {
+              setSearchLocation(true)
+              setSearchEvent(false)
+              googlePlacesRef.current?.focusInput()
+            }}>
+            <Image
+              source={require('../../../assets/Icons/plus (1).png')}
+              style={{ width: 40, height: 40, tintColor: '#00B0EF' }}
+            />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
       <BottomDrawer
         title={t('bottomDrawer.eventDetails')}
         visible={drawerVisible}
@@ -544,27 +743,33 @@ const CustomeMap: React.FC = () => {
           setDrawerVisible(false)
           deselectRoute()
           Keyboard.dismiss()
+          setSelectedMarker(null)
         }}>
-        {(userHasJoined ||
-          selectedMarker?.createdByUserId === loggedUser?.id) &&
-        selectedMarker ? (
-          <EventDetails
-            refreshSelectedMarkerData={refreshSelectedMarkerData}
-            selectedMarker={selectedMarker}
-            createdByUserId={selectedMarker?.createdByUserId}
-            drawerVisible={drawerVisible}
-            isChecked={isChecked}
-            setChecked={setChecked}
-            userHasJoined={userHasJoined}
-            handleUnJoinEvent={handleUnJoinEvent}
-            handleJoinEvent={handleJoinEvent}
-            routeDistance={routeDistance}
-            routeDuration={routeDuration}
-            openGoogleMaps={openGoogleMaps}
-            markers={markers}
-            refreshParticipantsTrigger={refreshParticipantsTrigger}
-          />
-        ) : (
+        {
+          //userHasJoined ||
+          // selectedMarker?.createdByUserId === loggedUser?.id) &&
+
+          selectedMarker && (
+            //   ? (
+            <EventDetails
+              refreshSelectedMarkerData={refreshSelectedMarkerData}
+              selectedMarker={selectedMarker}
+              createdByUserId={selectedMarker?.createdByUserId}
+              drawerVisible={drawerVisible}
+              isChecked={isChecked}
+              setChecked={setChecked}
+              userHasJoined={userHasJoined}
+              handleUnJoinEvent={handleUnJoinEvent}
+              handleJoinEvent={handleJoinEvent}
+              routeDistance={routeDistance}
+              routeDuration={routeDuration}
+              openGoogleMaps={openGoogleMaps}
+              markers={markers}
+              refreshParticipantsTrigger={refreshParticipantsTrigger}
+            />
+          )
+        }
+        {/*    : (
           selectedMarker && (
             <StepperHorizontal
               refreshSelectedMarkerData={refreshSelectedMarkerData}
@@ -583,11 +788,12 @@ const CustomeMap: React.FC = () => {
               refreshParticipantsTrigger={refreshParticipantsTrigger}
             />
           )
-        )}
+       )}
+      */}
       </BottomDrawer>
 
       <BottomDrawer
-        title="Add new event"
+        title={t('labels.addNewEvent')}
         visible={addNewEvent}
         onClose={() => {
           setAddNewEvent(false)

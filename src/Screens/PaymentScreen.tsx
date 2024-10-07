@@ -14,16 +14,15 @@ import FooterNavbar from '../Components/FooterNavbar'
 import axios from 'axios'
 import { config } from '../config/urlConfig'
 import { useUser } from '../Context/AuthContext'
-import { useTranslation } from 'react-i18next'
 import SvgComponent2 from '../Components/SVG/Shapes/Wow'
 import SvgComponent10 from '../Components/SVG/Shapes/10CreditCard'
 import SvgComponent5 from '../Components/SVG/Shapes/5CreditCard'
-import { LinearGradient } from 'expo-linear-gradient'
-import SVGComponentOFFERS from '../Components/SVG/Shapes/UnlimitedOffers'
 import GradientText from '../Components/SVG/Gradient'
 import { Button, Card } from '@rneui/base'
 import { useThemeColor } from '../Utils.tsx/ComponentColors.tsx/DarkModeColors'
 import BackAction from '../Components/Back'
+import { t } from 'i18next'
+import { stripe } from '../config/stripeConfig'
 
 const PaymentScreen = () => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
@@ -33,7 +32,6 @@ const PaymentScreen = () => {
   const { backgroundColor, textColor } = useThemeColor()
   const [selectedSvg, setSelectedSvg] = useState<any>(null)
   const scrollX = useRef(new Animated.Value(0)).current
-  const { t } = useTranslation()
   const packages = [
     {
       id: 1,
@@ -62,7 +60,7 @@ const PaymentScreen = () => {
       id: 1,
       component: (
         <SvgComponent5
-          name={`${loggedUser?.firstName ?? ''} ${loggedUser?.lastName ?? ''}`}
+          name={`${loggedUser?.firstName ?? ''} ${loggedUser?.lastName.charAt(0) ?? ''}`}
           type="Basic Pack"
           aria-label={undefined}
           aria-busy={undefined}
@@ -90,7 +88,7 @@ const PaymentScreen = () => {
       id: 2,
       component: (
         <SvgComponent2
-          name={`${loggedUser?.firstName ?? ''} ${loggedUser?.lastName ?? ''}`}
+          name={`${loggedUser?.firstName ?? ''} ${loggedUser?.lastName.charAt(0) ?? ''}`}
           type="Standard Pack"
           aria-label={undefined}
           aria-busy={undefined}
@@ -117,7 +115,7 @@ const PaymentScreen = () => {
       id: 3,
       component: (
         <SvgComponent10
-          name={`${loggedUser?.firstName ?? ''} ${loggedUser?.lastName ?? ''}`}
+          name={`${loggedUser?.firstName ?? ''} ${loggedUser?.lastName.charAt(0) ?? ''}`}
           type="Premium Pack"
           aria-label={undefined}
           aria-busy={undefined}
@@ -150,8 +148,8 @@ const PaymentScreen = () => {
     scrollX.setValue(0)
     Animated.loop(
       Animated.timing(scrollX, {
-        toValue: -1000, // Adjust to the total width of the text
-        duration: 10000, // Adjust the duration as needed
+        toValue: -1000,
+        duration: 10000,
         useNativeDriver: true,
       }),
     ).start()
@@ -214,7 +212,6 @@ const PaymentScreen = () => {
   }
 
   const updateUserCredits = async (userId: any, amount: any) => {
-    console.log(userId, amount)
     try {
       const response = await axios.post(
         `${config.BASE_URL}/api/UserProfile/UpdateCredit/${userId}`,
@@ -230,30 +227,120 @@ const PaymentScreen = () => {
       console.error('Error updating credits:', error)
     }
   }
+  const styles = StyleSheet.create({
+    cardContainer: {
+      backgroundColor: backgroundColor,
+      borderColor: textColor,
+      borderWidth: 1,
+      borderRadius: 10,
+      padding: 10,
+      paddingTop: 10,
+      marginTop: 30,
+      marginVertical: 10,
+    },
+    cardTitle: {
+      color: textColor,
+      fontWeight: '300',
+      fontSize: 22,
+    },
+    cardContent: {},
+    priceText: {
+      color: textColor,
+      fontSize: 20,
+      fontWeight: '300',
+    },
+    creditsText: {
+      color: '#CADCFC',
+      fontSize: 24,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: backgroundColor,
+    },
 
+    text: {
+      color: 'white',
+      marginHorizontal: 50,
+    },
+    textStyle: {
+      fontStyle: 'normal',
+      fontWeight: '600',
+      fontSize: 17,
+      marginBottom: 4,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      color: 'white',
+    },
+    textStyle1: {
+      fontStyle: 'normal',
+      fontSize: 22,
+
+      color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
+      textTransform: 'uppercase',
+    },
+    title: {
+      fontSize: 22,
+
+      color: textColor,
+      letterSpacing: -0.6,
+      fontWeight: '300',
+    },
+    button: {
+      padding: 8,
+      borderColor: 'white',
+      borderWidth: 1,
+      alignItems: 'center',
+      margin: 15,
+      marginHorizontal: 21,
+      borderRadius: 10,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.8,
+      shadowRadius: 2,
+      elevation: 5,
+    },
+    selectedButton: {
+      opacity: 1,
+    },
+    unselectedButton: {
+      opacity: 0.6,
+    },
+    card: {
+      height: 200,
+      alignItems: 'center',
+    },
+    buttonText: {
+      fontSize: 18,
+      fontWeight: '400',
+      color: '#FFFFFF',
+    },
+
+    selectedText: {
+      color: '#fff',
+    },
+  })
   return (
     <View style={{ flex: 1, backgroundColor: backgroundColor }}>
       <View style={styles.container}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <BackAction
-            style={{ backgroundColor: 'white', width: 26, height: 30 }}
-          />
+          <BackAction />
           <Text style={styles.title}> {t('paymentsScreen.selectAPack')}</Text>
         </View>
         <View style={{ paddingHorizontal: 15 }}>
           <Text style={styles.textStyle1}>
-            {loggedUser?.firstName} {loggedUser?.lastName}
+            {t('labels.yourOffers')} {loggedUser?.firstName}{' '}
+            {loggedUser?.lastName.charAt(0)}
           </Text>
         </View>
         <ScrollView
           horizontal={true}
           showsHorizontalScrollIndicator={false}
           style={{
-            flex: 1,
-            //marginTop: -45,
-            // height: 30,
+            marginTop: -25,
+            height: 0,
             marginLeft: -20,
-            // backgroundColor: 'blue',
           }}>
           {svgComponents.map((svg) => (
             <TouchableOpacity
@@ -269,11 +356,16 @@ const PaymentScreen = () => {
             </TouchableOpacity>
           ))}
         </ScrollView>
+        <View style={{ flex: 1 }}></View>
         <View style={{ flex: 1, marginTop: -200 }}>
-          <Card containerStyle={[styles.cardContainer, { flex: 1 }]}>
-            <View style={{}}>
+          <Card containerStyle={[styles.cardContainer, { marginTop: -10 }]}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
               <Text style={[styles.cardTitle, { marginLeft: 0, marginTop: 0 }]}>
-                YOUR CREDITS
+                {t('eventForm.yourCredits')}{' '}
               </Text>
               <GradientText
                 svgStyle={{ marginLeft: 0 }}
@@ -288,83 +380,81 @@ const PaymentScreen = () => {
               />
             </View>
             <View style={[styles.cardContent]}>
-              <Text style={[styles.priceText, { marginTop: 25 }]}>
-                Unlimited discounts. No fees.
+              <Text style={[styles.priceText, { marginTop: 0 }]}>
+                {t('labels.unlimitedDiscounts')}
               </Text>
               <Text style={styles.creditsText}>
                 <GradientText
-                  // svgStyle={{ marginTop: -2 }}
                   fontSize={22}
-                  textLines={['Not even hidden ones.']}
+                  textLines={[t('labels.notEvenHiddenOnes')]}
                   gradientStops={[
                     { color: '#00FF00', offset: '0%' },
                     { color: '#006400', offset: '100%' },
                   ]}
                 />
               </Text>
+              {selectedSvg && (
+                <>
+                  <View style={{ marginTop: 10, flexDirection: 'row' }}>
+                    <Text style={styles.cardTitle}>
+                      {t('paymentsScreen.youHaveSelected')}:{' '}
+                    </Text>
+                    <GradientText
+                      fontSize={24}
+                      textLines={[
+                        packages.find((pack) => pack.id === selectedSvg)
+                          ?.name || '',
+                      ]}
+                      gradientStops={[
+                        { color: '#F103AE', offset: '0%' },
+                        { color: '#FF5447', offset: '50%' },
+                        { color: '#FF7B21', offset: '80%' },
+                        { color: '#F1F3FF', offset: '100%' },
+                      ]}
+                    />
+                  </View>
+                  <View style={[styles.cardContent]}>
+                    <Text style={styles.priceText}>
+                      {t('labels.price')}:{' '}
+                      {packages.find((pack) => pack.id === selectedSvg)?.price +
+                        ' RON' ?? 'Default Price'}
+                    </Text>
+                    <Text style={styles.creditsText}>
+                      <GradientText
+                        fontSize={22}
+                        textLines={[
+                          packages.find((pack) => pack.id === selectedSvg)
+                            ?.credits + ` ${t('labels.creditsReceived')}` ??
+                            'CREDITS',
+                        ]}
+                        gradientStops={[
+                          { color: '#F103AE', offset: '0%' },
+                          { color: '#CADCFC', offset: '100%' },
+                        ]}
+                      />
+                    </Text>
+                  </View>
+                </>
+              )}
             </View>
           </Card>
 
-          {selectedSvg && (
-            <Card containerStyle={styles.cardContainer}>
-              <View style={{}}>
-                <Text style={styles.cardTitle}>
-                  {t('paymentsScreen.youHaveSelected')}:{' '}
-                </Text>
-                <GradientText
-                  //  svgStyle={{ marginTop: -3 }}
-                  fontSize={24}
-                  textLines={[
-                    packages.find((pack) => pack.id === selectedSvg)?.name ||
-                      '',
-                  ]}
-                  gradientStops={[
-                    { color: '#F103AE', offset: '0%' },
-                    { color: '#FF5447', offset: '50%' },
-                    { color: '#FF7B21', offset: '80%' },
-                    { color: '#F1F3FF', offset: '100%' },
-                  ]}
-                />
-              </View>
-              <View style={[styles.cardContent]}>
-                <Text style={styles.priceText}>
-                  {t('Price')}:{' '}
-                  {packages.find((pack) => pack.id === selectedSvg)?.price +
-                    ' RON' ?? 'Default Price'}
-                </Text>
-                <Text style={styles.creditsText}>
-                  <GradientText
-                    // svgStyle={{ marginTop: -2 }}
-                    fontSize={22}
-                    textLines={[
-                      packages.find((pack) => pack.id === selectedSvg)
-                        ?.credits + ' CREDITS RECEIVED' ?? 'CREDITS',
-                    ]}
-                    gradientStops={[
-                      { color: '#F103AE', offset: '0%' },
-                      { color: '#CADCFC', offset: '100%' },
-                    ]}
-                  />
-                </Text>
-              </View>
-            </Card>
-          )}
           <View style={{ display: 'none' }}>
-            <StripeProvider publishableKey="pk_test_51Op4EpBTlGDnVojpVzF4ZIMSKiYRbkgmTqIaTQWXjQ770OmFqdTYrSTquxwBOJyijVhwv8aRgHcudIJIpNasGiou001kLR8gLR">
+            <StripeProvider publishableKey={stripe.publishableKey}>
               <Text> {t('paymentsScreen.payments')}</Text>
             </StripeProvider>
           </View>
-
+          <View style={{ flex: 1 }}></View>
           <Button
             onPress={openPaymentSheet}
             containerStyle={{
               width: Dimensions.get('window').width,
-              flex: 1,
               alignContent: 'center',
               justifyContent: 'center',
               alignSelf: 'center',
               paddingHorizontal: 15,
-              // marginVertical: 10,
+              marginVertical: 30,
+              bottom: 0,
             }}
             buttonStyle={{
               backgroundColor: 'black',
@@ -372,7 +462,7 @@ const PaymentScreen = () => {
               borderColor: 'white',
               borderRadius: 10,
             }}>
-            <Text style={styles.buttonText}>Proceed to Pay</Text>
+            <Text style={styles.buttonText}>{t('buttons.proceedToPay')}</Text>
           </Button>
         </View>
       </View>
@@ -382,112 +472,5 @@ const PaymentScreen = () => {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  cardContainer: {
-    backgroundColor: 'rgba(0,0,0,1)',
-    borderColor: 'white',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    paddingTop: 10,
-    marginTop: 30,
-    marginVertical: 10,
-    //  flex: 1,
-  },
-  cardTitle: {
-    color: 'white',
-    fontWeight: '300',
-    fontSize: 22,
-  },
-  cardContent: {
-    //  backgroundColor: 'red',
-  },
-  priceText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '300',
-  },
-  creditsText: {
-    color: '#CADCFC',
-    fontSize: 24,
-  },
-  container: {
-    flex: 1,
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    // padding: 20,
-
-    backgroundColor: 'black',
-  },
-
-  text: {
-    color: 'white',
-    marginHorizontal: 50, // Space between repetitions of text
-  },
-  textStyle: {
-    fontStyle: 'normal',
-    fontWeight: '600',
-    fontSize: 17,
-    marginBottom: 4,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: 'white',
-  },
-  textStyle1: {
-    fontStyle: 'normal',
-    fontWeight: '500',
-    fontSize: 37,
-
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    color: 'rgba(217,217,217,1)',
-  },
-  title: {
-    fontStyle: 'normal',
-    fontWeight: '400',
-
-    fontSize: 22,
-    lineHeight: 30,
-    color: 'white',
-    //  marginTop: 20,
-    // marginBottom: 5,
-    //  marginHorizontal: 10,
-    textTransform: 'uppercase',
-  },
-  button: {
-    padding: 8,
-    borderColor: 'white',
-    borderWidth: 1,
-    alignItems: 'center',
-    margin: 15,
-    marginHorizontal: 21,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
-  },
-  selectedButton: {
-    opacity: 1,
-  },
-  unselectedButton: {
-    opacity: 0.6,
-  },
-  card: {
-    height: 200,
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: '400',
-    color: '#FFFFFF',
-  },
-
-  selectedText: {
-    color: '#fff',
-  },
-})
 
 export default PaymentScreen

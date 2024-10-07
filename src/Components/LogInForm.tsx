@@ -10,25 +10,21 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Platform,
+  ActivityIndicator,
 } from 'react-native'
 import axios from 'axios'
 import { t } from 'i18next'
 import { validatePhoneNumber } from '../Utils.tsx/EmailValidation'
-import {
-  disabledButtonStyle,
-  enabledButtonStyle,
-} from '../Utils.tsx/ComponentColors.tsx/ButtonsColor'
 import { useUser } from '../Context/AuthContext'
 import { useHandleNavigation } from '../Navigation/NavigationUtil'
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
-import { initializeApp } from 'firebase/app'
-import { getAuth, signInWithCredential, PhoneAuthProvider } from 'firebase/auth'
+import { signInWithCredential, PhoneAuthProvider, getAuth } from 'firebase/auth'
 import LoadingComponent from './Loading/Loading'
 import { useNotification } from './Notification/NotificationProvider'
 import { LinearGradient } from 'expo-linear-gradient'
 import { config } from '../config/urlConfig'
 import SegmentedCodeInput from './SegmentedInput'
-import { Box, Menu, Pressable } from 'native-base'
+import { Menu, Pressable } from 'native-base'
 import getCountryCode from '../Utils.tsx/GetCountryCode'
 import { auth, app, firebaseConfig } from '../Utils.tsx/Firebase'
 
@@ -37,7 +33,7 @@ const countries = [
   { label: 'Romania', value: 'ro' },
 ]
 
-type CountryCode = 'usa' | 'ro' // Add more country codes as needed
+type CountryCode = 'usa' | 'ro'
 
 const countryData: Record<
   CountryCode,
@@ -45,7 +41,6 @@ const countryData: Record<
 > = {
   usa: { flag: require('../../assets/flags/usa.png'), prefix: '+1' },
   ro: { flag: require('../../assets/flags/ro.jpg'), prefix: '+40' },
-  // Add other countries with their flags and prefixes here
 }
 
 const LogInForm: React.FC = () => {
@@ -61,8 +56,13 @@ const LogInForm: React.FC = () => {
   const [phonePrefix, setPhonePrefix] = useState(countryData.ro.prefix)
   const [phoneNumber, setPhoneNumber] = useState<string>('')
   const isFormComplete = validatePhoneNumber(phoneNumber)
+  const [isLoadingButton, setIsLoadingButton] = useState(false)
   // const phonePrefix = '+4'
+  // If null, no SMS has been sent
+  const [confirm, setConfirm] = useState<any>(null)
 
+  // verification code (OTP - One-Time-Passcode)
+  // const [code, setCode] = useState('')
   const { showNotificationMessage } = useNotification()
 
   useEffect(() => {
@@ -105,7 +105,7 @@ const LogInForm: React.FC = () => {
   }
 
   const sendVerification = async () => {
-    console.log(0 + phoneNumber)
+    setIsLoadingButton(true)
     try {
       const response = await axios.get(
         `${config.BASE_URL}/api/userprofile/checkifphonenumberexists?phoneNumber=${0 + phoneNumber}`,
@@ -118,19 +118,36 @@ const LogInForm: React.FC = () => {
             phonePrefix + phoneNumber,
             recaptchaVerifier.current,
           )
+          //  signInWithPhoneNumber(phonePrefix + phoneNumber)
           setVerificationId(verificationId)
+          setIsLoadingButton(false)
           return verificationId
         } catch (error) {
           showNotificationMessage('Send code error', 'fail')
+          setIsLoadingButton(false)
           throw new Error('Failed to send verification code')
         }
       } else if (response.status === 204) {
         showNotificationMessage('Phone number not found', 'neutral')
+        setIsLoadingButton(false)
       }
     } catch (error) {
       showNotificationMessage('Error', 'fail')
+      setIsLoadingButton(false)
     }
   }
+  //  async function signInWithPhoneNumber(phoneNumber: string) {
+  //   const confirmation = await auth().signInWithPhoneNumber(phoneNumber)
+  //     setConfirm(confirmation)
+  // }
+
+  // async function confirmCode() {
+  //  try {
+  //   await confirm.confirm(code)
+  // } catch (error) {
+  //   console.log('Invalid code.')
+  // }
+  // }
 
   const confirmCode = async () => {
     if (!verificationId) {
@@ -150,12 +167,10 @@ const LogInForm: React.FC = () => {
       return false
     }
   }
+
   const formatPhoneNumber = (phoneNumber: string | any[]) => {
-    // Ultimele trei cifre ale numărului de telefon
     const lastThreeDigits = phoneNumber.slice(-3)
-    // Prefixul format din 7 asteriscuri
-    const maskedPart = '*******'
-    // Concatenarea părților pentru a obține numărul de telefon formatat
+    const maskedPart = '******'
     return `${maskedPart}${lastThreeDigits}`
   }
 
@@ -266,15 +281,11 @@ const LogInForm: React.FC = () => {
                   {phonePrefix}
                 </Text>
                 <TextInput
-                  placeholder={
-                    //  { phonePrefix }.phonePrefix + t('logInScreen.phoneNumber')
-                    '721 221 122'
-                  }
+                  placeholder={'721 221 122'}
                   value={phoneNumber}
                   keyboardType="phone-pad"
                   onChangeText={(text) => setPhoneNumber(text)}
                   style={[
-                    //  styles.input,
                     {
                       borderColor:
                         validatePhoneNumber(phoneNumber) && phoneNumber
@@ -288,7 +299,7 @@ const LogInForm: React.FC = () => {
 
               <TouchableOpacity
                 onPress={sendVerification}
-                //  onPress={() => handleLogin(phoneNumber)}
+                // onPress={() => handleLogin(0 + phoneNumber)}
                 disabled={isFormComplete}>
                 <LinearGradient
                   colors={['#5151C6', '#888BF4']}
@@ -300,7 +311,11 @@ const LogInForm: React.FC = () => {
                       ? styles.disabledButtonStyle
                       : styles.enabledButtonStyle,
                   ]}>
-                  <Text style={[styles.text, {}]}>{t('buttons.logIn')}</Text>
+                  {isLoadingButton ? (
+                    <ActivityIndicator size="large" color={'white'} />
+                  ) : (
+                    <Text style={styles.text}>{t('buttons.logIn')}</Text>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
               <View style={{ alignItems: 'center', marginVertical: 10 }}>
@@ -410,7 +425,10 @@ const LogInForm: React.FC = () => {
                 {t(
                   'A text message with a six-digit verification code has been sent to your phone number ending in ',
                 )}
-                <Text>{formatPhoneNumber(phoneNumber)}</Text>
+                <Text>
+                  {phonePrefix}
+                  {formatPhoneNumber(phoneNumber)}
+                </Text>
               </Text>
 
               <SegmentedCodeInput
@@ -469,13 +487,9 @@ const styles = StyleSheet.create({
   },
   dropdownButton: {
     flexDirection: 'row',
-    // alignItems: 'center',
     width: 50,
     height: 40,
     margin: 3,
-
-    //borderWidth: 1,
-    // paddingHorizontal: 15,
   },
   dropdownButtonText: {
     color: 'black',
