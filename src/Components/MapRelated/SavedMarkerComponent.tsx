@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native'
 import { Skeleton } from '@rneui/base'
+import WebView from 'react-native-webview'
 interface SavedMarkerProps extends MapMarkerProps {
   coordinate: {
     latitude: number
@@ -56,7 +57,15 @@ const SavedMarker: React.FC<SavedMarkerProps> = ({
       }
     }
   }, [showCallout])
-
+  const generateHTMLForImage = (imageUri: string) => {
+    return `
+      <html>
+        <body style="margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;">
+          <img src="${imageUri}" style="width: 100%; height: 100%; object-fit: cover;" />
+        </body>
+      </html>
+    `
+  }
   return (
     <Marker
       ref={markerRef}
@@ -117,7 +126,7 @@ const SavedMarker: React.FC<SavedMarkerProps> = ({
                   if (deselectRoute) deselectRoute()
                 }
               }}>
-              <Icon name="close" size={26} color={'black'} />
+              <Icon name="close" size={28} color={'black'} />
             </TouchableOpacity>
           )}
 
@@ -128,13 +137,16 @@ const SavedMarker: React.FC<SavedMarkerProps> = ({
             }}>
             <View style={styles.calloutContent}>
               {Platform.OS === 'android' ? (
-                <Text style={styles.imageWrapperAndroid}>
-                  <Image
-                    resizeMode="cover"
-                    source={{ uri: eventImage }}
-                    style={styles.imageAndroid}
+                eventImage ? (
+                  <WebView
+                    source={{ html: generateHTMLForImage(eventImage) }} // Generează HTML pentru imagine
+                    style={styles.webViewAndroid} // Stilul pentru WebView
+                    onLoadStart={() => setLoadingMarkersImages(true)}
+                    onLoadEnd={() => setLoadingMarkersImages(false)}
                   />
-                </Text>
+                ) : (
+                  <Text>No image available</Text> // Fallback dacă imaginea nu este disponibilă
+                )
               ) : (
                 <Image
                   source={{ uri: eventImage }} // Asum că ai o cale URL pentru imagine
@@ -183,11 +195,17 @@ const styles = StyleSheet.create({
     height: '50%',
     width: '100%',
   },
+  webViewAndroid: {
+    width: '100%',
+    height: 150,
+
+    top: 5,
+  },
   imageWrapperAndroid: {
-    height: 200,
-    flex: 1,
-    marginTop: -85,
-    width: 330,
+    height: 10,
+    //flex: 1,
+    //marginTop: -85,
+    width: 10,
   },
   calloutContainer: {
     width: 200, // Poți ajusta lățimea după necesități
@@ -221,13 +239,12 @@ const styles = StyleSheet.create({
   markerContainer: {
     alignItems: 'center', // Centers the text and icon
   },
-  calloutContent: {
-    // marginTop: 20, // Adăugăm marja de sus la conținutul Callout
-  },
+  calloutContent: {},
+
   closeButton: {
     position: 'absolute', // Poziționează iconița absolut
-    right: '-1%', // În partea dreaptă cu o margine de 10
-    top: '-1%', // Poziționează iconița la 10px de sus
+    right: '-4%', // În partea dreaptă cu o margine de 10
+    top: '-4%', // Poziționează iconița la 10px de sus
     zIndex: 2, // Asigură-te că iconița este deasupra altor elemente
     backgroundColor: 'white',
     borderTopLeftRadius: 50,
@@ -235,9 +252,13 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 50,
   },
   calloutImage: {
-    width: '100%',
-    height: 100,
-    borderRadius: 4,
+    ...Platform.select({
+      android: {
+        width: '100%',
+        height: '100%',
+      },
+      ios: { width: '100%', height: 150 },
+    }),
   },
   calloutTitle: {
     fontWeight: 'bold',
