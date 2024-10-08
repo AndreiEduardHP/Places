@@ -14,6 +14,7 @@ import {
 } from 'react-native'
 import { Skeleton } from '@rneui/base'
 import { useHandleNavigation } from '../../Navigation/NavigationUtil'
+import WebView from 'react-native-webview'
 
 interface ConnectionMarkerProps extends MapMarkerProps {
   latitude: number
@@ -51,7 +52,15 @@ const ConnectionMarker: React.FC<ConnectionMarkerProps> = ({
   const [loading, setLoading] = useState(true)
   const markerRef = useRef<any>()
   const navigate = useHandleNavigation()
-
+  const generateHTMLForImage = (imageUri: string) => {
+    return `
+      <html>
+        <body style="margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;">
+          <img src="${imageUri}" style="width: 100%; height: 100%; object-fit: cover;" />
+        </body>
+      </html>
+    `
+  }
   return (
     <Marker
       ref={markerRef}
@@ -96,13 +105,14 @@ const ConnectionMarker: React.FC<ConnectionMarkerProps> = ({
           onPress={() => navigate('SelectedPersonInfo', { personData })}>
           <View style={styles.calloutContainer}>
             {Platform.OS === 'android' ? (
-              <Text style={styles.imageWrapperAndroid}>
-                <Image
-                  resizeMode="cover"
-                  source={{ uri: senderPicture }}
-                  style={styles.imageAndroid}
+              senderPicture ? (
+                <WebView
+                  source={{ html: generateHTMLForImage(senderPicture) }} // Generează HTML pentru imagine
+                  style={styles.webViewAndroid} // Stilul pentru WebView
                 />
-              </Text>
+              ) : (
+                <Text>No image available</Text> // Fallback dacă imaginea nu este disponibilă
+              )
             ) : (
               <Image
                 source={{ uri: senderPicture }}
@@ -155,6 +165,12 @@ const styles = StyleSheet.create({
     position: 'relative', // Allows positioning of the image within this container
     justifyContent: 'center', // Center the image vertically
     alignItems: 'center', // Center the image horizontally
+  },
+  webViewAndroid: {
+    width: '100%',
+    height: 150,
+    //borderRadius: 50,
+    // top: 10,
   },
   iconImage: {
     position: 'absolute', // Overlay the image on the icon
